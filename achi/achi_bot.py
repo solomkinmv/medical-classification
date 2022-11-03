@@ -1,5 +1,6 @@
 import json
 import logging
+from uuid import uuid4
 import os
 from typing import Dict, List, Tuple
 
@@ -83,6 +84,27 @@ def select_factory(options: List[Tuple[str, str]]):
 
     return select_inner
 
+async def put(update, context):
+    """Usage: /put value"""
+    # Generate ID and separate value from command
+    key = str(uuid4())
+    # We don't use context.args here, because the value may contain whitespaces
+    value = update.message.text.partition(' ')[2]
+
+    # Store value
+    context.user_data[key] = value
+    # Send the key to the user
+    await update.message.reply_text(key)
+
+async def get(update, context):
+    """Usage: /get uuid"""
+    # Separate ID from command
+    key = context.args[0]
+
+    # Load value and send it to the user
+    value = context.user_data.get(key, 'Not found')
+    await update.message.reply_text(value)
+
 
 if __name__ == '__main__':
     achi_data = parse_data_tree()
@@ -105,6 +127,9 @@ if __name__ == '__main__':
 
     inline_caps_handler = InlineQueryHandler(inline_caps)
     application.add_handler(inline_caps_handler)
+
+    application.add_handler(CommandHandler('put', put))
+    application.add_handler(CommandHandler('get', get))
 
     # Other handlers
     unknown_handler = MessageHandler(filters.COMMAND, unknown)
