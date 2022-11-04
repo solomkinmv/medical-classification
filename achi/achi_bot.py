@@ -49,21 +49,7 @@ async def inline_caps(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 async def unknown(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await context.bot.send_message(chat_id=update.effective_chat.id, text="Sorry, I didn't understand that command.")
-
-
-async def select(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    context.chat_data.clear()
-    context.chat_data["level"] = 0
-    await context.bot.send_message(chat_id=update.effective_chat.id,
-                                   text="Please choose:",
-                                   reply_markup=InlineKeyboardMarkup(inline_keyboard=[
-                                       [
-                                           InlineKeyboardButton("Option 1", callback_data="1"),
-                                           InlineKeyboardButton("Option 2", callback_data="2"),
-                                       ],
-                                       [InlineKeyboardButton("Option 3", callback_data="3")],
-                                   ]))
+    await context.bot.send_message(chat_id=update.effective_chat.id, text="Вибачте, я не зрозумів вашу команду.")
 
 
 async def button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -80,17 +66,16 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
     achi_node = context.bot_data["achi_data"][query.data]
     if level == 3:
+        await query.delete_message()
         for record in achi_node["children"]:
             code = record["code"]
             name_ua = record["name_ua"]
-            await context.bot.send_message(chat_id=update.effective_chat.id, text=f"Code: {code}\nName: {name_ua}")
+            await context.bot.send_message(chat_id=update.effective_chat.id, text=f"*Код: {code}*\nНазва: {name_ua}",
+                                           parse_mode="markdown")
     else:
-        await query.edit_message_text(text=f"Selected option: {query.data}")
-        await context.bot.send_message(chat_id=update.effective_chat.id, text=f"Level {level}")
-        await context.bot.send_message(chat_id=update.effective_chat.id,
-                                       text="Please choose:",
-                                       reply_markup=build_reply_keyboard_markup(
-                                           build_keys_for_each_children(context.bot_data["achi_data"], achi_node)))
+        await query.edit_message_text(text="Оберіть категорію:",
+                                      reply_markup=build_reply_keyboard_markup(
+                                          build_keys_for_each_children(context.bot_data["achi_data"], achi_node)))
 
 
 def select_factory(options: List[Tuple[str, str]]):
@@ -99,7 +84,7 @@ def select_factory(options: List[Tuple[str, str]]):
     async def select_inner(update: Update, context: ContextTypes.DEFAULT_TYPE):
         context.chat_data["level"] = 0
         await context.bot.send_message(chat_id=update.effective_chat.id,
-                                       text="Please choose:",
+                                       text="Оберіть категорію:",
                                        reply_markup=reply_markup)
 
     return select_inner
@@ -115,9 +100,9 @@ def build_keys_for_each_children(achi_data: Dict, achi_node: Dict) -> List[Tuple
 
 
 if __name__ == '__main__':
-    achi_data = parse_data_tree()
+    parsed_data = parse_data_tree()
     application = ApplicationBuilder().token(os.environ['TOKEN']).build()
-    application.bot_data["achi_data"] = achi_data
+    application.bot_data["achi_data"] = parsed_data
 
     start_handler = CommandHandler('start', start)
     application.add_handler(start_handler)
@@ -129,7 +114,7 @@ if __name__ == '__main__':
     application.add_handler(caps_handler)
 
     select_handler = CommandHandler("select", select_factory(
-        build_keys_for_each_children(achi_data, achi_data["0"])))
+        build_keys_for_each_children(parsed_data, parsed_data["0"])))
     application.add_handler(select_handler)
 
     application.add_handler(CallbackQueryHandler(button))
@@ -147,5 +132,9 @@ if __name__ == '__main__':
 TODO:
 * skip selection if only one option available
 * button to start selection
-* replace inline buttons on each selection
+* go to previous category
+* Use sentence case for categories
+* Shorted word "ПРОЦЕДУРИ"
+* show full text on hover or hold
+* try to use message + button instead of inline buttons
 """
