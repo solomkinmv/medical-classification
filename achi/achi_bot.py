@@ -1,10 +1,9 @@
 import json
 import logging
-from uuid import uuid4
 import os
 from typing import Dict, List, Tuple
 
-from telegram import InlineQueryResultArticle, InputTextMessageContent, ReplyKeyboardMarkup, KeyboardButton
+from telegram import InlineQueryResultArticle, InputTextMessageContent
 from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton
 from telegram.ext import filters, MessageHandler, ApplicationBuilder, CommandHandler, ContextTypes, InlineQueryHandler, \
     CallbackQueryHandler
@@ -17,7 +16,7 @@ logging.basicConfig(
 
 def parse_data_tree() -> Dict:
     # Opening JSON file
-    with open('achi_custom.json', 'r') as openfile:
+    with open('achi.json', 'r') as openfile:
         return json.load(openfile)
 
 
@@ -54,14 +53,17 @@ async def unknown(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 async def select(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("Please choose:",
-                                    reply_markup=InlineKeyboardMarkup(inline_keyboard=[
-                                        [
-                                            InlineKeyboardButton("Option 1", callback_data="1"),
-                                            InlineKeyboardButton("Option 2", callback_data="2"),
-                                        ],
-                                        [InlineKeyboardButton("Option 3", callback_data="3")],
-                                    ]))
+    context.chat_data.clear()
+    context.chat_data["level"] = 0
+    await context.bot.send_message(chat_id=update.effective_chat.id,
+                                   text="Please choose:",
+                                   reply_markup=InlineKeyboardMarkup(inline_keyboard=[
+                                       [
+                                           InlineKeyboardButton("Option 1", callback_data="1"),
+                                           InlineKeyboardButton("Option 2", callback_data="2"),
+                                       ],
+                                       [InlineKeyboardButton("Option 3", callback_data="3")],
+                                   ]))
 
 
 async def button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -72,44 +74,50 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     # Some clients may have trouble otherwise. See https://core.telegram.org/bots/api#callbackquery
     await query.answer()
 
-    await query.edit_message_text(text=f"Selected option: {query.data}")
+    level = context.chat_data.get("level", 0)  # todo: what if no level
+    context.chat_data["choice"] = query.data
+    context.chat_data["level"] = level + 1
+
+    achi_node = context.bot_data["achi_data"][query.data]
+    if level == 3:
+        for record in achi_node["children"]:
+            code = record["code"]
+            name_ua = record["name_ua"]
+            await context.bot.send_message(chat_id=update.effective_chat.id, text=f"Code: {code}\nName: {name_ua}")
+    else:
+        await query.edit_message_text(text=f"Selected option: {query.data}")
+        await context.bot.send_message(chat_id=update.effective_chat.id, text=f"Level {level}")
+        await context.bot.send_message(chat_id=update.effective_chat.id,
+                                       text="Please choose:",
+                                       reply_markup=build_reply_keyboard_markup(
+                                           build_keys_for_each_children(context.bot_data["achi_data"], achi_node)))
 
 
 def select_factory(options: List[Tuple[str, str]]):
-    inline_buttons = [[InlineKeyboardButton(option[0], callback_data=option[1])] for option in options]
+    reply_markup = build_reply_keyboard_markup(options)
 
     async def select_inner(update: Update, context: ContextTypes.DEFAULT_TYPE):
-        await update.message.reply_text("Please choose:",
-                                        reply_markup=InlineKeyboardMarkup(inline_keyboard=inline_buttons))
+        context.chat_data["level"] = 0
+        await context.bot.send_message(chat_id=update.effective_chat.id,
+                                       text="Please choose:",
+                                       reply_markup=reply_markup)
 
     return select_inner
 
-async def put(update, context):
-    """Usage: /put value"""
-    # Generate ID and separate value from command
-    key = str(uuid4())
-    # We don't use context.args here, because the value may contain whitespaces
-    value = update.message.text.partition(' ')[2]
 
-    # Store value
-    context.user_data[key] = value
-    # Send the key to the user
-    await update.message.reply_text(key)
+def build_reply_keyboard_markup(options: List[Tuple[str, str]]) -> InlineKeyboardMarkup:
+    inline_buttons = [[InlineKeyboardButton(option[0], callback_data=option[1])] for option in options]
+    return InlineKeyboardMarkup(inline_keyboard=inline_buttons)
 
-async def get(update, context):
-    """Usage: /get uuid"""
-    # Separate ID from command
-    key = context.args[0]
 
-    # Load value and send it to the user
-    value = context.user_data.get(key, 'Not found')
-    await update.message.reply_text(value)
+def build_keys_for_each_children(achi_data: Dict, achi_node: Dict) -> List[Tuple[str, str]]:
+    return [(achi_data[str(key)]["name_ua"], key) for key in achi_node["children"]]
 
 
 if __name__ == '__main__':
     achi_data = parse_data_tree()
-    level_one_keys = [(key, "arg") for key in achi_data['children'].keys()]
     application = ApplicationBuilder().token(os.environ['TOKEN']).build()
+    application.bot_data["achi_data"] = achi_data
 
     start_handler = CommandHandler('start', start)
     application.add_handler(start_handler)
@@ -120,16 +128,14 @@ if __name__ == '__main__':
     caps_handler = CommandHandler('caps', caps)
     application.add_handler(caps_handler)
 
-    select_handler = CommandHandler("select", select_factory(level_one_keys))
+    select_handler = CommandHandler("select", select_factory(
+        build_keys_for_each_children(achi_data, achi_data["0"])))
     application.add_handler(select_handler)
 
     application.add_handler(CallbackQueryHandler(button))
 
     inline_caps_handler = InlineQueryHandler(inline_caps)
     application.add_handler(inline_caps_handler)
-
-    application.add_handler(CommandHandler('put', put))
-    application.add_handler(CommandHandler('get', get))
 
     # Other handlers
     unknown_handler = MessageHandler(filters.COMMAND, unknown)
