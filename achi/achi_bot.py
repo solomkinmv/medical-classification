@@ -142,3 +142,10 @@ if __name__ == '__main__':
     application.add_handler(unknown_handler)
 
     application.run_polling()
+
+"""
+TODO:
+* skip selection if only one option available
+* button to start selection
+* replace inline buttons on each selection
+"""
