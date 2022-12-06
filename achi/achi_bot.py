@@ -3,10 +3,11 @@ import logging
 import os
 from typing import Dict, List, Tuple
 
-from telegram import InlineQueryResultArticle, InputTextMessageContent
-from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton
-from telegram.ext import filters, MessageHandler, ApplicationBuilder, CommandHandler, ContextTypes, InlineQueryHandler, \
-    CallbackQueryHandler
+from telegram import InlineQueryResultArticle, InputTextMessageContent, ReplyKeyboardMarkup, KeyboardButton
+from telegram import Update
+from telegram.ext import filters, MessageHandler, ApplicationBuilder, CommandHandler, ContextTypes, InlineQueryHandler
+
+LAST_MESSAGE_ID_KEY = "last_message_id"
 
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -16,7 +17,7 @@ logging.basicConfig(
 
 def parse_data_tree() -> Dict:
     # Opening JSON file
-    with open('achi.json', 'r') as openfile:
+    with open('data/achi_hierarchy.json', 'r') as openfile:
         return json.load(openfile)
 
 
@@ -24,8 +25,43 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await context.bot.send_message(chat_id=update.effective_chat.id, text="I'm a bot, please talk to me!")
 
 
-async def echo(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await context.bot.send_message(chat_id=update.effective_chat.id, text=update.message.text)
+async def text(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    message_text = update.message.text
+    level = context.chat_data.get("level", 0)  # todo: what if no level
+    context.chat_data[f'choice{level}'] = message_text
+    context.chat_data["level"] = level + 1
+
+    achi_node = context.bot_data["achi_data"]
+    breadcrumbs = []
+    for i in range(level + 1):
+        achi_node = achi_node["children"][context.chat_data[f'choice{i}']]
+        breadcrumbs.append(context.chat_data[f"choice{i}"])
+
+    joined_breadcrumbs = " -> ".join(breadcrumbs)
+
+    await clean_up_old_messages(context, update)
+
+    if level == 3:
+        await context.bot.send_message(chat_id=update.effective_chat.id, text=f"{joined_breadcrumbs}")
+        for record in achi_node["children"]:
+            code = record["code"]
+            name_ua = record["name_ua"]
+            await context.bot.send_message(chat_id=update.effective_chat.id,
+                                           text=f"*Код: {code}*\nНазва: {name_ua}",
+                                           parse_mode="markdown")
+    else:
+        sent_message = await context.bot.send_message(chat_id=update.effective_chat.id,
+                                                      text=f"{joined_breadcrumbs}\nОберіть категорію:",
+                                                      reply_markup=build_reply_keyboard_markup(achi_node["children"]))
+        context.chat_data[LAST_MESSAGE_ID_KEY] = sent_message.message_id
+        return
+
+
+async def clean_up_old_messages(context, update):
+    await context.bot.delete_message(chat_id=update.effective_chat.id, message_id=update.message.message_id)
+    if LAST_MESSAGE_ID_KEY in context.chat_data:
+        await context.bot.delete_message(chat_id=update.effective_chat.id,
+                                         message_id=context.chat_data[LAST_MESSAGE_ID_KEY])
 
 
 async def caps(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -37,14 +73,12 @@ async def inline_caps(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.inline_query.query
     if not query:
         return
-    results = []
-    results.append(
-        InlineQueryResultArticle(
-            id=query.upper(),
-            title='Caps',
-            input_message_content=InputTextMessageContent(query.upper())
-        )
-    )
+
+    results = [InlineQueryResultArticle(
+        id=query.upper(),
+        title='Caps',
+        input_message_content=InputTextMessageContent(query.upper())
+    )]
     await context.bot.answer_inline_query(update.inline_query.id, results)
 
 
@@ -52,47 +86,22 @@ async def unknown(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await context.bot.send_message(chat_id=update.effective_chat.id, text="Вибачте, я не зрозумів вашу команду.")
 
 
-async def button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Parses the CallbackQuery and updates the message text."""
-    query = update.callback_query
-
-    # CallbackQueries need to be answered, even if no notification to the user is needed
-    # Some clients may have trouble otherwise. See https://core.telegram.org/bots/api#callbackquery
-    await query.answer()
-
-    level = context.chat_data.get("level", 0)  # todo: what if no level
-    context.chat_data["choice"] = query.data
-    context.chat_data["level"] = level + 1
-
-    achi_node = context.bot_data["achi_data"][query.data]
-    if level == 3:
-        await query.delete_message()
-        for record in achi_node["children"]:
-            code = record["code"]
-            name_ua = record["name_ua"]
-            await context.bot.send_message(chat_id=update.effective_chat.id, text=f"*Код: {code}*\nНазва: {name_ua}",
-                                           parse_mode="markdown")
-    else:
-        await query.edit_message_text(text="Оберіть категорію:",
-                                      reply_markup=build_reply_keyboard_markup(
-                                          build_keys_for_each_children(context.bot_data["achi_data"], achi_node)))
-
-
-def select_factory(options: List[Tuple[str, str]]):
+def select_factory(options: List[str]):
     reply_markup = build_reply_keyboard_markup(options)
 
     async def select_inner(update: Update, context: ContextTypes.DEFAULT_TYPE):
         context.chat_data["level"] = 0
-        await context.bot.send_message(chat_id=update.effective_chat.id,
-                                       text="Оберіть категорію:",
-                                       reply_markup=reply_markup)
+        sent_message = await context.bot.send_message(chat_id=update.effective_chat.id,
+                                                      text="Оберіть категорію:",
+                                                      reply_markup=reply_markup)
+        context.chat_data["last_message_id"] = sent_message.message_id
 
     return select_inner
 
 
-def build_reply_keyboard_markup(options: List[Tuple[str, str]]) -> InlineKeyboardMarkup:
-    inline_buttons = [[InlineKeyboardButton(option[0], callback_data=option[1])] for option in options]
-    return InlineKeyboardMarkup(inline_keyboard=inline_buttons)
+def build_reply_keyboard_markup(options: List[str]) -> ReplyKeyboardMarkup:
+    buttons = [[KeyboardButton(option)] for option in options]
+    return ReplyKeyboardMarkup(keyboard=buttons, resize_keyboard=True, one_time_keyboard=False)
 
 
 def build_keys_for_each_children(achi_data: Dict, achi_node: Dict) -> List[Tuple[str, str]]:
@@ -107,17 +116,15 @@ if __name__ == '__main__':
     start_handler = CommandHandler('start', start)
     application.add_handler(start_handler)
 
-    echo_handler = MessageHandler(filters.TEXT & (~filters.COMMAND), echo)
-    application.add_handler(echo_handler)
+    input_handler = MessageHandler(filters.TEXT & (~filters.COMMAND), text)
+    application.add_handler(input_handler)
 
     caps_handler = CommandHandler('caps', caps)
     application.add_handler(caps_handler)
 
     select_handler = CommandHandler("select", select_factory(
-        build_keys_for_each_children(parsed_data, parsed_data["0"])))
+        parsed_data["children"].keys()))
     application.add_handler(select_handler)
-
-    application.add_handler(CallbackQueryHandler(button))
 
     inline_caps_handler = InlineQueryHandler(inline_caps)
     application.add_handler(inline_caps_handler)
@@ -134,7 +141,5 @@ TODO:
 * button to start selection
 * go to previous category
 * Use sentence case for categories
-* Shorted word "ПРОЦЕДУРИ"
-* show full text on hover or hold
-* try to use message + button instead of inline buttons
+* add breadcrumbs
 """
