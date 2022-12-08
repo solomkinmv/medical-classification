@@ -7,6 +7,7 @@ from telegram import InlineQueryResultArticle, InputTextMessageContent, ReplyKey
 from telegram import Update
 from telegram.ext import filters, MessageHandler, ApplicationBuilder, CommandHandler, ContextTypes, InlineQueryHandler
 
+BACK = "Назад ⤴️"
 LAST_MESSAGE_ID_KEY = "last_message_id"
 
 logging.basicConfig(
@@ -28,12 +29,17 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def text(update: Update, context: ContextTypes.DEFAULT_TYPE):
     message_text = update.message.text
     level = context.chat_data.get("level", 0)  # todo: what if no level
-    context.chat_data[f'choice{level}'] = message_text
-    context.chat_data["level"] = level + 1
+    if message_text == BACK:
+        level -= 1
+    else:
+        context.chat_data[f'choice{level}'] = message_text
+        level += 1
+
+    context.chat_data["level"] = level
 
     achi_node = context.bot_data["achi_data"]
     breadcrumbs = []
-    for i in range(level + 1):
+    for i in range(level):
         achi_node = achi_node["children"][context.chat_data[f'choice{i}']]
         breadcrumbs.append(context.chat_data[f"choice{i}"])
 
@@ -41,7 +47,12 @@ async def text(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     await clean_up_old_messages(context, update)
 
-    if level == 3:
+    if level == 0:
+        sent_message = await context.bot.send_message(chat_id=update.effective_chat.id,
+                                                      text=f"{joined_breadcrumbs}\nОберіть категорію:",
+                                                      reply_markup=build_reply_keyboard_markup(list(achi_node["children"].keys())))
+        context.chat_data[LAST_MESSAGE_ID_KEY] = sent_message.message_id
+    elif level == 4:
         await context.bot.send_message(chat_id=update.effective_chat.id, text=f"{joined_breadcrumbs}")
         for record in achi_node["children"]:
             code = record["code"]
@@ -51,8 +62,8 @@ async def text(update: Update, context: ContextTypes.DEFAULT_TYPE):
                                            parse_mode="markdown")
     else:
         sent_message = await context.bot.send_message(chat_id=update.effective_chat.id,
-                                                      text=f"{joined_breadcrumbs}\nОберіть категорію:",
-                                                      reply_markup=build_reply_keyboard_markup(achi_node["children"]))
+                                                      text=f"{joined_breadcrumbs}\nОберіть під-категорію:",
+                                                      reply_markup=build_reply_keyboard_markup([BACK] + list(achi_node["children"].keys())))
         context.chat_data[LAST_MESSAGE_ID_KEY] = sent_message.message_id
         return
 
@@ -139,7 +150,6 @@ if __name__ == '__main__':
 TODO:
 * skip selection if only one option available
 * button to start selection
-* go to previous category
 * Use sentence case for categories
-* add breadcrumbs
+* handle case when bot is restarted and state is lost
 """
