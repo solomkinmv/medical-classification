@@ -94,16 +94,16 @@ def parse_achi_file() -> DataTree:
 
         for row in reader:
             lvl_zero_clazz = row[0].strip()
-            lvl_zero_name_ua = row[1].strip()
+            lvl_zero_name_ua = row[1].strip().capitalize()
             lvl_one_code = row[2].strip()
-            lvl_one_name_ua = row[3].strip()
+            lvl_one_name_ua = row[3].strip().capitalize()
             lvl_two_code = row[4].strip()
-            lvl_two_name_ua = row[5].strip()
+            lvl_two_name_ua = row[5].strip().capitalize()
             lvl_three_code = row[6].strip()
-            lvl_three_name_ua = row[7].strip()
+            lvl_three_name_ua = row[7].strip().capitalize()
             lvl_four_code = row[8].strip()
-            lvl_four_name_ua = row[9].strip()
-            lvl_four_name_en = row[10].strip()
+            lvl_four_name_ua = row[9].strip().capitalize()
+            lvl_four_name_en = row[10].strip().capitalize()
             tree.add(lvl_zero_clazz, lvl_zero_name_ua, lvl_one_code, lvl_one_name_ua, lvl_two_code, lvl_two_name_ua,
                      lvl_three_code, lvl_three_name_ua, lvl_four_code, lvl_four_name_ua, lvl_four_name_en)
 
