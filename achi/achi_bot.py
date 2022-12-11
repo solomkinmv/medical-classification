@@ -18,7 +18,7 @@ logging.basicConfig(
 
 def parse_data_tree() -> Dict:
     # Opening JSON file
-    with open('data/achi_hierarchy.json', 'r') as openfile:
+    with open('data/achi.json', 'r') as openfile:
         return json.load(openfile)
 
 
