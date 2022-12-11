@@ -34,4 +34,6 @@ jobs:
 
       - uses: superfly/flyctl-actions/setup-flyctl@master
 
-      - run: flyctl deploy --remote-only
+      - run: |
+          cd achi
+          flyctl deploy --remote-only
