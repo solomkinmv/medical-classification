@@ -5,6 +5,7 @@ from typing import Dict, List, Tuple
 
 from telegram import InlineQueryResultArticle, InputTextMessageContent, ReplyKeyboardMarkup, KeyboardButton
 from telegram import Update
+from telegram.error import BadRequest
 from telegram.ext import filters, MessageHandler, ApplicationBuilder, CommandHandler, ContextTypes, InlineQueryHandler
 
 BACK = "Назад ⤴️"
@@ -28,6 +29,10 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def text(update: Update, context: ContextTypes.DEFAULT_TYPE):
     message_text = update.message.text
+    await proceed_with_selected_option(message_text, update, context)
+
+
+async def proceed_with_selected_option(message_text: str, update: Update, context: ContextTypes.DEFAULT_TYPE):
     level = context.chat_data.get("level", 0)  # todo: what if no level
     if message_text == BACK:
         level -= 1
@@ -61,18 +66,29 @@ async def text(update: Update, context: ContextTypes.DEFAULT_TYPE):
                                            text=f"*Код: {code}*\nНазва: {name_ua}",
                                            parse_mode="markdown")
     else:
+        possible_options = list(achi_node["children"].keys())
+        if len(possible_options) == 1:
+            await proceed_with_selected_option(possible_options[0], update, context)
+            return
+
         sent_message = await context.bot.send_message(chat_id=update.effective_chat.id,
                                                       text=f"{joined_breadcrumbs}\nОберіть під-категорію:",
-                                                      reply_markup=build_reply_keyboard_markup([BACK] + list(achi_node["children"].keys())))
+                                                      reply_markup=build_reply_keyboard_markup(
+                                                          [BACK] + possible_options))
         context.chat_data[LAST_MESSAGE_ID_KEY] = sent_message.message_id
         return
 
 
 async def clean_up_old_messages(context, update):
-    await context.bot.delete_message(chat_id=update.effective_chat.id, message_id=update.message.message_id)
+    try:
+        await context.bot.delete_message(chat_id=update.effective_chat.id, message_id=update.message.message_id)
+    except BadRequest as e:
+        if e.message != "Message to delete not found":  # already deleted, that's fine
+            raise e
     if LAST_MESSAGE_ID_KEY in context.chat_data:
         await context.bot.delete_message(chat_id=update.effective_chat.id,
                                          message_id=context.chat_data[LAST_MESSAGE_ID_KEY])
+        del context.chat_data[LAST_MESSAGE_ID_KEY]
 
 
 async def caps(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -150,6 +166,5 @@ if __name__ == '__main__':
 TODO:
 * skip selection if only one option available
 * button to start selection
-* Use sentence case for categories
 * handle case when bot is restarted and state is lost
 """
