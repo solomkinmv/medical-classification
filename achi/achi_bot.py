@@ -117,6 +117,9 @@ def select_factory(options: List[str]):
     reply_markup = build_reply_keyboard_markup(options)
 
     async def select_inner(update: Update, context: ContextTypes.DEFAULT_TYPE):
+        user = update.message.from_user
+        logging.info(f"User initiated new selection "
+                     f"[id={user.id}, name={user.first_name} {user.last_name}, username={user.username}]")
         context.chat_data["level"] = 0
         sent_message = await context.bot.send_message(chat_id=update.effective_chat.id,
                                                       text="Оберіть категорію:",
