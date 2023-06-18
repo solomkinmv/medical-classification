@@ -22,11 +22,7 @@ class AchiListViewController: UICollectionViewController {
             data = try! DataParser().readData()
         }
 
-        if (data!.children != nil) {
-            setUpHighLevelNodesView()
-        } else {
-            setUpLowLevelNodesView()
-        }
+        setUpHighLevelNodesView()
     }
     
     private func setUpHighLevelNodesView() {
@@ -59,58 +55,29 @@ class AchiListViewController: UICollectionViewController {
         dataSource.apply(snapshot, animatingDifferences: true)
     }
     
-    private func setUpLowLevelNodesView() {
-        let children: [TreeNode] = data!.directChildren!
-        
-        let listLayout = listLayout()
-        collectionView.collectionViewLayout = listLayout
-        
-        let cellRegistration = UICollectionView.CellRegistration {
-            (cell: UICollectionViewListCell, indexPath: IndexPath, itemIdentifier: String) in
-            let child = indexPath.item
-            var contentConfiguration = cell.defaultContentConfiguration()
-            contentConfiguration.text = children[child].code! + ": " + children[child].nameUa!
-            contentConfiguration.secondaryText = children[child].nameEn
-            cell.contentConfiguration = contentConfiguration
-        }
-        
-        
-        dataSource = DataSource(collectionView: collectionView) {
-            (collectionView: UICollectionView, indexPath: IndexPath, itemIdentifier: String) in
-            return collectionView.dequeueConfiguredReusableCell(
-                using: cellRegistration, for: indexPath, item: itemIdentifier)
-        }
-        
-        var snapshot = Snapshot()
-        snapshot.appendSections([0])
-        snapshot.appendItems(children.map( { $0.nameUa! }))
-        
-        // Apply the snapshot to the data source
-        dataSource.apply(snapshot, animatingDifferences: true)
-    }
-    
     private func listLayout() -> UICollectionViewCompositionalLayout {
         var listConfiguration = UICollectionLayoutListConfiguration(appearance: .grouped)
-        listConfiguration.showsSeparators = false
+        listConfiguration.showsSeparators = true
         listConfiguration.backgroundColor = .clear
         return UICollectionViewCompositionalLayout.list(using: listConfiguration)
     }
     
     // Handle selection of a collection view item
     override func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        if data!.children == nil {
-            return
-        }
         let selectedItem = dataSource.itemIdentifier(for: indexPath)
         
-        // Perform navigation to the next view based on the selected item
-//        navigateToNextView(with: selectedItem)
-        
         let nextNode: TreeNode = data!.children![selectedItem!]!
-        let nextVc = storyboard?.instantiateViewController(withIdentifier: "list") as! AchiListViewController
-        nextVc.navigationItem.title = selectedItem
-        nextVc.data = nextNode
-        navigationController?.pushViewController(nextVc, animated: true)
+        if (nextNode.children != nil) {
+            let nextVc = storyboard?.instantiateViewController(withIdentifier: "list") as! AchiListViewController
+            nextVc.navigationItem.title = selectedItem
+            nextVc.data = nextNode
+            navigationController?.pushViewController(nextVc, animated: true)
+        } else {
+            let nextVc = storyboard?.instantiateViewController(withIdentifier: "result") as! ResultingViewController
+            nextVc.navigationItem.title = selectedItem
+            nextVc.childNodes = nextNode.directChildren
+            navigationController?.pushViewController(nextVc, animated: true)
+        }
     }
 }
 

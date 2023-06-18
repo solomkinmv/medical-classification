@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		C411E1CF2A3F9C15009E415E /* ResultingViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C411E1CD2A3F9C15009E415E /* ResultingViewController.swift */; };
 		C47827092A2FD377001F9972 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = C47827082A2FD377001F9972 /* AppDelegate.swift */; };
 		C478270B2A2FD377001F9972 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = C478270A2A2FD377001F9972 /* SceneDelegate.swift */; };
 		C478270D2A2FD377001F9972 /* AchiListViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C478270C2A2FD377001F9972 /* AchiListViewController.swift */; };
@@ -18,6 +19,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		C411E1CD2A3F9C15009E415E /* ResultingViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResultingViewController.swift; sourceTree = "<group>"; };
 		C47827052A2FD377001F9972 /* Green ACHI.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Green ACHI.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		C47827082A2FD377001F9972 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		C478270A2A2FD377001F9972 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
@@ -41,6 +43,31 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		C411E1CC2A3F9BF8009E415E /* View */ = {
+			isa = PBXGroup;
+			children = (
+				C411E1D22A3F9D15009E415E /* Intermediate */,
+				C411E1D12A3F9D0B009E415E /* Resulting */,
+			);
+			path = View;
+			sourceTree = "<group>";
+		};
+		C411E1D12A3F9D0B009E415E /* Resulting */ = {
+			isa = PBXGroup;
+			children = (
+				C411E1CD2A3F9C15009E415E /* ResultingViewController.swift */,
+			);
+			path = Resulting;
+			sourceTree = "<group>";
+		};
+		C411E1D22A3F9D15009E415E /* Intermediate */ = {
+			isa = PBXGroup;
+			children = (
+				C478270C2A2FD377001F9972 /* AchiListViewController.swift */,
+			);
+			path = Intermediate;
+			sourceTree = "<group>";
+		};
 		C47826FC2A2FD377001F9972 = {
 			isa = PBXGroup;
 			children = (
@@ -60,15 +87,14 @@
 		C47827072A2FD377001F9972 /* Green ACHI */ = {
 			isa = PBXGroup;
 			children = (
+				C411E1CC2A3F9BF8009E415E /* View */,
 				C478271C2A2FD47B001F9972 /* data */,
 				C47827082A2FD377001F9972 /* AppDelegate.swift */,
 				C478270A2A2FD377001F9972 /* SceneDelegate.swift */,
-				C478270C2A2FD377001F9972 /* AchiListViewController.swift */,
 				C478270E2A2FD377001F9972 /* Main.storyboard */,
 				C47827112A2FD379001F9972 /* Assets.xcassets */,
 				C47827132A2FD379001F9972 /* LaunchScreen.storyboard */,
 				C47827162A2FD379001F9972 /* Info.plist */,
-				C478271F2A2FD4C5001F9972 /* DataParser.swift */,
 			);
 			path = "Green ACHI";
 			sourceTree = "<group>";
@@ -76,6 +102,7 @@
 		C478271C2A2FD47B001F9972 /* data */ = {
 			isa = PBXGroup;
 			children = (
+				C478271F2A2FD4C5001F9972 /* DataParser.swift */,
 				C478271D2A2FD4A2001F9972 /* achi.json */,
 			);
 			path = data;
@@ -153,6 +180,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C411E1CF2A3F9C15009E415E /* ResultingViewController.swift in Sources */,
 				C478270D2A2FD377001F9972 /* AchiListViewController.swift in Sources */,
 				C47827092A2FD377001F9972 /* AppDelegate.swift in Sources */,
 				C47827202A2FD4C5001F9972 /* DataParser.swift in Sources */,
