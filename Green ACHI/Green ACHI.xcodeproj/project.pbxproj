@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		C411E1CF2A3F9C15009E415E /* ResultingViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C411E1CD2A3F9C15009E415E /* ResultingViewController.swift */; };
+		C411E1D42A3FB22F009E415E /* SearchCollectionReusableView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C411E1D32A3FB22F009E415E /* SearchCollectionReusableView.swift */; };
 		C47827092A2FD377001F9972 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = C47827082A2FD377001F9972 /* AppDelegate.swift */; };
 		C478270B2A2FD377001F9972 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = C478270A2A2FD377001F9972 /* SceneDelegate.swift */; };
 		C478270D2A2FD377001F9972 /* AchiListViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C478270C2A2FD377001F9972 /* AchiListViewController.swift */; };
@@ -20,6 +21,7 @@
 
 /* Begin PBXFileReference section */
 		C411E1CD2A3F9C15009E415E /* ResultingViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResultingViewController.swift; sourceTree = "<group>"; };
+		C411E1D32A3FB22F009E415E /* SearchCollectionReusableView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchCollectionReusableView.swift; sourceTree = "<group>"; };
 		C47827052A2FD377001F9972 /* Green ACHI.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Green ACHI.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		C47827082A2FD377001F9972 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		C478270A2A2FD377001F9972 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
@@ -64,6 +66,7 @@
 			isa = PBXGroup;
 			children = (
 				C478270C2A2FD377001F9972 /* AchiListViewController.swift */,
+				C411E1D32A3FB22F009E415E /* SearchCollectionReusableView.swift */,
 			);
 			path = Intermediate;
 			sourceTree = "<group>";
@@ -183,6 +186,7 @@
 				C411E1CF2A3F9C15009E415E /* ResultingViewController.swift in Sources */,
 				C478270D2A2FD377001F9972 /* AchiListViewController.swift in Sources */,
 				C47827092A2FD377001F9972 /* AppDelegate.swift in Sources */,
+				C411E1D42A3FB22F009E415E /* SearchCollectionReusableView.swift in Sources */,
 				C47827202A2FD4C5001F9972 /* DataParser.swift in Sources */,
 				C478270B2A2FD377001F9972 /* SceneDelegate.swift in Sources */,
 			);
@@ -334,6 +338,8 @@
 				DEVELOPMENT_TEAM = R88PK3G87R;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "Green ACHI/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "АКМІ";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.medical";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				INFOPLIST_KEY_UIMainStoryboardFile = Main;
@@ -362,6 +368,8 @@
 				DEVELOPMENT_TEAM = R88PK3G87R;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "Green ACHI/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "АКМІ";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.medical";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				INFOPLIST_KEY_UIMainStoryboardFile = Main;

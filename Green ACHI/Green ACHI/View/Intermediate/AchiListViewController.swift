@@ -7,7 +7,7 @@
 
 import UIKit
 
-class AchiListViewController: UICollectionViewController {
+class AchiListViewController: UICollectionViewController, UISearchBarDelegate {
     
     typealias DataSource = UICollectionViewDiffableDataSource<Int, String>
     typealias Snapshot = NSDiffableDataSourceSnapshot<Int, String>
@@ -15,13 +15,19 @@ class AchiListViewController: UICollectionViewController {
     var dataSource: DataSource!
     var data: TreeNode?
     
+    private lazy var headerView: SearchCollectionReusableView = {
+        let headerView = SearchCollectionReusableView(frame: CGRect(x: 0, y: 0, width: collectionView.bounds.width, height: 50))
+        // Customize the header view if needed
+        return headerView
+    }()
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view.
         if data == nil {
             data = try! DataParser().readData()
         }
-
+        
         setUpHighLevelNodesView()
     }
     
@@ -40,11 +46,23 @@ class AchiListViewController: UICollectionViewController {
             cell.contentConfiguration = contentConfiguration
         }
         
+        let headerRegistration = UICollectionView.SupplementaryRegistration<SearchCollectionReusableView>(elementKind: UICollectionView.elementKindSectionHeader) { [weak self] supplementaryView, _, _ in
+            // Configure the header view as needed
+            self?.configureHeaderView(supplementaryView)
+        }
         
         dataSource = DataSource(collectionView: collectionView) {
             (collectionView: UICollectionView, indexPath: IndexPath, itemIdentifier: String) in
             return collectionView.dequeueConfiguredReusableCell(
                 using: cellRegistration, for: indexPath, item: itemIdentifier)
+        }
+        
+        // Register the supplementary view using supplementary registration
+        dataSource.supplementaryViewProvider = { [weak self] collectionView, kind, indexPath in
+            if kind == UICollectionView.elementKindSectionHeader {
+                return self?.collectionView.dequeueConfiguredReusableSupplementary(using: headerRegistration, for: indexPath)
+            }
+            return nil
         }
         
         var snapshot = Snapshot()
@@ -56,9 +74,11 @@ class AchiListViewController: UICollectionViewController {
     }
     
     private func listLayout() -> UICollectionViewCompositionalLayout {
-        var listConfiguration = UICollectionLayoutListConfiguration(appearance: .grouped)
+        var listConfiguration = UICollectionLayoutListConfiguration(appearance: .insetGrouped)
         listConfiguration.showsSeparators = true
         listConfiguration.backgroundColor = .clear
+        listConfiguration.headerMode = .supplementary
+        
         return UICollectionViewCompositionalLayout.list(using: listConfiguration)
     }
     
@@ -79,5 +99,16 @@ class AchiListViewController: UICollectionViewController {
             navigationController?.pushViewController(nextVc, animated: true)
         }
     }
+    
+    private func configureHeaderView(_ headerView: SearchCollectionReusableView) {
+        headerView.searchBar.placeholder = "Пошук"
+        headerView.searchBar.delegate = self
+        
+        // Customize the search bar appearance if needed
+        headerView.searchBar.backgroundImage = UIImage()
+    }
+    
+    
+    
 }
 
