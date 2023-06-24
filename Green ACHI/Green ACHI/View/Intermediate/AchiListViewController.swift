@@ -15,6 +15,8 @@ class AchiListViewController: UICollectionViewController, UISearchBarDelegate {
     var dataSource: DataSource!
     var data: TreeNode?
     
+    private let ukrainianComparator: (String, String) -> Bool = { $0.localizedCaseInsensitiveCompare($1) == .orderedAscending }
+    
     private lazy var headerView: SearchCollectionReusableView = {
         let headerView = SearchCollectionReusableView(frame: CGRect(x: 0, y: 0, width: collectionView.bounds.width, height: 50))
         // Customize the header view if needed
@@ -33,7 +35,7 @@ class AchiListViewController: UICollectionViewController, UISearchBarDelegate {
     
     private func setUpHighLevelNodesView() {
         let children = data!.children!
-        let keys: [String] = Array(children.keys.sorted())
+        let keys: [String] = Array(children.keys).sorted(by: ukrainianComparator)
         
         let listLayout = listLayout()
         collectionView.collectionViewLayout = listLayout
@@ -110,13 +112,15 @@ class AchiListViewController: UICollectionViewController, UISearchBarDelegate {
     
     func filterAndApplySnapshot(with searchText: String) {
         // Filter the list keys based on the search bar text
-        let keys: [String] = data!.children!.keys.filter({ searchText.isEmpty ? true : $0.localizedCaseInsensitiveContains(searchText)  }).sorted()
+        let keys: [String] = data!.children!.keys
+            .filter({ searchText.isEmpty ? true : $0.localizedCaseInsensitiveContains(searchText) })
+            .sorted(by: ukrainianComparator)
         
         // Apply the filtered keys to update the collection view
         var snapshot = Snapshot()
         snapshot.appendSections([0])
         snapshot.appendItems(keys)
-
+        
         // Apply the snapshot to the data source
         dataSource.apply(snapshot, animatingDifferences: true)
     }
@@ -149,7 +153,7 @@ class AchiListViewController: UICollectionViewController, UISearchBarDelegate {
             filterAndApplySnapshot(with: searchText)
         }
     }
-
+    
     
 }
 

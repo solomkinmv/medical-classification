@@ -62,7 +62,7 @@
         <!--Resulting View Controller-->
         <scene sceneID="2kB-2t-oeG">
             <objects>
-                <collectionViewController storyboardIdentifier="result" id="MwZ-MQ-vaJ" customClass="ResultingViewController" customModule="Green_ACHI" customModuleProvider="target" sceneMemberID="viewController">
+                <collectionViewController storyboardIdentifier="result" keyboardType="off" id="MwZ-MQ-vaJ" customClass="ResultingViewController" customModule="Green_ACHI" customModuleProvider="target" sceneMemberID="viewController">
                     <collectionView key="view" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" dataMode="prototypes" id="DJh-G5-JHo">
                         <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
