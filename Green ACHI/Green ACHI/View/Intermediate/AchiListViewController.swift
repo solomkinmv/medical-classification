@@ -125,35 +125,22 @@ class AchiListViewController: UICollectionViewController, UISearchBarDelegate {
         dataSource.apply(snapshot, animatingDifferences: true)
     }
     
-    func searchBar(_ searchBar: UISearchBar, shouldChangeTextIn range: NSRange, replacementText text: String) -> Bool {
-        // Calculate the new text after applying the replacement
-        let currentText = searchBar.text ?? ""
-        let newText = (currentText as NSString).replacingCharacters(in: range, with: text)
-        
-        // Apply the new text to the search bar
-        searchBar.text = newText
-        
-        // Ensure that the search bar retains focus and cursor
-        DispatchQueue.main.async {
-            searchBar.becomeFirstResponder()
-        }
-        
-        // Perform filtering and update the collection view as needed
-        filterAndApplySnapshot(with: newText)
-        
-        // Return false to prevent the default behavior of the search bar
-        return false
+    // Function to hide the keyboard
+    func hideKeyboard(_ searchBar: UISearchBar) {
+        searchBar.resignFirstResponder()
     }
     
+    // UISearchBarDelegate method called when the search button is clicked
+    func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
+        hideKeyboard(searchBar)
+    }
+    
+    // UISearchBarDelegate method called when the text changes
     func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
-        if searchText.isEmpty {
-            filterAndApplySnapshot(with: "")
-        } else {
-            // Perform filtering and update the collection view based on the new search text
-            filterAndApplySnapshot(with: searchText)
+        if (searchText.isEmpty) {
+            hideKeyboard(searchBar)
         }
+        filterAndApplySnapshot(with: searchText)
     }
-    
-    
 }
 
