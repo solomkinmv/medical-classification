@@ -33,7 +33,7 @@ class AchiListViewController: UICollectionViewController, UISearchBarDelegate {
     
     private func setUpHighLevelNodesView() {
         let children = data!.children!
-        let keys: [String] = Array(data!.children!.keys.sorted())
+        let keys: [String] = Array(children.keys.sorted())
         
         let listLayout = listLayout()
         collectionView.collectionViewLayout = listLayout
@@ -108,7 +108,48 @@ class AchiListViewController: UICollectionViewController, UISearchBarDelegate {
         headerView.searchBar.backgroundImage = UIImage()
     }
     
+    func filterAndApplySnapshot(with searchText: String) {
+        // Filter the list keys based on the search bar text
+        let keys: [String] = data!.children!.keys.filter({ searchText.isEmpty ? true : $0.localizedCaseInsensitiveContains(searchText)  }).sorted()
+        
+        // Apply the filtered keys to update the collection view
+        var snapshot = Snapshot()
+        snapshot.appendSections([0])
+        snapshot.appendItems(keys)
+
+        // Apply the snapshot to the data source
+        dataSource.apply(snapshot, animatingDifferences: true)
+    }
     
+    func searchBar(_ searchBar: UISearchBar, shouldChangeTextIn range: NSRange, replacementText text: String) -> Bool {
+        // Calculate the new text after applying the replacement
+        let currentText = searchBar.text ?? ""
+        let newText = (currentText as NSString).replacingCharacters(in: range, with: text)
+        
+        // Apply the new text to the search bar
+        searchBar.text = newText
+        
+        // Ensure that the search bar retains focus and cursor
+        DispatchQueue.main.async {
+            searchBar.becomeFirstResponder()
+        }
+        
+        // Perform filtering and update the collection view as needed
+        filterAndApplySnapshot(with: newText)
+        
+        // Return false to prevent the default behavior of the search bar
+        return false
+    }
+    
+    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
+        if searchText.isEmpty {
+            filterAndApplySnapshot(with: "")
+        } else {
+            // Perform filtering and update the collection view based on the new search text
+            filterAndApplySnapshot(with: searchText)
+        }
+    }
+
     
 }
 
