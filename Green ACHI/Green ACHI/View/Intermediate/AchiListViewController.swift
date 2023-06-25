@@ -88,7 +88,10 @@ class AchiListViewController: UICollectionViewController, UISearchBarDelegate {
     override func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         let selectedItem = dataSource.itemIdentifier(for: indexPath)
         
-        let nextNode: TreeNode = data!.children![selectedItem!]!
+        var nextNode: TreeNode = data!.children![selectedItem!]!
+        while (nextNode.children?.count == 1) {
+            nextNode = (nextNode.children?.first?.value)!
+        }
         if (nextNode.children != nil) {
             let nextVc = storyboard?.instantiateViewController(withIdentifier: "list") as! AchiListViewController
             nextVc.navigationItem.title = selectedItem
