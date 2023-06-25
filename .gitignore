@@ -1,2 +1,9 @@
+## JetBrains IDEs
 .idea
-*iml
+*.iml
+
+## Mac OS X
+.DS_Store
+
+## Xcode
+xcuserdata/
