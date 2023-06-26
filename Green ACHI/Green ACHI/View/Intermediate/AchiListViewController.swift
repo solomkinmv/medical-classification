@@ -92,14 +92,16 @@ class AchiListViewController: UICollectionViewController, UISearchBarDelegate {
         while (nextNode.children?.count == 1) {
             nextNode = (nextNode.children?.first?.value)!
         }
+        
+        let nextNavigationTiltle = ViewFactory.navigationBarMultilineTitle(text: selectedItem!)
         if (nextNode.children != nil) {
             let nextVc = storyboard?.instantiateViewController(withIdentifier: "list") as! AchiListViewController
-            nextVc.navigationItem.title = selectedItem
+            nextVc.navigationItem.titleView = nextNavigationTiltle
             nextVc.data = nextNode
             navigationController?.pushViewController(nextVc, animated: true)
         } else {
             let nextVc = storyboard?.instantiateViewController(withIdentifier: "result") as! ResultingViewController
-            nextVc.navigationItem.title = selectedItem
+            nextVc.navigationItem.titleView = nextNavigationTiltle
             nextVc.childNodes = nextNode.directChildren
             navigationController?.pushViewController(nextVc, animated: true)
         }

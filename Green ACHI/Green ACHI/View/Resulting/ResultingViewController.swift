@@ -19,6 +19,7 @@ class ResultingViewController: UICollectionViewController {
         super.viewDidLoad()
 
         setUpLowLevelNodesView()
+        navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .cancel, target: self, action: #selector(goToHome))
     }
     
     private func setUpLowLevelNodesView() {
@@ -56,4 +57,7 @@ class ResultingViewController: UICollectionViewController {
         return UICollectionViewCompositionalLayout.list(using: listConfiguration)
     }
 
+    @objc private func goToHome() {
+        navigationController?.popToRootViewController(animated: true)
+    }
 }
