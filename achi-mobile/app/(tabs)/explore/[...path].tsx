@@ -33,7 +33,7 @@ export default function BrowseScreen() {
   const currentPath = navState.path.map((s) => encodeURIComponent(s.key));
 
   return (
-    <View className="flex-1" style={{ backgroundColor: '#FAFBFC' }}>
+    <View className="flex-1 bg-[#FAFBFC] dark:bg-[#0F0F0F]">
       <Stack.Screen
         options={{
           title: title.length > 25 ? title.substring(0, 25) + "..." : title,
@@ -46,7 +46,7 @@ export default function BrowseScreen() {
         <CategoryList categories={childCategories} basePath={currentPath} />
       ) : (
         <View className="flex-1 items-center justify-center">
-          <Text className="text-gray-500">Нічого не знайдено</Text>
+          <Text className="text-gray-500 dark:text-gray-400">Нічого не знайдено</Text>
         </View>
       )}
     </View>

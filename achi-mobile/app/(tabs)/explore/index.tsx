@@ -14,8 +14,7 @@ export default function ExploreScreen() {
     <FlatList
       data={categories}
       keyExtractor={([key]) => key}
-      className="flex-1"
-      style={{ backgroundColor: '#FAFBFC' }}
+      className="flex-1 bg-[#FAFBFC] dark:bg-[#0F0F0F]"
       contentContainerStyle={{
         paddingHorizontal: CONTENT_PADDING_HORIZONTAL,
         paddingBottom: CONTENT_PADDING_BOTTOM,
@@ -25,7 +24,7 @@ export default function ExploreScreen() {
       showsVerticalScrollIndicator={false}
       removeClippedSubviews
       ListHeaderComponent={
-        <Text className="text-sm text-gray-500 mb-4">
+        <Text className="text-sm text-gray-500 dark:text-gray-400 mb-4">
           Австралійська класифікація медичних інтервенцій
         </Text>
       }
