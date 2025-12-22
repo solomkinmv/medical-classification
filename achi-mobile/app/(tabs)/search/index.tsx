@@ -1,10 +1,12 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { View, Text, FlatList, ActivityIndicator } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { AccentCard } from "@/components/AccentCard";
+import { ProcedureDetailModal } from "@/components/ProcedureDetailModal";
 import { useAchiData } from "@/lib/data-provider";
 import { useFavorites } from "@/lib/favorites-provider";
 import { searchProcedures, type SearchResult } from "@/lib/search";
+import { findProcedurePath } from "@/lib/navigation";
 import { useSearchQuery } from "./_layout";
 import {
   SEARCH_MIN_QUERY_LENGTH,
@@ -12,15 +14,21 @@ import {
   colors,
   CONTENT_PADDING_HORIZONTAL
 } from "@/lib/constants";
+import type { ProcedureCode } from "@/lib/types";
 
 export default function SearchIndex() {
   const { query, debouncedQuery, isSearching } = useSearchQuery();
   const data = useAchiData();
+  const [selectedProcedure, setSelectedProcedure] = useState<ProcedureCode | null>(null);
 
   const results = useMemo(() => {
     if (debouncedQuery.length < SEARCH_MIN_QUERY_LENGTH) return [];
     return searchProcedures(data, debouncedQuery, SEARCH_MAX_RESULTS);
   }, [data, debouncedQuery]);
+
+  const procedurePath = selectedProcedure
+    ? findProcedurePath(data, selectedProcedure.code) ?? []
+    : [];
 
   if (query.length < SEARCH_MIN_QUERY_LENGTH) {
     return (
@@ -61,38 +69,57 @@ export default function SearchIndex() {
   }
 
   return (
-    <FlatList
-      data={results}
-      keyExtractor={(item) => item.code.code}
-      className="flex-1"
-      style={{ backgroundColor: '#FAFBFC' }}
-      contentContainerStyle={{
-        paddingHorizontal: CONTENT_PADDING_HORIZONTAL,
-        paddingTop: 12,
-      }}
-      contentInsetAdjustmentBehavior="automatic"
-      keyboardShouldPersistTaps="handled"
-      showsVerticalScrollIndicator={false}
-      removeClippedSubviews
-      maxToRenderPerBatch={10}
-      initialNumToRender={10}
-      windowSize={5}
-      ListHeaderComponent={
-        <Text className="text-sm text-gray-500 mb-3">
-          Знайдено: {results.length}{" "}
-          {results.length === 1
-            ? "результат"
-            : results.length < 5
-            ? "результати"
-            : "результатів"}
-        </Text>
-      }
-      renderItem={({ item }) => <SearchResultCard result={item} />}
-    />
+    <>
+      <FlatList
+        data={results}
+        keyExtractor={(item) => item.code.code}
+        className="flex-1"
+        style={{ backgroundColor: '#FAFBFC' }}
+        contentContainerStyle={{
+          paddingHorizontal: CONTENT_PADDING_HORIZONTAL,
+          paddingTop: 12,
+        }}
+        contentInsetAdjustmentBehavior="automatic"
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+        removeClippedSubviews
+        maxToRenderPerBatch={10}
+        initialNumToRender={10}
+        windowSize={5}
+        ListHeaderComponent={
+          <Text className="text-sm text-gray-500 mb-3">
+            Знайдено: {results.length}{" "}
+            {results.length === 1
+              ? "результат"
+              : results.length < 5
+              ? "результати"
+              : "результатів"}
+          </Text>
+        }
+        renderItem={({ item }) => (
+          <SearchResultCard
+            result={item}
+            onPress={() => setSelectedProcedure(item.code)}
+          />
+        )}
+      />
+      <ProcedureDetailModal
+        visible={selectedProcedure !== null}
+        procedure={selectedProcedure}
+        path={procedurePath}
+        onClose={() => setSelectedProcedure(null)}
+      />
+    </>
   );
 }
 
-function SearchResultCard({ result }: { result: SearchResult }) {
+function SearchResultCard({
+  result,
+  onPress,
+}: {
+  result: SearchResult;
+  onPress?: () => void;
+}) {
   const { isFavorite, toggleFavorite } = useFavorites();
   const isPinned = isFavorite(result.code.code);
 
@@ -110,6 +137,8 @@ function SearchResultCard({ result }: { result: SearchResult }) {
       onIconPress={() => toggleFavorite(result.code)}
       iconAccessibilityLabel={isPinned ? "Видалити закладку" : "Додати закладку"}
       accessibilityLabel={`${result.code.code}: ${result.code.name_ua}`}
+      onPress={onPress}
+      accessibilityHint="Відкрити деталі процедури"
     />
   );
 }

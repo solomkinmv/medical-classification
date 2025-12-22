@@ -99,3 +99,36 @@ export function getProcedureCodes(
   if (!isLeafLevel(children)) return null;
   return children;
 }
+
+/**
+ * Find the full path to a procedure code in the ACHI tree
+ */
+export function findProcedurePath(
+  data: AchiData,
+  targetCode: string
+): PathSegment[] | null {
+  function searchNode(
+    children: CategoryChildren,
+    currentPath: PathSegment[]
+  ): PathSegment[] | null {
+    if (isLeafLevel(children)) {
+      const found = children.find((proc) => proc.code === targetCode);
+      if (found) {
+        return currentPath;
+      }
+      return null;
+    }
+
+    for (const [key, node] of Object.entries(children)) {
+      const newPath = [...currentPath, { key, name_ua: node.name_ua }];
+      const result = searchNode(node.children, newPath);
+      if (result) {
+        return result;
+      }
+    }
+
+    return null;
+  }
+
+  return searchNode(data.children, []);
+}
