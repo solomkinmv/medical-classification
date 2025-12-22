@@ -1,7 +1,8 @@
 import { useMemo } from "react";
 import { View, Text, ScrollView, Pressable } from "react-native";
 import { Host, Image, Button, ImageProps } from "@expo/ui/swift-ui";
-import { useLocalSearchParams, Stack, useRouter } from "expo-router";
+import { useLocalSearchParams, Stack, useRouter, useNavigationContainerRef } from "expo-router";
+import { CommonActions } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useColorScheme } from "nativewind";
 import { isLiquidGlassAvailable } from "expo-glass-effect";
@@ -20,6 +21,7 @@ export default function ProcedureDetail() {
   const data = useAchiData();
   const { isFavorite, toggleFavorite } = useFavorites();
   const router = useRouter();
+  const navigation = useNavigationContainerRef();
   const insets = useSafeAreaInsets();
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === "dark";
@@ -137,9 +139,58 @@ export default function ProcedureDetail() {
                   <View key={segment.key} style={{ flexDirection: "row", alignItems: "center", marginBottom: 4 }}>
                     <Pressable
                       onPress={() => {
-                        router.dismiss();
-                        router.push(segmentPath as any);
+                        try {
+                          if (!navigation.isReady()) {
+                            router.dismiss();
+                            router.push(segmentPath as any);
+                            return;
+                          }
+
+                          router.dismiss();
+
+                          // Use requestAnimationFrame to ensure modal dismiss completes
+                          requestAnimationFrame(() => {
+                            // Build routes: index + each level of the path hierarchy
+                            const exploreRoutes = [
+                              { name: "index" as const },
+                              ...path.slice(0, index + 1).map((_, i) => ({
+                                name: "[...path]" as const,
+                                params: {
+                                  path: path.slice(0, i + 1).map((p) => p.key),
+                                },
+                              })),
+                            ];
+
+                            navigation.dispatch(
+                              CommonActions.reset({
+                                index: 0, // Single root route: (tabs)
+                                routes: [
+                                  {
+                                    name: "(tabs)",
+                                    state: {
+                                      index: 0, // "explore" is first tab
+                                      routes: [
+                                        {
+                                          name: "explore",
+                                          state: {
+                                            index: exploreRoutes.length - 1, // Target category
+                                            routes: exploreRoutes,
+                                          },
+                                        },
+                                      ],
+                                    },
+                                  },
+                                ],
+                              })
+                            );
+                          });
+                        } catch {
+                          router.dismiss();
+                          router.push(segmentPath as any);
+                        }
                       }}
+                      accessibilityRole="button"
+                      accessibilityLabel={`Перейти до ${segment.name_ua}`}
                     >
                       <Text style={{ fontSize: 14, fontWeight: "500", color: colors.sky[600] }}>
                         {segment.name_ua}
