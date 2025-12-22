@@ -72,6 +72,7 @@ function PinnedCard({ procedure, onToggle }: PinnedCardProps) {
         iconBackground="rgba(245, 158, 11, 0.15)"
         iconSize={18}
         onIconPress={onToggle}
+        isBookmarked={true}
         iconAccessibilityLabel="Видалити закладку"
         accessibilityLabel={`${procedure.code}: ${procedure.name_ua}`}
         accessibilityHint="Відкрити деталі процедури"

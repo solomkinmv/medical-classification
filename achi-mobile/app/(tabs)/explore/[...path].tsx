@@ -1,5 +1,8 @@
+import { useMemo } from "react";
 import { View, Text, FlatList } from "react-native";
 import { useLocalSearchParams, Link, Stack } from "expo-router";
+import { useColorScheme } from "nativewind";
+import { isLiquidGlassAvailable } from "expo-glass-effect";
 import { AccentCard } from "@/components/AccentCard";
 import { useAchiData } from "@/lib/data-provider";
 import { useFavorites } from "@/lib/favorites-provider";
@@ -8,12 +11,15 @@ import {
   getChildCategories,
   getProcedureCodes,
 } from "@/lib/navigation";
-import { colors, CONTENT_PADDING_HORIZONTAL, CONTENT_PADDING_BOTTOM } from "@/lib/constants";
+import { colors, theme, CONTENT_PADDING_HORIZONTAL, CONTENT_PADDING_BOTTOM } from "@/lib/constants";
 import type { CategoryNode, ProcedureCode } from "@/lib/types";
 
 export default function BrowseScreen() {
   const { path } = useLocalSearchParams<{ path: string[] }>();
   const data = useAchiData();
+  const { colorScheme } = useColorScheme();
+  const t = colorScheme === "dark" ? theme.dark : theme.light;
+  const isLiquidGlass = useMemo(() => isLiquidGlassAvailable(), []);
 
   const pathSegments = Array.isArray(path) ? path : path ? [path] : [];
   const navState = resolveNavigationPath(data, pathSegments);
@@ -31,9 +37,10 @@ export default function BrowseScreen() {
     : null;
 
   const currentPath = navState.path.map((s) => encodeURIComponent(s.key));
+  const backgroundColor = isLiquidGlass ? "transparent" : t.background;
 
   return (
-    <View className="flex-1 bg-[#FAFBFC] dark:bg-[#0F0F0F]">
+    <View className="flex-1" style={{ backgroundColor }}>
       <Stack.Screen
         options={{
           title: title.length > 25 ? title.substring(0, 25) + "..." : title,
@@ -130,7 +137,8 @@ function ProcedureCard({ procedure }: { procedure: ProcedureCode }) {
         badgeColor={colors.sky[600]}
         title={procedure.name_ua}
         subtitle={procedure.name_en}
-        icon={isPinned ? "bookmark" : "bookmark-outline"}
+        icon="bookmark"
+        isBookmarked={isPinned}
         iconColor={isPinned ? colors.amber[500] : colors.gray[400]}
         iconBackground={isPinned ? "rgba(245, 158, 11, 0.15)" : "rgba(156, 163, 175, 0.1)"}
         iconSize={18}
