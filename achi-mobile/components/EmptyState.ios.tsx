@@ -1,6 +1,8 @@
+import { useMemo } from "react";
 import { View, Text } from "react-native";
 import { Host, Image, ImageProps } from "@expo/ui/swift-ui";
 import { useColorScheme } from "nativewind";
+import { isLiquidGlassAvailable } from "expo-glass-effect";
 import { theme as themeColors } from "@/lib/constants";
 
 type SFSymbolName = ImageProps["systemName"];
@@ -23,9 +25,11 @@ export function EmptyState({
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === "dark";
   const t = isDark ? themeColors.dark : themeColors.light;
+  const isLiquidGlass = useMemo(() => isLiquidGlassAvailable(), []);
+  const backgroundColor = isLiquidGlass ? "transparent" : t.background;
 
   return (
-    <View className="flex-1 items-center justify-center px-8 bg-[#F0F2F5] dark:bg-[#0A0A0A]">
+    <View className="flex-1 items-center justify-center px-8" style={{ backgroundColor }}>
       <View className="items-center">
         <View
           className="w-20 h-20 rounded-full items-center justify-center mb-4"
@@ -38,7 +42,7 @@ export function EmptyState({
         {title && (
           <Text
             className="text-xl font-semibold text-center"
-            style={{ color: isDark ? "#d1d5db" : "#374151" }}
+            style={{ color: t.text }}
           >
             {title}
           </Text>
