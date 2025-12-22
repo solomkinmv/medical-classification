@@ -21,10 +21,11 @@ export default function AboutScreen() {
 
   return (
     <ScrollView
-      className="flex-1 bg-gray-100"
+      className="flex-1 bg-white"
       contentContainerStyle={{
         paddingHorizontal: CONTENT_PADDING_HORIZONTAL,
         paddingBottom: CONTENT_PADDING_BOTTOM,
+        paddingTop: 8,
       }}
       contentInsetAdjustmentBehavior="automatic"
       showsVerticalScrollIndicator={false}

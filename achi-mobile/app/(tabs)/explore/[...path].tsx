@@ -34,7 +34,7 @@ export default function BrowseScreen() {
   const currentPath = navState.path.map((s) => encodeURIComponent(s.key));
 
   return (
-    <View className="flex-1 bg-gray-100">
+    <View className="flex-1 bg-white">
       <Stack.Screen
         options={{
           title: title.length > 25 ? title.substring(0, 25) + "..." : title,
@@ -67,6 +67,7 @@ function CategoryList({ categories, basePath }: CategoryListProps) {
       contentContainerStyle={{
         paddingHorizontal: CONTENT_PADDING_HORIZONTAL,
         paddingBottom: CONTENT_PADDING_BOTTOM,
+        paddingTop: 8,
       }}
       contentInsetAdjustmentBehavior="automatic"
       showsVerticalScrollIndicator={false}
@@ -127,6 +128,7 @@ function ProcedureList({ codes }: ProcedureListProps) {
       contentContainerStyle={{
         paddingHorizontal: CONTENT_PADDING_HORIZONTAL,
         paddingBottom: CONTENT_PADDING_BOTTOM,
+        paddingTop: 8,
       }}
       contentInsetAdjustmentBehavior="automatic"
       showsVerticalScrollIndicator={false}
