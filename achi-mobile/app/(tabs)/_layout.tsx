@@ -17,6 +17,10 @@ export default function TabLayout() {
         <Icon sf="info.circle" />
         <Label>Про додаток</Label>
       </NativeTabs.Trigger>
+
+      <NativeTabs.Trigger name="search" role="search">
+        <Label>Пошук</Label>
+      </NativeTabs.Trigger>
     </NativeTabs>
   );
 }

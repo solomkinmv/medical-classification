@@ -7,17 +7,15 @@ import {
   Animated,
   StyleSheet,
 } from "react-native";
-import { Link, router } from "expo-router";
+import { Link } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { BlurView } from "expo-blur";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { BlurCard } from "@/components/BlurCard";
 import { useAchiData } from "@/lib/data-provider";
 import { getRootCategories } from "@/lib/navigation";
+import { HEADER_MAX_HEIGHT, HEADER_MIN_HEIGHT, HEADER_SCROLL_DISTANCE, colors } from "@/lib/constants";
 import type { CategoryNode } from "@/lib/types";
-
-const HEADER_MAX_HEIGHT = 140;
-const HEADER_MIN_HEIGHT = 60;
-const HEADER_SCROLL_DISTANCE = HEADER_MAX_HEIGHT - HEADER_MIN_HEIGHT;
 
 export default function ExploreScreen() {
   const data = useAchiData();
@@ -70,16 +68,6 @@ export default function ExploreScreen() {
                 Австралійська класифікація медичних інтервенцій
               </Text>
             </Animated.View>
-
-            <Pressable
-              className="mt-3 flex-row items-center bg-sky-500/20 rounded-2xl px-4 py-3"
-              onPress={() => router.push("/search")}
-            >
-              <Ionicons name="search" size={20} color="#0ea5e9" />
-              <Text className="ml-3 text-sky-600 text-base">
-                Пошук процедури...
-              </Text>
-            </Pressable>
           </BlurView>
         ) : (
           <View style={[styles.headerBlur, { paddingTop: insets.top, backgroundColor: "#0ea5e9" }]}>
@@ -94,16 +82,6 @@ export default function ExploreScreen() {
                 Австралійська класифікація медичних інтервенцій
               </Text>
             </Animated.View>
-
-            <Pressable
-              className="mt-3 flex-row items-center bg-white/20 rounded-2xl px-4 py-3"
-              onPress={() => router.push("/search")}
-            >
-              <Ionicons name="search" size={20} color="rgba(255,255,255,0.8)" />
-              <Text className="ml-3 text-white/80 text-base">
-                Пошук процедури...
-              </Text>
-            </Pressable>
           </View>
         )}
       </Animated.View>
@@ -157,39 +135,31 @@ function CategoryCard({ categoryKey, node }: CategoryCardProps) {
 
   return (
     <Link href={href as `/(tabs)/explore/${string}`} asChild>
-      <Pressable className="mb-3 rounded-2xl overflow-hidden">
-        {Platform.OS === "ios" ? (
-          <BlurView intensity={60} tint="light" className="p-4">
-            <CardContent node={node} />
-          </BlurView>
-        ) : (
-          <View className="p-4 bg-white/90">
-            <CardContent node={node} />
+      <Pressable
+        className="mb-3 rounded-2xl overflow-hidden"
+        accessibilityLabel={node.clazz ? `${node.clazz}: ${node.name_ua}` : node.name_ua}
+        accessibilityRole="button"
+      >
+        <BlurCard>
+          <View className="flex-row items-center justify-between">
+            <View className="flex-1 pr-3">
+              {node.clazz && (
+                <View className="bg-sky-500/10 self-start px-2 py-1 rounded-lg mb-2">
+                  <Text className="text-xs text-sky-600 font-semibold">
+                    {node.clazz}
+                  </Text>
+                </View>
+              )}
+              <Text className="text-base text-gray-800 font-medium" numberOfLines={2}>
+                {node.name_ua}
+              </Text>
+            </View>
+            <View className="w-8 h-8 rounded-full bg-sky-500/10 items-center justify-center">
+              <Ionicons name="chevron-forward" size={18} color={colors.sky[500]} />
+            </View>
           </View>
-        )}
+        </BlurCard>
       </Pressable>
     </Link>
-  );
-}
-
-function CardContent({ node }: { node: CategoryNode }) {
-  return (
-    <View className="flex-row items-center justify-between">
-      <View className="flex-1 pr-3">
-        {node.clazz && (
-          <View className="bg-sky-500/10 self-start px-2 py-1 rounded-lg mb-2">
-            <Text className="text-xs text-sky-600 font-semibold">
-              {node.clazz}
-            </Text>
-          </View>
-        )}
-        <Text className="text-base text-gray-800 font-medium" numberOfLines={2}>
-          {node.name_ua}
-        </Text>
-      </View>
-      <View className="w-8 h-8 rounded-full bg-sky-500/10 items-center justify-center">
-        <Ionicons name="chevron-forward" size={18} color="#0ea5e9" />
-      </View>
-    </View>
   );
 }
