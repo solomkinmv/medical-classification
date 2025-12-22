@@ -1,16 +1,16 @@
 import { useMemo } from "react";
-import { View, Text, FlatList, Pressable, ActivityIndicator } from "react-native";
+import { View, Text, FlatList, ActivityIndicator } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { BlurCard } from "@/components/BlurCard";
+import { AccentCard } from "@/components/AccentCard";
 import { useAchiData } from "@/lib/data-provider";
 import { useFavorites } from "@/lib/favorites-provider";
 import { searchProcedures, type SearchResult } from "@/lib/search";
 import { useSearchQuery } from "./_layout";
-import { 
-  SEARCH_MIN_QUERY_LENGTH, 
-  SEARCH_MAX_RESULTS, 
-  colors, 
-  CONTENT_PADDING_HORIZONTAL 
+import {
+  SEARCH_MIN_QUERY_LENGTH,
+  SEARCH_MAX_RESULTS,
+  colors,
+  CONTENT_PADDING_HORIZONTAL
 } from "@/lib/constants";
 
 export default function SearchIndex() {
@@ -24,7 +24,7 @@ export default function SearchIndex() {
 
   if (query.length < SEARCH_MIN_QUERY_LENGTH) {
     return (
-      <View className="flex-1 bg-white items-center justify-center px-8">
+      <View className="flex-1 items-center justify-center px-8" style={{ backgroundColor: '#FAFBFC' }}>
         <View className="w-20 h-20 rounded-full bg-gray-200 items-center justify-center mb-4">
           <Ionicons name="search-outline" size={40} color={colors.gray[400]} />
         </View>
@@ -37,7 +37,7 @@ export default function SearchIndex() {
 
   if (isSearching) {
     return (
-      <View className="flex-1 bg-white items-center justify-center px-8">
+      <View className="flex-1 items-center justify-center px-8" style={{ backgroundColor: '#FAFBFC' }}>
         <ActivityIndicator size="large" color={colors.sky[500]} />
         <Text className="text-gray-500 text-center mt-4">Пошук...</Text>
       </View>
@@ -46,7 +46,7 @@ export default function SearchIndex() {
 
   if (results.length === 0) {
     return (
-      <View className="flex-1 bg-white items-center justify-center px-8">
+      <View className="flex-1 items-center justify-center px-8" style={{ backgroundColor: '#FAFBFC' }}>
         <View className="w-20 h-20 rounded-full bg-gray-200 items-center justify-center mb-4">
           <Ionicons name="alert-circle-outline" size={40} color={colors.gray[400]} />
         </View>
@@ -64,10 +64,11 @@ export default function SearchIndex() {
     <FlatList
       data={results}
       keyExtractor={(item) => item.code.code}
-      className="flex-1 bg-white"
+      className="flex-1"
+      style={{ backgroundColor: '#FAFBFC' }}
       contentContainerStyle={{
         paddingHorizontal: CONTENT_PADDING_HORIZONTAL,
-        paddingTop: 8,
+        paddingTop: 12,
       }}
       contentInsetAdjustmentBehavior="automatic"
       keyboardShouldPersistTaps="handled"
@@ -96,51 +97,19 @@ function SearchResultCard({ result }: { result: SearchResult }) {
   const isPinned = isFavorite(result.code.code);
 
   return (
-    <View className="mb-3 rounded-2xl overflow-hidden">
-      <BlurCard>
-        <View
-          className="flex-row items-start justify-between"
-          accessible
-          accessibilityLabel={`${result.code.code}: ${result.code.name_ua}`}
-        >
-          <View className="flex-1 pr-3">
-            <View className="bg-sky-500/10 self-start px-3 py-1.5 rounded-lg mb-3">
-              <Text className="text-base text-sky-600 font-bold">
-                {result.code.code}
-              </Text>
-            </View>
-            <Text className="text-base text-gray-800 font-medium mb-2">
-              {result.code.name_ua}
-            </Text>
-            <Text className="text-sm text-gray-500 italic" numberOfLines={2}>
-              {result.code.name_en}
-            </Text>
-          </View>
-          <Pressable
-            onPress={() => toggleFavorite(result.code)}
-            accessibilityLabel={isPinned ? "Видалити закладку" : "Додати закладку"}
-            accessibilityRole="button"
-            accessibilityHint={
-              isPinned
-                ? "Видаляє процедуру зі збережених"
-                : "Додає процедуру до збережених"
-            }
-            accessibilityState={{ selected: isPinned }}
-            className="w-11 h-11 rounded-full items-center justify-center"
-            style={{
-              backgroundColor: isPinned
-                ? "rgba(245, 158, 11, 0.15)"
-                : "rgba(156, 163, 175, 0.1)",
-            }}
-          >
-            <Ionicons
-              name={isPinned ? "bookmark" : "bookmark-outline"}
-              size={22}
-              color={isPinned ? colors.amber[500] : colors.gray[400]}
-            />
-          </Pressable>
-        </View>
-      </BlurCard>
-    </View>
+    <AccentCard
+      accentColor={colors.sky[500]}
+      badge={result.code.code}
+      badgeColor={colors.sky[600]}
+      title={result.code.name_ua}
+      subtitle={result.code.name_en}
+      icon={isPinned ? "bookmark" : "bookmark-outline"}
+      iconColor={isPinned ? colors.amber[500] : colors.gray[400]}
+      iconBackground={isPinned ? "rgba(245, 158, 11, 0.15)" : "rgba(156, 163, 175, 0.1)"}
+      iconSize={18}
+      onIconPress={() => toggleFavorite(result.code)}
+      iconAccessibilityLabel={isPinned ? "Видалити закладку" : "Додати закладку"}
+      accessibilityLabel={`${result.code.code}: ${result.code.name_ua}`}
+    />
   );
 }

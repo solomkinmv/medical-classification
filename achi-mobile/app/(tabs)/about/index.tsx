@@ -21,11 +21,12 @@ export default function AboutScreen() {
 
   return (
     <ScrollView
-      className="flex-1 bg-white"
+      className="flex-1"
+      style={{ backgroundColor: '#FAFBFC' }}
       contentContainerStyle={{
         paddingHorizontal: CONTENT_PADDING_HORIZONTAL,
         paddingBottom: CONTENT_PADDING_BOTTOM,
-        paddingTop: 8,
+        paddingTop: 12,
       }}
       contentInsetAdjustmentBehavior="automatic"
       showsVerticalScrollIndicator={false}
@@ -88,21 +89,27 @@ interface InfoCardProps {
 function InfoCard({ icon, title, color, children }: InfoCardProps) {
   return (
     <View
-      className="mb-4 rounded-2xl overflow-hidden"
+      className="mb-3"
       accessible
       accessibilityLabel={title}
     >
       <BlurCard>
-        <View className="flex-row items-center mb-3">
-          <View
-            className="w-10 h-10 rounded-full items-center justify-center mr-3"
-            style={{ backgroundColor: `${color}15` }}
-          >
-            <Ionicons name={icon} size={22} color={color} />
+        <View className="flex-row items-start p-5">
+          <View className="w-1 h-16 rounded-full mr-4" style={{ backgroundColor: color }} />
+
+          <View className="flex-1">
+            <View className="flex-row items-center mb-3">
+              <View
+                className="w-10 h-10 rounded-full items-center justify-center mr-3"
+                style={{ backgroundColor: `${color}15` }}
+              >
+                <Ionicons name={icon} size={20} color={color} />
+              </View>
+              <Text className="text-lg font-semibold text-gray-900">{title}</Text>
+            </View>
+            {children}
           </View>
-          <Text className="text-lg font-semibold text-gray-800">{title}</Text>
         </View>
-        {children}
       </BlurCard>
     </View>
   );
