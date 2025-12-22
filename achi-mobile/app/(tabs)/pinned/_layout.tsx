@@ -1,7 +1,7 @@
 import { Stack } from "expo-router";
 import { colors } from "@/lib/constants";
 
-export default function ExploreLayout() {
+export default function PinnedLayout() {
   return (
     <Stack
       screenOptions={{
@@ -14,19 +14,11 @@ export default function ExploreLayout() {
       <Stack.Screen
         name="index"
         options={{
-          title: "АКМІ",
+          title: "Збережені",
           headerLargeTitle: true,
           headerLargeStyle: { backgroundColor: "transparent" },
           headerStyle: { backgroundColor: "transparent" },
-          headerTintColor: colors.sky[500],
-        }}
-      />
-      <Stack.Screen
-        name="[...path]"
-        options={{
-          headerTintColor: colors.sky[500],
-          headerTitleStyle: { fontWeight: "600" },
-          headerBackTitle: "Назад",
+          headerTintColor: colors.amber[500],
         }}
       />
     </Stack>

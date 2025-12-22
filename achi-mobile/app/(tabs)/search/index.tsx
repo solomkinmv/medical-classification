@@ -6,7 +6,12 @@ import { useAchiData } from "@/lib/data-provider";
 import { useFavorites } from "@/lib/favorites-provider";
 import { searchProcedures, type SearchResult } from "@/lib/search";
 import { useSearchQuery } from "./_layout";
-import { SEARCH_MIN_QUERY_LENGTH, SEARCH_MAX_RESULTS, colors } from "@/lib/constants";
+import { 
+  SEARCH_MIN_QUERY_LENGTH, 
+  SEARCH_MAX_RESULTS, 
+  colors, 
+  CONTENT_PADDING_HORIZONTAL 
+} from "@/lib/constants";
 
 export default function SearchIndex() {
   const { query, debouncedQuery, isSearching } = useSearchQuery();
@@ -60,11 +65,14 @@ export default function SearchIndex() {
       data={results}
       keyExtractor={(item) => item.code.code}
       className="flex-1 bg-gray-100"
-      contentContainerStyle={{ padding: 16 }}
+      contentContainerStyle={{ paddingHorizontal: CONTENT_PADDING_HORIZONTAL }}
       contentInsetAdjustmentBehavior="automatic"
       keyboardShouldPersistTaps="handled"
       showsVerticalScrollIndicator={false}
       removeClippedSubviews
+      maxToRenderPerBatch={10}
+      initialNumToRender={10}
+      windowSize={5}
       ListHeaderComponent={
         <Text className="text-sm text-gray-500 mb-3">
           Знайдено: {results.length}{" "}
@@ -109,6 +117,12 @@ function SearchResultCard({ result }: { result: SearchResult }) {
             onPress={() => toggleFavorite(result.code)}
             accessibilityLabel={isPinned ? "Видалити закладку" : "Додати закладку"}
             accessibilityRole="button"
+            accessibilityHint={
+              isPinned
+                ? "Видаляє процедуру зі збережених"
+                : "Додає процедуру до збережених"
+            }
+            accessibilityState={{ selected: isPinned }}
             className="w-11 h-11 rounded-full items-center justify-center"
             style={{
               backgroundColor: isPinned

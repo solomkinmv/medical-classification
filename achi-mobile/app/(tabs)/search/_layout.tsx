@@ -43,6 +43,7 @@ export default function SearchLayout() {
     return () => {
       if (debounceRef.current) {
         clearTimeout(debounceRef.current);
+        debounceRef.current = null;
       }
     };
   }, []);

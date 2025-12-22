@@ -30,3 +30,7 @@ export const colors = {
 export const SEARCH_DEBOUNCE_MS = 300;
 export const SEARCH_MIN_QUERY_LENGTH = 2;
 export const SEARCH_MAX_RESULTS = 100;
+
+// Layout
+export const CONTENT_PADDING_HORIZONTAL = 16;
+export const CONTENT_PADDING_BOTTOM = 100;
