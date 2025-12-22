@@ -1,5 +1,6 @@
 import { View, Platform } from "react-native";
 import { BlurView } from "expo-blur";
+import { GlassView, isLiquidGlassAvailable } from "expo-glass-effect";
 import type { ReactNode } from "react";
 
 interface BlurCardProps {
@@ -9,6 +10,14 @@ interface BlurCardProps {
 }
 
 export function BlurCard({ children, intensity = 60, className = "p-4" }: BlurCardProps) {
+  if (Platform.OS === "ios" && isLiquidGlassAvailable()) {
+    return (
+      <GlassView className={className}>
+        {children}
+      </GlassView>
+    );
+  }
+
   if (Platform.OS === "ios") {
     return (
       <BlurView intensity={intensity} tint="light" className={className}>

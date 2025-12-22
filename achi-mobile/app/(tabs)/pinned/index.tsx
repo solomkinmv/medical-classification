@@ -10,7 +10,7 @@ export default function PinnedScreen() {
 
   if (isLoading) {
     return (
-      <View className="flex-1 bg-gray-100 items-center justify-center">
+      <View className="flex-1 bg-white items-center justify-center">
         <Text className="text-gray-400">Завантаження...</Text>
       </View>
     );
@@ -18,7 +18,7 @@ export default function PinnedScreen() {
 
   if (favorites.length === 0) {
     return (
-      <View className="flex-1 bg-gray-100 items-center justify-center px-8">
+      <View className="flex-1 bg-white items-center justify-center px-8">
         <View className="w-20 h-20 rounded-full bg-amber-100 items-center justify-center mb-4">
           <Ionicons name="bookmark-outline" size={40} color={colors.amber[500]} />
         </View>
@@ -36,10 +36,11 @@ export default function PinnedScreen() {
     <FlatList
       data={favorites}
       keyExtractor={(item) => item.code}
-      className="flex-1 bg-gray-100"
+      className="flex-1 bg-white"
       contentContainerStyle={{
         paddingHorizontal: CONTENT_PADDING_HORIZONTAL,
         paddingBottom: CONTENT_PADDING_BOTTOM,
+        paddingTop: 8,
       }}
       contentInsetAdjustmentBehavior="automatic"
       showsVerticalScrollIndicator={false}

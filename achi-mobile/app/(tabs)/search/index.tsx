@@ -24,7 +24,7 @@ export default function SearchIndex() {
 
   if (query.length < SEARCH_MIN_QUERY_LENGTH) {
     return (
-      <View className="flex-1 bg-gray-100 items-center justify-center px-8">
+      <View className="flex-1 bg-white items-center justify-center px-8">
         <View className="w-20 h-20 rounded-full bg-gray-200 items-center justify-center mb-4">
           <Ionicons name="search-outline" size={40} color={colors.gray[400]} />
         </View>
@@ -37,7 +37,7 @@ export default function SearchIndex() {
 
   if (isSearching) {
     return (
-      <View className="flex-1 bg-gray-100 items-center justify-center px-8">
+      <View className="flex-1 bg-white items-center justify-center px-8">
         <ActivityIndicator size="large" color={colors.sky[500]} />
         <Text className="text-gray-500 text-center mt-4">Пошук...</Text>
       </View>
@@ -46,7 +46,7 @@ export default function SearchIndex() {
 
   if (results.length === 0) {
     return (
-      <View className="flex-1 bg-gray-100 items-center justify-center px-8">
+      <View className="flex-1 bg-white items-center justify-center px-8">
         <View className="w-20 h-20 rounded-full bg-gray-200 items-center justify-center mb-4">
           <Ionicons name="alert-circle-outline" size={40} color={colors.gray[400]} />
         </View>
@@ -64,8 +64,11 @@ export default function SearchIndex() {
     <FlatList
       data={results}
       keyExtractor={(item) => item.code.code}
-      className="flex-1 bg-gray-100"
-      contentContainerStyle={{ paddingHorizontal: CONTENT_PADDING_HORIZONTAL }}
+      className="flex-1 bg-white"
+      contentContainerStyle={{
+        paddingHorizontal: CONTENT_PADDING_HORIZONTAL,
+        paddingTop: 8,
+      }}
       contentInsetAdjustmentBehavior="automatic"
       keyboardShouldPersistTaps="handled"
       showsVerticalScrollIndicator={false}
