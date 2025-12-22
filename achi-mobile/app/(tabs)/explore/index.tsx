@@ -1,4 +1,4 @@
-import { FlatList } from "react-native";
+import { FlatList, Text } from "react-native";
 import { Link } from "expo-router";
 import { AccentCard } from "@/components/AccentCard";
 import { useAchiData } from "@/lib/data-provider";
@@ -24,6 +24,11 @@ export default function ExploreScreen() {
       contentInsetAdjustmentBehavior="automatic"
       showsVerticalScrollIndicator={false}
       removeClippedSubviews
+      ListHeaderComponent={
+        <Text className="text-sm text-gray-500 mb-4">
+          Австралійська класифікація медичних інтервенцій
+        </Text>
+      }
       renderItem={({ item: [key, node] }) => (
         <CategoryCard categoryKey={key} node={node} />
       )}
