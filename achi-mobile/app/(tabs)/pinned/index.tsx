@@ -1,12 +1,18 @@
 import { View, Text, FlatList } from "react-native";
+import { useState } from "react";
 import { Ionicons } from "@expo/vector-icons";
 import { AccentCard } from "@/components/AccentCard";
+import { ProcedureDetailModal } from "@/components/ProcedureDetailModal";
 import { useFavorites } from "@/lib/favorites-provider";
+import { useAchiData } from "@/lib/data-provider";
+import { findProcedurePath } from "@/lib/navigation";
 import { colors, CONTENT_PADDING_HORIZONTAL, CONTENT_PADDING_BOTTOM } from "@/lib/constants";
 import type { ProcedureCode } from "@/lib/types";
 
 export default function PinnedScreen() {
   const { favorites, toggleFavorite, isLoading } = useFavorites();
+  const data = useAchiData();
+  const [selectedProcedure, setSelectedProcedure] = useState<ProcedureCode | null>(null);
 
   if (isLoading) {
     return (
@@ -15,6 +21,10 @@ export default function PinnedScreen() {
       </View>
     );
   }
+
+  const procedurePath = selectedProcedure
+    ? findProcedurePath(data, selectedProcedure.code) ?? []
+    : [];
 
   if (favorites.length === 0) {
     return (
@@ -33,32 +43,45 @@ export default function PinnedScreen() {
   }
 
   return (
-    <FlatList
-      data={favorites}
-      keyExtractor={(item) => item.code}
-      className="flex-1"
-      style={{ backgroundColor: '#FAFBFC' }}
-      contentContainerStyle={{
-        paddingHorizontal: CONTENT_PADDING_HORIZONTAL,
-        paddingBottom: CONTENT_PADDING_BOTTOM,
-        paddingTop: 12,
-      }}
-      contentInsetAdjustmentBehavior="automatic"
-      showsVerticalScrollIndicator={false}
-      removeClippedSubviews
-      renderItem={({ item }) => (
-        <PinnedCard procedure={item} onToggle={() => toggleFavorite(item)} />
-      )}
-    />
+    <>
+      <FlatList
+        data={favorites}
+        keyExtractor={(item) => item.code}
+        className="flex-1"
+        style={{ backgroundColor: '#FAFBFC' }}
+        contentContainerStyle={{
+          paddingHorizontal: CONTENT_PADDING_HORIZONTAL,
+          paddingBottom: CONTENT_PADDING_BOTTOM,
+          paddingTop: 12,
+        }}
+        contentInsetAdjustmentBehavior="automatic"
+        showsVerticalScrollIndicator={false}
+        removeClippedSubviews
+        renderItem={({ item }) => (
+          <PinnedCard
+            procedure={item}
+            onToggle={() => toggleFavorite(item)}
+            onPress={() => setSelectedProcedure(item)}
+          />
+        )}
+      />
+      <ProcedureDetailModal
+        visible={selectedProcedure !== null}
+        procedure={selectedProcedure}
+        path={procedurePath}
+        onClose={() => setSelectedProcedure(null)}
+      />
+    </>
   );
 }
 
 interface PinnedCardProps {
   procedure: ProcedureCode;
   onToggle: () => void;
+  onPress?: () => void;
 }
 
-function PinnedCard({ procedure, onToggle }: PinnedCardProps) {
+function PinnedCard({ procedure, onToggle, onPress }: PinnedCardProps) {
   return (
     <AccentCard
       accentColor={colors.amber[500]}
@@ -73,6 +96,8 @@ function PinnedCard({ procedure, onToggle }: PinnedCardProps) {
       onIconPress={onToggle}
       iconAccessibilityLabel="Видалити закладку"
       accessibilityLabel={`${procedure.code}: ${procedure.name_ua}`}
+      onPress={onPress}
+      accessibilityHint="Відкрити деталі процедури"
     />
   );
 }

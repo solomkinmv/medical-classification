@@ -1,6 +1,8 @@
 import { View, Text, FlatList } from "react-native";
 import { useLocalSearchParams, Link, Stack } from "expo-router";
+import { useState } from "react";
 import { AccentCard } from "@/components/AccentCard";
+import { ProcedureDetailModal } from "@/components/ProcedureDetailModal";
 import { useAchiData } from "@/lib/data-provider";
 import { useFavorites } from "@/lib/favorites-provider";
 import {
@@ -9,7 +11,7 @@ import {
   getProcedureCodes,
 } from "@/lib/navigation";
 import { colors, CONTENT_PADDING_HORIZONTAL, CONTENT_PADDING_BOTTOM } from "@/lib/constants";
-import type { CategoryNode, ProcedureCode } from "@/lib/types";
+import type { CategoryNode, ProcedureCode, PathSegment } from "@/lib/types";
 
 export default function BrowseScreen() {
   const { path } = useLocalSearchParams<{ path: string[] }>();
@@ -41,7 +43,7 @@ export default function BrowseScreen() {
       />
 
       {navState.isLeaf && procedureCodes ? (
-        <ProcedureList codes={procedureCodes} />
+        <ProcedureList codes={procedureCodes} path={navState.path} />
       ) : childCategories ? (
         <CategoryList categories={childCategories} basePath={currentPath} />
       ) : (
@@ -98,27 +100,49 @@ function CategoryList({ categories, basePath }: CategoryListProps) {
 
 interface ProcedureListProps {
   codes: ProcedureCode[];
+  path: PathSegment[];
 }
 
-function ProcedureList({ codes }: ProcedureListProps) {
+function ProcedureList({ codes, path }: ProcedureListProps) {
+  const [selectedProcedure, setSelectedProcedure] = useState<ProcedureCode | null>(null);
+
   return (
-    <FlatList
-      data={codes}
-      keyExtractor={(item) => item.code}
-      contentContainerStyle={{
-        paddingHorizontal: CONTENT_PADDING_HORIZONTAL,
-        paddingBottom: CONTENT_PADDING_BOTTOM,
-        paddingTop: 12,
-      }}
-      contentInsetAdjustmentBehavior="automatic"
-      showsVerticalScrollIndicator={false}
-      removeClippedSubviews
-      renderItem={({ item }) => <ProcedureCard procedure={item} />}
-    />
+    <>
+      <FlatList
+        data={codes}
+        keyExtractor={(item) => item.code}
+        contentContainerStyle={{
+          paddingHorizontal: CONTENT_PADDING_HORIZONTAL,
+          paddingBottom: CONTENT_PADDING_BOTTOM,
+          paddingTop: 12,
+        }}
+        contentInsetAdjustmentBehavior="automatic"
+        showsVerticalScrollIndicator={false}
+        removeClippedSubviews
+        renderItem={({ item }) => (
+          <ProcedureCard
+            procedure={item}
+            onPress={() => setSelectedProcedure(item)}
+          />
+        )}
+      />
+      <ProcedureDetailModal
+        visible={selectedProcedure !== null}
+        procedure={selectedProcedure}
+        path={path}
+        onClose={() => setSelectedProcedure(null)}
+      />
+    </>
   );
 }
 
-function ProcedureCard({ procedure }: { procedure: ProcedureCode }) {
+function ProcedureCard({
+  procedure,
+  onPress,
+}: {
+  procedure: ProcedureCode;
+  onPress?: () => void;
+}) {
   const { isFavorite, toggleFavorite } = useFavorites();
   const isPinned = isFavorite(procedure.code);
 
@@ -136,6 +160,8 @@ function ProcedureCard({ procedure }: { procedure: ProcedureCode }) {
       onIconPress={() => toggleFavorite(procedure)}
       iconAccessibilityLabel={isPinned ? "Видалити закладку" : "Додати закладку"}
       accessibilityLabel={`${procedure.code}: ${procedure.name_ua}`}
+      onPress={onPress}
+      accessibilityHint="Відкрити деталі процедури"
     />
   );
 }
