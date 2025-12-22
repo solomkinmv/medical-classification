@@ -1,7 +1,7 @@
-import { View, Text, FlatList, Pressable, Platform } from "react-native";
+import { View, Text, FlatList, Pressable } from "react-native";
 import { useLocalSearchParams, Link, Stack } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { BlurView } from "expo-blur";
+import { BlurCard } from "@/components/BlurCard";
 import { useAchiData } from "@/lib/data-provider";
 import { useFavorites } from "@/lib/favorites-provider";
 import {
@@ -9,6 +9,7 @@ import {
   getChildCategories,
   getProcedureCodes,
 } from "@/lib/navigation";
+import { colors, CONTENT_PADDING_HORIZONTAL, CONTENT_PADDING_BOTTOM } from "@/lib/constants";
 import type { CategoryNode, ProcedureCode } from "@/lib/types";
 
 export default function BrowseScreen() {
@@ -63,23 +64,27 @@ function CategoryList({ categories, basePath }: CategoryListProps) {
     <FlatList
       data={categories}
       keyExtractor={([key]) => key}
-      contentContainerStyle={{ padding: 16, paddingBottom: 100 }}
+      contentContainerStyle={{
+        paddingHorizontal: CONTENT_PADDING_HORIZONTAL,
+        paddingBottom: CONTENT_PADDING_BOTTOM,
+      }}
+      contentInsetAdjustmentBehavior="automatic"
       showsVerticalScrollIndicator={false}
+      removeClippedSubviews
       renderItem={({ item: [key, node] }) => {
         const href =
           "/(tabs)/explore/" + [...basePath, encodeURIComponent(key)].join("/");
         return (
           <Link href={href as `/(tabs)/explore/${string}`} asChild>
-            <Pressable className="mb-3 rounded-2xl overflow-hidden">
-              {Platform.OS === "ios" ? (
-                <BlurView intensity={60} tint="light" className="p-4">
-                  <CategoryCardContent node={node} />
-                </BlurView>
-              ) : (
-                <View className="p-4 bg-white/90">
-                  <CategoryCardContent node={node} />
-                </View>
-              )}
+            <Pressable
+              className="mb-3 rounded-2xl overflow-hidden"
+              accessibilityLabel={node.code ? `${node.code}: ${node.name_ua}` : node.name_ua}
+              accessibilityRole="button"
+              accessibilityHint="Відкрити категорію для перегляду підкатегорій"
+            >
+              <BlurCard>
+                <CategoryCardContent node={node} />
+              </BlurCard>
             </Pressable>
           </Link>
         );
@@ -104,7 +109,7 @@ function CategoryCardContent({ node }: { node: CategoryNode }) {
         </Text>
       </View>
       <View className="w-8 h-8 rounded-full bg-sky-500/10 items-center justify-center">
-        <Ionicons name="chevron-forward" size={18} color="#0ea5e9" />
+        <Ionicons name="chevron-forward" size={18} color={colors.sky[500]} />
       </View>
     </View>
   );
@@ -119,8 +124,13 @@ function ProcedureList({ codes }: ProcedureListProps) {
     <FlatList
       data={codes}
       keyExtractor={(item) => item.code}
-      contentContainerStyle={{ padding: 16, paddingBottom: 100 }}
+      contentContainerStyle={{
+        paddingHorizontal: CONTENT_PADDING_HORIZONTAL,
+        paddingBottom: CONTENT_PADDING_BOTTOM,
+      }}
+      contentInsetAdjustmentBehavior="automatic"
       showsVerticalScrollIndicator={false}
+      removeClippedSubviews
       renderItem={({ item }) => <ProcedureCard procedure={item} />}
     />
   );
@@ -131,24 +141,18 @@ function ProcedureCard({ procedure }: { procedure: ProcedureCode }) {
   const isPinned = isFavorite(procedure.code);
 
   return (
-    <View className="mb-3 rounded-2xl overflow-hidden">
-      {Platform.OS === "ios" ? (
-        <BlurView intensity={60} tint="light" className="p-4">
-          <ProcedureCardContent
-            procedure={procedure}
-            isPinned={isPinned}
-            onToggle={() => toggleFavorite(procedure)}
-          />
-        </BlurView>
-      ) : (
-        <View className="p-4 bg-white/90">
-          <ProcedureCardContent
-            procedure={procedure}
-            isPinned={isPinned}
-            onToggle={() => toggleFavorite(procedure)}
-          />
-        </View>
-      )}
+    <View
+      className="mb-3 rounded-2xl overflow-hidden"
+      accessible
+      accessibilityLabel={`${procedure.code}: ${procedure.name_ua}`}
+    >
+      <BlurCard>
+        <ProcedureCardContent
+          procedure={procedure}
+          isPinned={isPinned}
+          onToggle={() => toggleFavorite(procedure)}
+        />
+      </BlurCard>
     </View>
   );
 }
@@ -177,15 +181,25 @@ function ProcedureCardContent({
       </View>
       <Pressable
         onPress={onToggle}
+        accessibilityLabel={isPinned ? "Видалити закладку" : "Додати закладку"}
+        accessibilityRole="button"
+        accessibilityHint={
+          isPinned
+            ? "Видаляє процедуру зі збережених"
+            : "Додає процедуру до збережених"
+        }
+        accessibilityState={{ selected: isPinned }}
         className="w-11 h-11 rounded-full items-center justify-center"
         style={{
-          backgroundColor: isPinned ? "rgba(245, 158, 11, 0.15)" : "rgba(156, 163, 175, 0.1)",
+          backgroundColor: isPinned
+            ? "rgba(245, 158, 11, 0.15)"
+            : "rgba(156, 163, 175, 0.1)",
         }}
       >
         <Ionicons
           name={isPinned ? "bookmark" : "bookmark-outline"}
           size={22}
-          color={isPinned ? "#f59e0b" : "#9ca3af"}
+          color={isPinned ? colors.amber[500] : colors.gray[400]}
         />
       </Pressable>
     </View>
