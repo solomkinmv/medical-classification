@@ -1,26 +1,49 @@
-import { View, Text, ScrollView, Pressable, Linking, Platform } from "react-native";
+import { View, Text, ScrollView, Pressable, Linking, Platform, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { BlurView } from "expo-blur";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+const HEADER_HEIGHT = 100;
+
 export default function AboutScreen() {
   const insets = useSafeAreaInsets();
 
+  const headerContent = (isBlur: boolean) => (
+    <>
+      <Text className={`text-3xl font-bold ${isBlur ? "text-violet-600" : "text-white"} mt-2`}>
+        Про додаток
+      </Text>
+      <Text className={`${isBlur ? "text-violet-500" : "text-violet-100"} text-sm mt-1`}>
+        Інформація та джерела
+      </Text>
+    </>
+  );
+
   return (
     <View className="flex-1 bg-gray-100">
-      <View
-        style={{ paddingTop: insets.top }}
-        className="bg-violet-500 pb-4 px-4"
-      >
-        <Text className="text-3xl font-bold text-white mt-2">Про додаток</Text>
-        <Text className="text-violet-100 text-sm mt-1">
-          Інформація та джерела
-        </Text>
+      <View style={[styles.header, { height: HEADER_HEIGHT + insets.top }]}>
+        {Platform.OS === "ios" ? (
+          <BlurView
+            intensity={80}
+            tint="systemChromeMaterial"
+            style={[styles.headerBlur, { paddingTop: insets.top }]}
+          >
+            {headerContent(true)}
+          </BlurView>
+        ) : (
+          <View style={[styles.headerBlur, { paddingTop: insets.top, backgroundColor: "#8b5cf6" }]}>
+            {headerContent(false)}
+          </View>
+        )}
       </View>
 
       <ScrollView
         className="flex-1"
-        contentContainerStyle={{ padding: 16, paddingBottom: 100 }}
+        contentContainerStyle={{
+          paddingTop: HEADER_HEIGHT + insets.top + 16,
+          paddingHorizontal: 16,
+          paddingBottom: 100
+        }}
         showsVerticalScrollIndicator={false}
       >
         <InfoCard
@@ -142,3 +165,20 @@ function CardContent({
     </>
   );
 }
+
+const styles = StyleSheet.create({
+  header: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 10,
+    overflow: "hidden",
+  },
+  headerBlur: {
+    flex: 1,
+    paddingHorizontal: 16,
+    paddingBottom: 12,
+    justifyContent: "flex-end",
+  },
+});

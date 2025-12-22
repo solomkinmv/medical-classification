@@ -12,8 +12,9 @@ export default function ExploreLayout() {
         name="[...path]"
         options={{
           headerShown: true,
-          headerStyle: { backgroundColor: "#0ea5e9" },
-          headerTintColor: "#fff",
+          headerTransparent: true,
+          headerBlurEffect: "systemChromeMaterial",
+          headerTintColor: "#0ea5e9",
           headerTitleStyle: { fontWeight: "600" },
           headerBackTitle: "Назад",
         }}

@@ -32,7 +32,7 @@ export default function RootLayout() {
             }}
           />
         </Stack>
-        <StatusBar style="light" />
+        <StatusBar style="dark" />
       </FavoritesProvider>
     </AchiDataProvider>
   );

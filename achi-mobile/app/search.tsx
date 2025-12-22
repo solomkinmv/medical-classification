@@ -7,6 +7,7 @@ import {
   Pressable,
   KeyboardAvoidingView,
   Platform,
+  StyleSheet,
 } from "react-native";
 import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
@@ -15,6 +16,8 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useAchiData } from "@/lib/data-provider";
 import { useFavorites } from "@/lib/favorites-provider";
 import { searchProcedures, type SearchResult } from "@/lib/search";
+
+const HEADER_HEIGHT = 120;
 
 export default function SearchScreen() {
   const [query, setQuery] = useState("");
@@ -26,47 +29,64 @@ export default function SearchScreen() {
     return searchProcedures(data, query, 100);
   }, [data, query]);
 
+  const headerContent = (isBlur: boolean) => (
+    <>
+      <View className="flex-row items-center justify-between mb-3">
+        <Text className={`text-2xl font-bold ${isBlur ? "text-sky-600" : "text-white"}`}>
+          Пошук
+        </Text>
+        <Pressable
+          onPress={() => router.dismiss()}
+          className={`w-8 h-8 rounded-full ${isBlur ? "bg-sky-500/20" : "bg-white/20"} items-center justify-center`}
+        >
+          <Ionicons name="close" size={20} color={isBlur ? "#0ea5e9" : "white"} />
+        </Pressable>
+      </View>
+
+      <View className={`flex-row items-center ${isBlur ? "bg-sky-500/15" : "bg-white/20"} rounded-2xl px-4 py-3`}>
+        <Ionicons name="search" size={20} color={isBlur ? "#0ea5e9" : "rgba(255,255,255,0.8)"} />
+        <TextInput
+          className={`flex-1 ml-3 text-base ${isBlur ? "text-gray-800" : "text-white"}`}
+          placeholder="Введіть код або назву..."
+          placeholderTextColor={isBlur ? "rgba(14,165,233,0.5)" : "rgba(255,255,255,0.6)"}
+          value={query}
+          onChangeText={setQuery}
+          autoFocus
+          autoCorrect={false}
+          autoCapitalize="none"
+        />
+        {query.length > 0 && (
+          <Pressable onPress={() => setQuery("")}>
+            <Ionicons name="close-circle" size={20} color={isBlur ? "#0ea5e9" : "rgba(255,255,255,0.6)"} />
+          </Pressable>
+        )}
+      </View>
+    </>
+  );
+
   return (
     <KeyboardAvoidingView
       className="flex-1 bg-gray-100"
       behavior={Platform.OS === "ios" ? "padding" : undefined}
     >
-      <View
-        style={{ paddingTop: insets.top }}
-        className="bg-sky-500 pb-4 px-4"
-      >
-        <View className="flex-row items-center justify-between mb-3">
-          <Text className="text-2xl font-bold text-white">Пошук</Text>
-          <Pressable
-            onPress={() => router.dismiss()}
-            className="w-8 h-8 rounded-full bg-white/20 items-center justify-center"
+      <View style={[styles.header, { height: HEADER_HEIGHT + insets.top }]}>
+        {Platform.OS === "ios" ? (
+          <BlurView
+            intensity={80}
+            tint="systemChromeMaterial"
+            style={[styles.headerBlur, { paddingTop: insets.top }]}
           >
-            <Ionicons name="close" size={20} color="white" />
-          </Pressable>
-        </View>
-
-        <View className="flex-row items-center bg-white/20 rounded-2xl px-4 py-3">
-          <Ionicons name="search" size={20} color="rgba(255,255,255,0.8)" />
-          <TextInput
-            className="flex-1 ml-3 text-base text-white"
-            placeholder="Введіть код або назву..."
-            placeholderTextColor="rgba(255,255,255,0.6)"
-            value={query}
-            onChangeText={setQuery}
-            autoFocus
-            autoCorrect={false}
-            autoCapitalize="none"
-          />
-          {query.length > 0 && (
-            <Pressable onPress={() => setQuery("")}>
-              <Ionicons name="close-circle" size={20} color="rgba(255,255,255,0.6)" />
-            </Pressable>
-          )}
-        </View>
+            {headerContent(true)}
+          </BlurView>
+        ) : (
+          <View style={[styles.headerBlur, { paddingTop: insets.top, backgroundColor: "#0ea5e9" }]}>
+            {headerContent(false)}
+          </View>
+        )}
       </View>
 
       {query.length < 2 ? (
-        <View className="flex-1 items-center justify-center px-8">
+        <View style={{ marginTop: HEADER_HEIGHT + insets.top }} className="flex-1 items-center justify-center px-8">
           <View className="w-20 h-20 rounded-full bg-gray-200 items-center justify-center mb-4">
             <Ionicons name="search-outline" size={40} color="#9ca3af" />
           </View>
@@ -75,7 +95,7 @@ export default function SearchScreen() {
           </Text>
         </View>
       ) : results.length === 0 ? (
-        <View className="flex-1 items-center justify-center px-8">
+        <View style={{ marginTop: HEADER_HEIGHT + insets.top }} className="flex-1 items-center justify-center px-8">
           <View className="w-20 h-20 rounded-full bg-gray-200 items-center justify-center mb-4">
             <Ionicons name="alert-circle-outline" size={40} color="#9ca3af" />
           </View>
@@ -90,7 +110,11 @@ export default function SearchScreen() {
         <FlatList
           data={results}
           keyExtractor={(item) => item.code.code}
-          contentContainerStyle={{ padding: 16 }}
+          contentContainerStyle={{
+            paddingTop: HEADER_HEIGHT + insets.top + 16,
+            paddingHorizontal: 16,
+            paddingBottom: 16
+          }}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
           ListHeaderComponent={
@@ -174,3 +198,20 @@ function SearchResultContent({
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  header: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 10,
+    overflow: "hidden",
+  },
+  headerBlur: {
+    flex: 1,
+    paddingHorizontal: 16,
+    paddingBottom: 12,
+    justifyContent: "flex-end",
+  },
+});
