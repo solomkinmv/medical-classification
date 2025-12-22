@@ -1,7 +1,6 @@
-import { View, Text, Pressable, FlatList } from "react-native";
+import { FlatList } from "react-native";
 import { Link } from "expo-router";
-import { Ionicons } from "@expo/vector-icons";
-import { BlurCard } from "@/components/BlurCard";
+import { AccentCard } from "@/components/AccentCard";
 import { useAchiData } from "@/lib/data-provider";
 import { getRootCategories } from "@/lib/navigation";
 import { colors, CONTENT_PADDING_HORIZONTAL, CONTENT_PADDING_BOTTOM } from "@/lib/constants";
@@ -15,11 +14,12 @@ export default function ExploreScreen() {
     <FlatList
       data={categories}
       keyExtractor={([key]) => key}
-      className="flex-1 bg-white"
+      className="flex-1"
+      style={{ backgroundColor: '#FAFBFC' }}
       contentContainerStyle={{
         paddingHorizontal: CONTENT_PADDING_HORIZONTAL,
         paddingBottom: CONTENT_PADDING_BOTTOM,
-        paddingTop: 8,
+        paddingTop: 12,
       }}
       contentInsetAdjustmentBehavior="automatic"
       showsVerticalScrollIndicator={false}
@@ -41,32 +41,18 @@ function CategoryCard({ categoryKey, node }: CategoryCardProps) {
 
   return (
     <Link href={href as any} asChild>
-      <Pressable
-        className="mb-3 rounded-2xl overflow-hidden"
-        accessibilityLabel={node.clazz ? node.clazz + ": " + node.name_ua : node.name_ua}
-        accessibilityRole="button"
+      <AccentCard
+        accentColor={colors.sky[500]}
+        badge={node.clazz}
+        badgeColor={colors.sky[600]}
+        title={node.name_ua}
+        icon="chevron-forward"
+        iconColor={colors.sky[600]}
+        iconBackground="rgba(14, 165, 233, 0.1)"
+        iconSize={16}
+        accessibilityLabel={node.clazz ? `${node.clazz}: ${node.name_ua}` : node.name_ua}
         accessibilityHint="Відкрити категорію для перегляду підкатегорій"
-      >
-        <BlurCard>
-          <View className="flex-row items-center justify-between">
-            <View className="flex-1 pr-3">
-              {node.clazz && (
-                <View className="bg-sky-500/10 self-start px-2 py-1 rounded-lg mb-2">
-                  <Text className="text-xs text-sky-600 font-semibold">
-                    {node.clazz}
-                  </Text>
-                </View>
-              )}
-              <Text className="text-base text-gray-800 font-medium" numberOfLines={2}>
-                {node.name_ua}
-              </Text>
-            </View>
-            <View className="w-8 h-8 rounded-full bg-sky-500/10 items-center justify-center">
-              <Ionicons name="chevron-forward" size={18} color={colors.sky[500]} />
-            </View>
-          </View>
-        </BlurCard>
-      </Pressable>
+      />
     </Link>
   );
 }
