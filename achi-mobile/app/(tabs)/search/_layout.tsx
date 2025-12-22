@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useCallback, useEffect, useRef } from "react";
 import { Stack } from "expo-router";
+import { isLiquidGlassAvailable } from "expo-glass-effect";
 import { useColorScheme } from "nativewind";
 import { SEARCH_DEBOUNCE_MS, theme } from "@/lib/constants";
 
@@ -60,7 +61,7 @@ export default function SearchLayout() {
             title: "Пошук",
             headerLargeTitle: true,
             headerTransparent: true,
-            headerBlurEffect: "systemChromeMaterial",
+            headerBlurEffect: isLiquidGlassAvailable() ? undefined : "systemChromeMaterial",
             headerTintColor: t.text,
             headerSearchBarOptions: {
               placeholder: "Введіть код або назву...",

@@ -1,4 +1,5 @@
 import { Stack } from "expo-router";
+import { isLiquidGlassAvailable } from "expo-glass-effect";
 import { colors } from "@/lib/constants";
 
 export default function AboutLayout() {
@@ -6,7 +7,7 @@ export default function AboutLayout() {
     <Stack
       screenOptions={{
         headerTransparent: true,
-        headerBlurEffect: "systemChromeMaterial",
+        headerBlurEffect: isLiquidGlassAvailable() ? undefined : "systemChromeMaterial",
         headerLargeTitleShadowVisible: false,
         headerShadowVisible: false,
       }}
