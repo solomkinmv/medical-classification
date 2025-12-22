@@ -4,6 +4,8 @@ import { Host, Image, Button, ImageProps } from "@expo/ui/swift-ui";
 import { useLocalSearchParams, Stack, useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useColorScheme } from "nativewind";
+import { isLiquidGlassAvailable } from "expo-glass-effect";
+import { AnimatedBookmarkButton } from "@/components/AnimatedBookmarkButton";
 import { useAchiData } from "@/lib/data-provider";
 import { useFavorites } from "@/lib/favorites-provider";
 import { findProcedurePath } from "@/lib/navigation";
@@ -34,12 +36,14 @@ export default function ProcedureDetail() {
   );
 
   const isPinned = procedure ? isFavorite(procedure.code) : false;
+  const isLiquidGlass = useMemo(() => isLiquidGlassAvailable(), []);
+  const backgroundColor = isLiquidGlass ? "transparent" : t.background;
 
   if (!code) {
     return (
       <View
         className="flex-1 items-center justify-center"
-        style={{ backgroundColor: t.background }}
+        style={{ backgroundColor }}
       >
         <Text style={{ color: t.textSecondary }}>
           Неправильний код процедури
@@ -52,7 +56,7 @@ export default function ProcedureDetail() {
     return (
       <View
         className="flex-1 items-center justify-center"
-        style={{ backgroundColor: t.background }}
+        style={{ backgroundColor }}
       >
         <Text style={{ color: t.textSecondary }}>
           Процедуру не знайдено
@@ -80,35 +84,25 @@ export default function ProcedureDetail() {
             </Pressable>
           ),
           headerRight: () => (
-            <Pressable onPress={() => toggleFavorite(procedure)} hitSlop={20}>
-              <View
-                style={{
-                  width: 36,
-                  height: 36,
-                  borderRadius: 18,
-                  alignItems: "center",
-                  justifyContent: "center",
-                  backgroundColor: isPinned
-                    ? "rgba(245, 158, 11, 0.15)"
-                    : "rgba(156, 163, 175, 0.1)",
-                }}
-              >
-                <Host matchContents>
-                  <Image
-                    systemName={(isPinned ? "bookmark.fill" : "bookmark") as SFSymbolName}
-                    size={18}
-                    color={isPinned ? colors.amber[500] : colors.gray[400]}
-                  />
-                </Host>
-              </View>
-            </Pressable>
+            <AnimatedBookmarkButton
+              isBookmarked={isPinned}
+              onPress={() => toggleFavorite(procedure)}
+              color={isPinned ? colors.amber[500] : colors.gray[400]}
+              backgroundColor={
+                isPinned
+                  ? "rgba(245, 158, 11, 0.15)"
+                  : "rgba(156, 163, 175, 0.1)"
+              }
+              size={18}
+              accessibilityLabel={isPinned ? "Видалити закладку" : "Додати закладку"}
+            />
           ),
         }}
       />
 
       <ScrollView
         className="flex-1"
-        style={{ backgroundColor: t.background }}
+        style={{ backgroundColor }}
         contentContainerStyle={{
           paddingHorizontal: 24,
           paddingTop: 24,

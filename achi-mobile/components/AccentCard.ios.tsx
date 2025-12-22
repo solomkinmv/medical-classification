@@ -1,6 +1,7 @@
 import { View, Text, Pressable } from "react-native";
 import { Host, Image, ImageProps } from "@expo/ui/swift-ui";
 import { BlurCard } from "./BlurCard";
+import { AnimatedBookmarkButton } from "./AnimatedBookmarkButton";
 import type { ReactNode } from "react";
 
 type SFSymbolName = ImageProps["systemName"];
@@ -26,6 +27,7 @@ interface AccentCardProps {
   iconSize?: number;
   onIconPress?: () => void;
   iconAccessibilityLabel?: string;
+  isBookmarked?: boolean;
   children?: ReactNode;
   onPress?: () => void;
   accessibilityLabel?: string;
@@ -44,6 +46,7 @@ export function AccentCard({
   iconSize = 18,
   onIconPress,
   iconAccessibilityLabel,
+  isBookmarked,
   children,
   onPress,
   accessibilityLabel,
@@ -104,8 +107,19 @@ export function AccentCard({
             {children}
           </View>
 
-          {/* Right icon/action - SF Symbol wrapped in Host */}
-          {sfSymbol && (
+          {/* Right icon/action */}
+          {icon === "bookmark" && onIconPress && isBookmarked !== undefined ? (
+            <View className="mt-1">
+              <AnimatedBookmarkButton
+                isBookmarked={isBookmarked}
+                onPress={onIconPress}
+                color={iconColor ?? accentColor}
+                backgroundColor={iconBackground}
+                size={iconSize}
+                accessibilityLabel={iconAccessibilityLabel}
+              />
+            </View>
+          ) : sfSymbol && (
             <View className="mt-1">
               {onIconPress ? (
                 <Pressable

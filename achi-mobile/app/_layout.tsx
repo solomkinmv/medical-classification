@@ -3,6 +3,7 @@ import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect } from "react";
 import { Platform } from "react-native";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { StatusBar } from "expo-status-bar";
 import { useColorScheme } from "nativewind";
 import { isLiquidGlassAvailable } from "expo-glass-effect";
@@ -24,41 +25,43 @@ export default function RootLayout() {
   }, []);
 
   return (
-    <AchiDataProvider>
-      <FavoritesProvider>
-        <Stack
-          screenOptions={{
-            headerShown: false,
-          }}
-        >
-          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          <Stack.Screen
-            name="procedure/[code]"
-            options={{
-              presentation: Platform.OS === "ios" ? "formSheet" : "modal",
-              headerShown: true,
-              headerTransparent: Platform.OS === "ios" ? true : false,
-              headerBlurEffect: isLiquidGlassAvailable()
-                ? undefined
-                : "systemChromeMaterial",
-              headerStyle: {
-                backgroundColor: "transparent",
-              },
-              headerTintColor: t.text,
-              headerLargeTitle: false,
-              sheetGrabberVisible: true,
-              sheetAllowedDetents: Platform.OS === "ios" ? [0.65, 0.9] : undefined,
-              sheetInitialDetentIndex: 0,
-              contentStyle: {
-                backgroundColor: isLiquidGlassAvailable()
-                  ? "transparent"
-                  : t.background,
-              },
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <AchiDataProvider>
+        <FavoritesProvider>
+          <Stack
+            screenOptions={{
+              headerShown: false,
             }}
-          />
-        </Stack>
-        <StatusBar style="auto" />
-      </FavoritesProvider>
-    </AchiDataProvider>
+          >
+            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+            <Stack.Screen
+              name="procedure/[code]"
+              options={{
+                presentation: Platform.OS === "ios" ? "formSheet" : "modal",
+                headerShown: true,
+                headerTransparent: Platform.OS === "ios" ? true : false,
+                headerBlurEffect: isLiquidGlassAvailable()
+                  ? undefined
+                  : "systemChromeMaterial",
+                headerStyle: {
+                  backgroundColor: "transparent",
+                },
+                headerTintColor: t.text,
+                headerLargeTitle: false,
+                sheetGrabberVisible: true,
+                sheetAllowedDetents: Platform.OS === "ios" ? [0.65, 0.9] : undefined,
+                sheetInitialDetentIndex: 0,
+                contentStyle: {
+                  backgroundColor: isLiquidGlassAvailable()
+                    ? "transparent"
+                    : t.background,
+                },
+              }}
+            />
+          </Stack>
+          <StatusBar style="auto" />
+        </FavoritesProvider>
+      </AchiDataProvider>
+    </GestureHandlerRootView>
   );
 }
