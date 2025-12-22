@@ -24,13 +24,6 @@ export default function RootLayout() {
           }}
         >
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          <Stack.Screen
-            name="search"
-            options={{
-              presentation: "modal",
-              headerShown: false,
-            }}
-          />
         </Stack>
         <StatusBar style="dark" />
       </FavoritesProvider>

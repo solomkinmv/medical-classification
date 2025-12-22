@@ -1,50 +1,84 @@
-import { View, Text, ScrollView, Pressable, Linking, Platform, StyleSheet } from "react-native";
+import { useRef } from "react";
+import { View, Text, Pressable, Linking, Platform, StyleSheet, Animated } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { BlurView } from "expo-blur";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-
-const HEADER_HEIGHT = 100;
+import { BlurCard } from "@/components/BlurCard";
+import { HEADER_MAX_HEIGHT, HEADER_MIN_HEIGHT, HEADER_SCROLL_DISTANCE, colors } from "@/lib/constants";
 
 export default function AboutScreen() {
   const insets = useSafeAreaInsets();
+  const scrollY = useRef(new Animated.Value(0)).current;
 
-  const headerContent = (isBlur: boolean) => (
-    <>
-      <Text className={`text-3xl font-bold ${isBlur ? "text-violet-600" : "text-white"} mt-2`}>
-        Про додаток
-      </Text>
-      <Text className={`${isBlur ? "text-violet-500" : "text-violet-100"} text-sm mt-1`}>
-        Інформація та джерела
-      </Text>
-    </>
-  );
+  const headerHeight = scrollY.interpolate({
+    inputRange: [0, HEADER_SCROLL_DISTANCE],
+    outputRange: [HEADER_MAX_HEIGHT + insets.top, HEADER_MIN_HEIGHT + insets.top],
+    extrapolate: "clamp",
+  });
+
+  const titleOpacity = scrollY.interpolate({
+    inputRange: [0, HEADER_SCROLL_DISTANCE / 2],
+    outputRange: [1, 0],
+    extrapolate: "clamp",
+  });
+
+  const titleTranslateY = scrollY.interpolate({
+    inputRange: [0, HEADER_SCROLL_DISTANCE],
+    outputRange: [0, -20],
+    extrapolate: "clamp",
+  });
 
   return (
     <View className="flex-1 bg-gray-100">
-      <View style={[styles.header, { height: HEADER_HEIGHT + insets.top }]}>
+      <Animated.View style={[styles.header, { height: headerHeight }]}>
         {Platform.OS === "ios" ? (
           <BlurView
             intensity={80}
             tint="systemChromeMaterial"
             style={[styles.headerBlur, { paddingTop: insets.top }]}
           >
-            {headerContent(true)}
+            <Animated.View
+              style={{
+                opacity: titleOpacity,
+                transform: [{ translateY: titleTranslateY }],
+              }}
+            >
+              <Text className="text-3xl font-bold text-violet-600 mt-2">Про додаток</Text>
+              <Text className="text-violet-500 text-sm mt-1">
+                Інформація та джерела
+              </Text>
+            </Animated.View>
           </BlurView>
         ) : (
           <View style={[styles.headerBlur, { paddingTop: insets.top, backgroundColor: "#8b5cf6" }]}>
-            {headerContent(false)}
+            <Animated.View
+              style={{
+                opacity: titleOpacity,
+                transform: [{ translateY: titleTranslateY }],
+              }}
+            >
+              <Text className="text-3xl font-bold text-white mt-2">Про додаток</Text>
+              <Text className="text-violet-100 text-sm mt-1">
+                Інформація та джерела
+              </Text>
+            </Animated.View>
           </View>
         )}
-      </View>
+      </Animated.View>
 
-      <ScrollView
+      <Animated.ScrollView
         className="flex-1"
         contentContainerStyle={{
-          paddingTop: HEADER_HEIGHT + insets.top + 16,
+          paddingTop: HEADER_MAX_HEIGHT + insets.top + 16,
           paddingHorizontal: 16,
           paddingBottom: 100
         }}
         showsVerticalScrollIndicator={false}
+        scrollEventThrottle={16}
+        onScroll={Animated.event(
+          [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+          { useNativeDriver: false }
+        )}
       >
         <InfoCard
           icon="medical-outline"
@@ -107,7 +141,7 @@ export default function AboutScreen() {
         <View className="mt-8 items-center">
           <Text className="text-gray-400 text-sm">Версія 1.0.0</Text>
         </View>
-      </ScrollView>
+      </Animated.ScrollView>
     </View>
   );
 }
@@ -121,48 +155,24 @@ interface InfoCardProps {
 
 function InfoCard({ icon, title, color, children }: InfoCardProps) {
   return (
-    <View className="mb-4 rounded-2xl overflow-hidden">
-      {Platform.OS === "ios" ? (
-        <BlurView intensity={60} tint="light" className="p-4">
-          <CardContent icon={icon} title={title} color={color}>
-            {children}
-          </CardContent>
-        </BlurView>
-      ) : (
-        <View className="p-4 bg-white/90">
-          <CardContent icon={icon} title={title} color={color}>
-            {children}
-          </CardContent>
+    <View
+      className="mb-4 rounded-2xl overflow-hidden"
+      accessible
+      accessibilityLabel={title}
+    >
+      <BlurCard>
+        <View className="flex-row items-center mb-3">
+          <View
+            className="w-10 h-10 rounded-full items-center justify-center mr-3"
+            style={{ backgroundColor: `${color}15` }}
+          >
+            <Ionicons name={icon} size={22} color={color} />
+          </View>
+          <Text className="text-lg font-semibold text-gray-800">{title}</Text>
         </View>
-      )}
+        {children}
+      </BlurCard>
     </View>
-  );
-}
-
-function CardContent({
-  icon,
-  title,
-  color,
-  children,
-}: {
-  icon: keyof typeof Ionicons.glyphMap;
-  title: string;
-  color: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <>
-      <View className="flex-row items-center mb-3">
-        <View
-          className="w-10 h-10 rounded-full items-center justify-center mr-3"
-          style={{ backgroundColor: `${color}15` }}
-        >
-          <Ionicons name={icon} size={22} color={color} />
-        </View>
-        <Text className="text-lg font-semibold text-gray-800">{title}</Text>
-      </View>
-      {children}
-    </>
   );
 }
 
