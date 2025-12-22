@@ -30,14 +30,14 @@ export const colors = {
 // Theme colors for light/dark mode
 export const theme = {
   light: {
-    background: "#FAFBFC",
+    background: "#F0F2F5",    // slightly darker for more contrast
     card: "#FFFFFF",
     text: "#111827",         // gray-900
     textSecondary: "#6b7280", // gray-500
     textMuted: "#9ca3af",     // gray-400
   },
   dark: {
-    background: "#0F0F0F",
+    background: "#0A0A0A",
     card: "#1C1C1E",
     text: "#f3f4f6",          // gray-100
     textSecondary: "#9ca3af", // gray-400
