@@ -1,9 +1,13 @@
 import { View, Text, Pressable, Linking, ScrollView, Alert } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { useColorScheme } from "nativewind";
 import { BlurCard } from "@/components/BlurCard";
-import { colors, CONTENT_PADDING_HORIZONTAL, CONTENT_PADDING_BOTTOM } from "@/lib/constants";
+import { colors, CONTENT_PADDING_HORIZONTAL, CONTENT_PADDING_BOTTOM, theme } from "@/lib/constants";
 
 export default function AboutScreen() {
+  const { colorScheme } = useColorScheme();
+  const t = colorScheme === "dark" ? theme.dark : theme.light;
+
   const handleOpenPDF = async () => {
     const url = "https://zoiacms.zp.ua/wp-content/uploads/2020/03/Австралійський-класифікатор-мед.інтервенцій.pdf";
     
@@ -21,7 +25,7 @@ export default function AboutScreen() {
 
   return (
     <ScrollView
-      className="flex-1 bg-[#FAFBFC] dark:bg-[#0F0F0F]"
+      style={{ flex: 1, backgroundColor: t.background }}
       contentContainerStyle={{
         paddingHorizontal: CONTENT_PADDING_HORIZONTAL,
         paddingBottom: CONTENT_PADDING_BOTTOM,

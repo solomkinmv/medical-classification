@@ -1,8 +1,9 @@
 import { useMemo } from "react";
 import { View, Text, FlatList, ActivityIndicator } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
 import { Link } from "expo-router";
+import { useColorScheme } from "nativewind";
 import { AccentCard } from "@/components/AccentCard";
+import { EmptyState } from "@/components/EmptyState";
 import { useAchiData } from "@/lib/data-provider";
 import { useFavorites } from "@/lib/favorites-provider";
 import { searchProcedures, type SearchResult } from "@/lib/search";
@@ -11,12 +12,15 @@ import {
   SEARCH_MIN_QUERY_LENGTH,
   SEARCH_MAX_RESULTS,
   colors,
-  CONTENT_PADDING_HORIZONTAL
+  CONTENT_PADDING_HORIZONTAL,
+  theme,
 } from "@/lib/constants";
 
 export default function SearchIndex() {
   const { query, debouncedQuery, isSearching } = useSearchQuery();
   const data = useAchiData();
+  const { colorScheme } = useColorScheme();
+  const t = colorScheme === "dark" ? theme.dark : theme.light;
 
   const results = useMemo(() => {
     if (debouncedQuery.length < SEARCH_MIN_QUERY_LENGTH) return [];
@@ -25,39 +29,33 @@ export default function SearchIndex() {
 
   if (query.length < SEARCH_MIN_QUERY_LENGTH) {
     return (
-      <View className="flex-1 items-center justify-center px-8 bg-[#FAFBFC] dark:bg-[#0F0F0F]">
-        <View className="w-20 h-20 rounded-full bg-gray-200 dark:bg-gray-700 items-center justify-center mb-4">
-          <Ionicons name="search-outline" size={40} color={colors.gray[400]} />
-        </View>
-        <Text className="text-gray-500 dark:text-gray-400 text-center">
-          Введіть щонайменше {SEARCH_MIN_QUERY_LENGTH} символи для пошуку
-        </Text>
-      </View>
+      <EmptyState
+        icon="magnifyingglass"
+        iconColor={colors.gray[400]}
+        iconBackgroundColor="rgba(156, 163, 175, 0.2)"
+        message={`Введіть щонайменше ${SEARCH_MIN_QUERY_LENGTH} символи для пошуку`}
+      />
     );
   }
 
   if (isSearching) {
     return (
-      <View className="flex-1 items-center justify-center px-8 bg-[#FAFBFC] dark:bg-[#0F0F0F]">
+      <View className="flex-1 items-center justify-center px-8" style={{ backgroundColor: t.background }}>
         <ActivityIndicator size="large" color={colors.sky[500]} />
-        <Text className="text-gray-500 dark:text-gray-400 text-center mt-4">Пошук...</Text>
+        <Text style={{ color: t.textMuted, marginTop: 16 }}>Пошук...</Text>
       </View>
     );
   }
 
   if (results.length === 0) {
     return (
-      <View className="flex-1 items-center justify-center px-8 bg-[#FAFBFC] dark:bg-[#0F0F0F]">
-        <View className="w-20 h-20 rounded-full bg-gray-200 dark:bg-gray-700 items-center justify-center mb-4">
-          <Ionicons name="alert-circle-outline" size={40} color={colors.gray[400]} />
-        </View>
-        <Text className="text-xl font-semibold text-gray-700 dark:text-gray-300 text-center">
-          Нічого не знайдено
-        </Text>
-        <Text className="text-gray-400 dark:text-gray-500 text-center mt-2">
-          Спробуйте інший пошуковий запит
-        </Text>
-      </View>
+      <EmptyState
+        icon="exclamationmark.circle"
+        iconColor={colors.gray[400]}
+        iconBackgroundColor="rgba(156, 163, 175, 0.2)"
+        title="Нічого не знайдено"
+        message="Спробуйте інший пошуковий запит"
+      />
     );
   }
 
@@ -65,7 +63,7 @@ export default function SearchIndex() {
     <FlatList
       data={results}
       keyExtractor={(item) => item.code.code}
-      className="flex-1 bg-[#FAFBFC] dark:bg-[#0F0F0F]"
+      style={{ flex: 1, backgroundColor: t.background }}
       contentContainerStyle={{
         paddingHorizontal: CONTENT_PADDING_HORIZONTAL,
         paddingTop: 12,

@@ -3,6 +3,7 @@ import { View, Text, FlatList } from "react-native";
 import { Host, CircularProgress } from "@expo/ui/swift-ui";
 import { Link } from "expo-router";
 import { useColorScheme } from "nativewind";
+import { isLiquidGlassAvailable } from "expo-glass-effect";
 import { AccentCard } from "@/components/AccentCard";
 import { EmptyState } from "@/components/EmptyState";
 import { useAchiData } from "@/lib/data-provider";
@@ -22,6 +23,8 @@ export default function SearchIndex() {
   const data = useAchiData();
   const { colorScheme } = useColorScheme();
   const t = colorScheme === "dark" ? theme.dark : theme.light;
+  const isLiquidGlass = useMemo(() => isLiquidGlassAvailable(), []);
+  const backgroundColor = isLiquidGlass ? "transparent" : t.background;
 
   const results = useMemo(() => {
     if (debouncedQuery.length < SEARCH_MIN_QUERY_LENGTH) return [];
@@ -41,7 +44,7 @@ export default function SearchIndex() {
 
   if (isSearching) {
     return (
-      <View className="flex-1 items-center justify-center px-8 bg-[#F0F2F5] dark:bg-[#0A0A0A]">
+      <View className="flex-1 items-center justify-center px-8" style={{ backgroundColor }}>
         <View className="items-center">
           <Host matchContents>
             <CircularProgress color={colors.sky[500]} />
@@ -77,7 +80,7 @@ export default function SearchIndex() {
     <FlatList
       data={results}
       keyExtractor={(item) => item.code.code}
-      className="flex-1 bg-[#F0F2F5] dark:bg-[#0A0A0A]"
+      style={{ flex: 1, backgroundColor }}
       contentContainerStyle={{
         paddingHorizontal: CONTENT_PADDING_HORIZONTAL,
         paddingTop: 12,
