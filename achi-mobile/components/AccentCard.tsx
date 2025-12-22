@@ -68,11 +68,11 @@ export function AccentCard({
                 {badge}
               </Text>
             )}
-            <Text className="text-base text-gray-900 font-semibold leading-5" numberOfLines={2}>
+            <Text className="text-base text-gray-900 dark:text-gray-100 font-semibold leading-5" numberOfLines={2}>
               {title}
             </Text>
             {subtitle && (
-              <Text className="text-xs text-gray-500 leading-4 mt-1.5" numberOfLines={2}>
+              <Text className="text-xs text-gray-500 dark:text-gray-400 leading-4 mt-1.5" numberOfLines={2}>
                 {subtitle}
               </Text>
             )}

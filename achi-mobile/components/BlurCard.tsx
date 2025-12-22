@@ -1,6 +1,8 @@
 import { View, Platform, StyleSheet } from "react-native";
 import { BlurView } from "expo-blur";
 import { GlassView, isLiquidGlassAvailable } from "expo-glass-effect";
+import { useColorScheme } from "nativewind";
+import { theme } from "@/lib/constants";
 import type { ReactNode } from "react";
 
 interface BlurCardProps {
@@ -10,9 +12,18 @@ interface BlurCardProps {
 }
 
 export function BlurCard({ children, intensity = 60, className = "p-4" }: BlurCardProps) {
+  const { colorScheme } = useColorScheme();
+  const isDark = colorScheme === "dark";
+  const t = isDark ? theme.dark : theme.light;
+
+  const cardContainerStyle = {
+    ...styles.cardContainer,
+    backgroundColor: t.card,
+  };
+
   if (Platform.OS === "ios" && isLiquidGlassAvailable()) {
     return (
-      <View style={styles.cardContainer}>
+      <View style={cardContainerStyle}>
         <GlassView className={className}>
           {children}
         </GlassView>
@@ -22,8 +33,8 @@ export function BlurCard({ children, intensity = 60, className = "p-4" }: BlurCa
 
   if (Platform.OS === "ios") {
     return (
-      <View style={styles.cardContainer}>
-        <BlurView intensity={intensity} tint="light" className={className}>
+      <View style={cardContainerStyle}>
+        <BlurView intensity={intensity} tint={isDark ? "dark" : "light"} className={className}>
           {children}
         </BlurView>
       </View>
@@ -31,8 +42,8 @@ export function BlurCard({ children, intensity = 60, className = "p-4" }: BlurCa
   }
 
   return (
-    <View style={styles.cardContainer}>
-      <View className={`${className} bg-white`}>
+    <View style={cardContainerStyle}>
+      <View className={className} style={{ backgroundColor: t.card }}>
         {children}
       </View>
     </View>
@@ -41,7 +52,6 @@ export function BlurCard({ children, intensity = 60, className = "p-4" }: BlurCa
 
 const styles = StyleSheet.create({
   cardContainer: {
-    backgroundColor: '#FFFFFF',
     borderRadius: 14,
     shadowColor: "#0ea5e9",
     shadowOffset: { width: 0, height: 2 },

@@ -3,10 +3,11 @@ import { View, Text, ScrollView, Pressable, Platform } from "react-native";
 import { useLocalSearchParams, Stack, useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
+import { useColorScheme } from "nativewind";
 import { useAchiData } from "@/lib/data-provider";
 import { useFavorites } from "@/lib/favorites-provider";
 import { findProcedurePath } from "@/lib/navigation";
-import { colors } from "@/lib/constants";
+import { colors, theme } from "@/lib/constants";
 import type { AchiData, CategoryChildren, ProcedureCode } from "@/lib/types";
 import { isLeafLevel } from "@/lib/types";
 
@@ -16,6 +17,9 @@ export default function ProcedureDetail() {
   const { isFavorite, toggleFavorite } = useFavorites();
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { colorScheme } = useColorScheme();
+  const isDark = colorScheme === "dark";
+  const t = isDark ? theme.dark : theme.light;
 
   const procedure = useMemo(
     () => (code ? findProcedure(data, code) : null),
@@ -31,16 +35,26 @@ export default function ProcedureDetail() {
 
   if (!code) {
     return (
-      <View className="flex-1 items-center justify-center" style={{ backgroundColor: '#FAFBFC' }}>
-        <Text className="text-gray-500">Неправильний код процедури</Text>
+      <View
+        className="flex-1 items-center justify-center"
+        style={{ backgroundColor: t.background }}
+      >
+        <Text style={{ color: t.textSecondary }}>
+          Неправильний код процедури
+        </Text>
       </View>
     );
   }
 
   if (!procedure) {
     return (
-      <View className="flex-1 items-center justify-center" style={{ backgroundColor: '#FAFBFC' }}>
-        <Text className="text-gray-500">Процедуру не знайдено</Text>
+      <View
+        className="flex-1 items-center justify-center"
+        style={{ backgroundColor: t.background }}
+      >
+        <Text style={{ color: t.textSecondary }}>
+          Процедуру не знайдено
+        </Text>
       </View>
     );
   }
@@ -62,7 +76,7 @@ export default function ProcedureDetail() {
                 accessibilityLabel="Закрити"
                 accessibilityRole="button"
               >
-                <Ionicons name="close" size={28} color={colors.gray[500]} />
+                <Ionicons name="close" size={28} color={t.textSecondary} />
               </Pressable>
             ) : undefined,
           headerRight: () => (
@@ -99,7 +113,7 @@ export default function ProcedureDetail() {
 
       <ScrollView
         className="flex-1"
-        style={{ backgroundColor: '#FAFBFC' }}
+        style={{ backgroundColor: t.background }}
         contentContainerStyle={{
           paddingHorizontal: 24,
           paddingTop: Platform.OS === "ios" ? 24 : 16,
@@ -111,7 +125,10 @@ export default function ProcedureDetail() {
         {/* Breadcrumb path */}
         {path.length > 0 && (
           <View className="mb-6">
-            <Text className="text-xs font-semibold text-gray-500 mb-2 uppercase tracking-wide">
+            <Text
+              className="text-xs font-semibold mb-2 uppercase tracking-wide"
+              style={{ color: t.textSecondary }}
+            >
               Розташування
             </Text>
             <View style={{ flexDirection: "row", flexWrap: "wrap", alignItems: "center" }}>
@@ -165,12 +182,18 @@ export default function ProcedureDetail() {
         </View>
 
         {/* Ukrainian name */}
-        <Text className="text-2xl font-semibold text-gray-900 mb-3 leading-8">
+        <Text
+          className="text-2xl font-semibold mb-3 leading-8"
+          style={{ color: t.text }}
+        >
           {procedure.name_ua}
         </Text>
 
         {/* English name */}
-        <Text className="text-base text-gray-500 leading-6">
+        <Text
+          className="text-base leading-6"
+          style={{ color: t.textSecondary }}
+        >
           {procedure.name_en}
         </Text>
       </ScrollView>

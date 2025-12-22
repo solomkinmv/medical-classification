@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useCallback, useEffect, useRef } from "react";
 import { Stack } from "expo-router";
-import { SEARCH_DEBOUNCE_MS } from "@/lib/constants";
+import { useColorScheme } from "nativewind";
+import { SEARCH_DEBOUNCE_MS, theme } from "@/lib/constants";
 
 interface SearchContextType {
   query: string;
@@ -23,6 +24,8 @@ export default function SearchLayout() {
   const [debouncedQuery, setDebouncedQuery] = useState("");
   const [isSearching, setIsSearching] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const { colorScheme } = useColorScheme();
+  const t = colorScheme === "dark" ? theme.dark : theme.light;
 
   const handleChangeText = useCallback((event: { nativeEvent: { text: string } }) => {
     const text = event.nativeEvent.text;
@@ -58,6 +61,7 @@ export default function SearchLayout() {
             headerLargeTitle: true,
             headerTransparent: true,
             headerBlurEffect: "systemChromeMaterial",
+            headerTintColor: t.text,
             headerSearchBarOptions: {
               placeholder: "Введіть код або назву...",
               onChangeText: handleChangeText,

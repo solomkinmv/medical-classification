@@ -11,22 +11,22 @@ export default function PinnedScreen() {
 
   if (isLoading) {
     return (
-      <View className="flex-1 items-center justify-center" style={{ backgroundColor: '#FAFBFC' }}>
-        <Text className="text-gray-400">Завантаження...</Text>
+      <View className="flex-1 items-center justify-center bg-[#FAFBFC] dark:bg-[#0F0F0F]">
+        <Text className="text-gray-400 dark:text-gray-500">Завантаження...</Text>
       </View>
     );
   }
 
   if (favorites.length === 0) {
     return (
-      <View className="flex-1 items-center justify-center px-8" style={{ backgroundColor: '#FAFBFC' }}>
-        <View className="w-20 h-20 rounded-full bg-amber-100 items-center justify-center mb-4">
+      <View className="flex-1 items-center justify-center px-8 bg-[#FAFBFC] dark:bg-[#0F0F0F]">
+        <View className="w-20 h-20 rounded-full bg-amber-100 dark:bg-amber-900/30 items-center justify-center mb-4">
           <Ionicons name="bookmark-outline" size={40} color={colors.amber[500]} />
         </View>
-        <Text className="text-xl font-semibold text-gray-700 text-center">
+        <Text className="text-xl font-semibold text-gray-700 dark:text-gray-300 text-center">
           Немає збережених
         </Text>
-        <Text className="text-gray-400 text-center mt-2">
+        <Text className="text-gray-400 dark:text-gray-500 text-center mt-2">
           Натисніть на закладку біля процедури, щоб зберегти її тут
         </Text>
       </View>
@@ -37,8 +37,7 @@ export default function PinnedScreen() {
     <FlatList
       data={favorites}
       keyExtractor={(item) => item.code}
-      className="flex-1"
-      style={{ backgroundColor: '#FAFBFC' }}
+      className="flex-1 bg-[#FAFBFC] dark:bg-[#0F0F0F]"
       contentContainerStyle={{
         paddingHorizontal: CONTENT_PADDING_HORIZONTAL,
         paddingBottom: CONTENT_PADDING_BOTTOM,

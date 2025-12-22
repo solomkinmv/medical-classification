@@ -1,8 +1,13 @@
+import { DynamicColorIOS } from "react-native";
 import { NativeTabs, Icon, Label } from "expo-router/unstable-native-tabs";
 
 export default function TabLayout() {
   return (
-    <NativeTabs>
+    <NativeTabs
+      labelStyle={{
+        color: DynamicColorIOS({ dark: "white", light: "black" }),
+      }}
+    >
       <NativeTabs.Trigger name="explore">
         <Icon sf="safari" />
         <Label>Огляд</Label>

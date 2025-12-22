@@ -25,11 +25,11 @@ export default function SearchIndex() {
 
   if (query.length < SEARCH_MIN_QUERY_LENGTH) {
     return (
-      <View className="flex-1 items-center justify-center px-8" style={{ backgroundColor: '#FAFBFC' }}>
-        <View className="w-20 h-20 rounded-full bg-gray-200 items-center justify-center mb-4">
+      <View className="flex-1 items-center justify-center px-8 bg-[#FAFBFC] dark:bg-[#0F0F0F]">
+        <View className="w-20 h-20 rounded-full bg-gray-200 dark:bg-gray-700 items-center justify-center mb-4">
           <Ionicons name="search-outline" size={40} color={colors.gray[400]} />
         </View>
-        <Text className="text-gray-500 text-center">
+        <Text className="text-gray-500 dark:text-gray-400 text-center">
           Введіть щонайменше {SEARCH_MIN_QUERY_LENGTH} символи для пошуку
         </Text>
       </View>
@@ -38,23 +38,23 @@ export default function SearchIndex() {
 
   if (isSearching) {
     return (
-      <View className="flex-1 items-center justify-center px-8" style={{ backgroundColor: '#FAFBFC' }}>
+      <View className="flex-1 items-center justify-center px-8 bg-[#FAFBFC] dark:bg-[#0F0F0F]">
         <ActivityIndicator size="large" color={colors.sky[500]} />
-        <Text className="text-gray-500 text-center mt-4">Пошук...</Text>
+        <Text className="text-gray-500 dark:text-gray-400 text-center mt-4">Пошук...</Text>
       </View>
     );
   }
 
   if (results.length === 0) {
     return (
-      <View className="flex-1 items-center justify-center px-8" style={{ backgroundColor: '#FAFBFC' }}>
-        <View className="w-20 h-20 rounded-full bg-gray-200 items-center justify-center mb-4">
+      <View className="flex-1 items-center justify-center px-8 bg-[#FAFBFC] dark:bg-[#0F0F0F]">
+        <View className="w-20 h-20 rounded-full bg-gray-200 dark:bg-gray-700 items-center justify-center mb-4">
           <Ionicons name="alert-circle-outline" size={40} color={colors.gray[400]} />
         </View>
-        <Text className="text-xl font-semibold text-gray-700 text-center">
+        <Text className="text-xl font-semibold text-gray-700 dark:text-gray-300 text-center">
           Нічого не знайдено
         </Text>
-        <Text className="text-gray-400 text-center mt-2">
+        <Text className="text-gray-400 dark:text-gray-500 text-center mt-2">
           Спробуйте інший пошуковий запит
         </Text>
       </View>
@@ -65,8 +65,7 @@ export default function SearchIndex() {
     <FlatList
       data={results}
       keyExtractor={(item) => item.code.code}
-      className="flex-1"
-      style={{ backgroundColor: '#FAFBFC' }}
+      className="flex-1 bg-[#FAFBFC] dark:bg-[#0F0F0F]"
       contentContainerStyle={{
         paddingHorizontal: CONTENT_PADDING_HORIZONTAL,
         paddingTop: 12,
@@ -79,7 +78,7 @@ export default function SearchIndex() {
       initialNumToRender={10}
       windowSize={5}
       ListHeaderComponent={
-        <Text className="text-sm text-gray-500 mb-3">
+        <Text className="text-sm text-gray-500 dark:text-gray-400 mb-3">
           Знайдено: {results.length}{" "}
           {results.length === 1
             ? "результат"

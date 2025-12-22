@@ -21,8 +21,7 @@ export default function AboutScreen() {
 
   return (
     <ScrollView
-      className="flex-1"
-      style={{ backgroundColor: '#FAFBFC' }}
+      className="flex-1 bg-[#FAFBFC] dark:bg-[#0F0F0F]"
       contentContainerStyle={{
         paddingHorizontal: CONTENT_PADDING_HORIZONTAL,
         paddingBottom: CONTENT_PADDING_BOTTOM,
@@ -32,7 +31,7 @@ export default function AboutScreen() {
       showsVerticalScrollIndicator={false}
     >
       <InfoCard icon="medical-outline" title="АКМІ" color={colors.violet[500]}>
-        <Text className="text-gray-600 leading-6">
+        <Text className="text-gray-600 dark:text-gray-400 leading-6">
           Австралійська класифікація медичних інтервенцій (ACHI) — це система
           класифікації процедур та інтервенцій, що використовується в охороні
           здоров'я.
@@ -40,14 +39,14 @@ export default function AboutScreen() {
       </InfoCard>
 
       <InfoCard icon="language-outline" title="Переклад" color={colors.violet[500]}>
-        <Text className="text-gray-600 leading-6">
+        <Text className="text-gray-600 dark:text-gray-400 leading-6">
           Український переклад ACHI надає можливість медичним працівникам
           використовувати стандартизовану класифікацію рідною мовою.
         </Text>
       </InfoCard>
 
       <InfoCard icon="book-outline" title="Джерело" color={colors.violet[500]}>
-        <Text className="text-gray-600 leading-6 mb-3">
+        <Text className="text-gray-600 dark:text-gray-400 leading-6 mb-3">
           Дані класифікації базуються на офіційному документі Австралійської
           класифікації медичних інтервенцій.
         </Text>
@@ -66,14 +65,14 @@ export default function AboutScreen() {
       </InfoCard>
 
       <InfoCard icon="code-slash-outline" title="Розробка" color={colors.violet[500]}>
-        <Text className="text-gray-600 leading-6">
+        <Text className="text-gray-600 dark:text-gray-400 leading-6">
           Додаток розроблено з використанням React Native та Expo для
           забезпечення кросплатформної сумісності.
         </Text>
       </InfoCard>
 
       <View className="mt-8 items-center">
-        <Text className="text-gray-400 text-sm">Версія 1.0.0</Text>
+        <Text className="text-gray-400 dark:text-gray-500 text-sm">Версія 1.0.0</Text>
       </View>
     </ScrollView>
   );
@@ -105,7 +104,7 @@ function InfoCard({ icon, title, color, children }: InfoCardProps) {
               >
                 <Ionicons name={icon} size={20} color={color} />
               </View>
-              <Text className="text-lg font-semibold text-gray-900">{title}</Text>
+              <Text className="text-lg font-semibold text-gray-900 dark:text-gray-100">{title}</Text>
             </View>
             {children}
           </View>

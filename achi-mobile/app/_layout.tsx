@@ -4,15 +4,21 @@ import * as SplashScreen from "expo-splash-screen";
 import { useEffect } from "react";
 import { Platform } from "react-native";
 import { StatusBar } from "expo-status-bar";
+import { useColorScheme } from "nativewind";
 import { isLiquidGlassAvailable } from "expo-glass-effect";
 import { AchiDataProvider } from "@/lib/data-provider";
 import { FavoritesProvider } from "@/lib/favorites-provider";
+import { theme } from "@/lib/constants";
 
 export { ErrorBoundary } from "expo-router";
 
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
+  const { colorScheme } = useColorScheme();
+  const isDark = colorScheme === "dark";
+  const t = isDark ? theme.dark : theme.light;
+
   useEffect(() => {
     SplashScreen.hideAsync();
   }, []);
@@ -38,6 +44,7 @@ export default function RootLayout() {
               headerStyle: {
                 backgroundColor: "transparent",
               },
+              headerTintColor: t.text,
               headerLargeTitle: false,
               sheetGrabberVisible: true,
               sheetAllowedDetents: Platform.OS === "ios" ? [0.65, 0.9] : undefined,
@@ -45,12 +52,12 @@ export default function RootLayout() {
               contentStyle: {
                 backgroundColor: isLiquidGlassAvailable()
                   ? "transparent"
-                  : "#FAFBFC",
+                  : t.background,
               },
             }}
           />
         </Stack>
-        <StatusBar style="dark" />
+        <StatusBar style="auto" />
       </FavoritesProvider>
     </AchiDataProvider>
   );
