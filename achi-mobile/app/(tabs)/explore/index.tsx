@@ -50,31 +50,62 @@ export default function ExploreScreen() {
           styles.header,
           {
             height: headerHeight,
-            paddingTop: insets.top,
           },
         ]}
       >
-        <Animated.View
-          style={{
-            opacity: titleOpacity,
-            transform: [{ translateY: titleTranslateY }],
-          }}
-        >
-          <Text className="text-3xl font-bold text-white mt-2">АКМІ</Text>
-          <Text className="text-sky-100 text-sm mt-1">
-            Австралійська класифікація медичних інтервенцій
-          </Text>
-        </Animated.View>
+        {Platform.OS === "ios" ? (
+          <BlurView
+            intensity={80}
+            tint="systemChromeMaterial"
+            style={[styles.headerBlur, { paddingTop: insets.top }]}
+          >
+            <Animated.View
+              style={{
+                opacity: titleOpacity,
+                transform: [{ translateY: titleTranslateY }],
+              }}
+            >
+              <Text className="text-3xl font-bold text-sky-600 mt-2">АКМІ</Text>
+              <Text className="text-sky-500 text-sm mt-1">
+                Австралійська класифікація медичних інтервенцій
+              </Text>
+            </Animated.View>
 
-        <Pressable
-          className="mt-3 flex-row items-center bg-white/20 rounded-2xl px-4 py-3"
-          onPress={() => router.push("/search")}
-        >
-          <Ionicons name="search" size={20} color="rgba(255,255,255,0.8)" />
-          <Text className="ml-3 text-white/80 text-base">
-            Пошук процедури...
-          </Text>
-        </Pressable>
+            <Pressable
+              className="mt-3 flex-row items-center bg-sky-500/20 rounded-2xl px-4 py-3"
+              onPress={() => router.push("/search")}
+            >
+              <Ionicons name="search" size={20} color="#0ea5e9" />
+              <Text className="ml-3 text-sky-600 text-base">
+                Пошук процедури...
+              </Text>
+            </Pressable>
+          </BlurView>
+        ) : (
+          <View style={[styles.headerBlur, { paddingTop: insets.top, backgroundColor: "#0ea5e9" }]}>
+            <Animated.View
+              style={{
+                opacity: titleOpacity,
+                transform: [{ translateY: titleTranslateY }],
+              }}
+            >
+              <Text className="text-3xl font-bold text-white mt-2">АКМІ</Text>
+              <Text className="text-sky-100 text-sm mt-1">
+                Австралійська класифікація медичних інтервенцій
+              </Text>
+            </Animated.View>
+
+            <Pressable
+              className="mt-3 flex-row items-center bg-white/20 rounded-2xl px-4 py-3"
+              onPress={() => router.push("/search")}
+            >
+              <Ionicons name="search" size={20} color="rgba(255,255,255,0.8)" />
+              <Text className="ml-3 text-white/80 text-base">
+                Пошук процедури...
+              </Text>
+            </Pressable>
+          </View>
+        )}
       </Animated.View>
 
       <Animated.FlatList
@@ -105,8 +136,11 @@ const styles = StyleSheet.create({
     top: 0,
     left: 0,
     right: 0,
-    backgroundColor: "#0ea5e9",
     zIndex: 10,
+    overflow: "hidden",
+  },
+  headerBlur: {
+    flex: 1,
     paddingHorizontal: 16,
     paddingBottom: 12,
     justifyContent: "flex-end",

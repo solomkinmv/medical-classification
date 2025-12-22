@@ -1,32 +1,51 @@
-import { View, Text, FlatList, Pressable, Platform } from "react-native";
+import { View, Text, FlatList, Pressable, Platform, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { BlurView } from "expo-blur";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useFavorites } from "@/lib/favorites-provider";
 import type { ProcedureCode } from "@/lib/types";
 
+const HEADER_HEIGHT = 100;
+
 export default function PinnedScreen() {
   const { favorites, toggleFavorite, isLoading } = useFavorites();
   const insets = useSafeAreaInsets();
 
+  const headerContent = (isBlur: boolean) => (
+    <>
+      <Text className={`text-3xl font-bold ${isBlur ? "text-amber-600" : "text-white"} mt-2`}>
+        Збережені
+      </Text>
+      <Text className={`${isBlur ? "text-amber-500" : "text-amber-100"} text-sm mt-1`}>
+        Ваші збережені процедури
+      </Text>
+    </>
+  );
+
   return (
     <View className="flex-1 bg-gray-100">
-      <View
-        style={{ paddingTop: insets.top }}
-        className="bg-amber-500 pb-4 px-4"
-      >
-        <Text className="text-3xl font-bold text-white mt-2">Збережені</Text>
-        <Text className="text-amber-100 text-sm mt-1">
-          Ваші збережені процедури
-        </Text>
+      <View style={[styles.header, { height: HEADER_HEIGHT + insets.top }]}>
+        {Platform.OS === "ios" ? (
+          <BlurView
+            intensity={80}
+            tint="systemChromeMaterial"
+            style={[styles.headerBlur, { paddingTop: insets.top }]}
+          >
+            {headerContent(true)}
+          </BlurView>
+        ) : (
+          <View style={[styles.headerBlur, { paddingTop: insets.top, backgroundColor: "#f59e0b" }]}>
+            {headerContent(false)}
+          </View>
+        )}
       </View>
 
       {isLoading ? (
-        <View className="flex-1 items-center justify-center">
+        <View style={{ marginTop: HEADER_HEIGHT + insets.top }} className="flex-1 items-center justify-center">
           <Text className="text-gray-400">Завантаження...</Text>
         </View>
       ) : favorites.length === 0 ? (
-        <View className="flex-1 items-center justify-center px-8">
+        <View style={{ marginTop: HEADER_HEIGHT + insets.top }} className="flex-1 items-center justify-center px-8">
           <View className="w-20 h-20 rounded-full bg-amber-100 items-center justify-center mb-4">
             <Ionicons name="bookmark-outline" size={40} color="#f59e0b" />
           </View>
@@ -41,7 +60,11 @@ export default function PinnedScreen() {
         <FlatList
           data={favorites}
           keyExtractor={(item) => item.code}
-          contentContainerStyle={{ padding: 16, paddingBottom: 100 }}
+          contentContainerStyle={{
+            paddingTop: HEADER_HEIGHT + insets.top + 16,
+            paddingHorizontal: 16,
+            paddingBottom: 100
+          }}
           showsVerticalScrollIndicator={false}
           renderItem={({ item }) => (
             <PinnedCard procedure={item} onToggle={() => toggleFavorite(item)} />
@@ -106,3 +129,20 @@ function CardContent({
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  header: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 10,
+    overflow: "hidden",
+  },
+  headerBlur: {
+    flex: 1,
+    paddingHorizontal: 16,
+    paddingBottom: 12,
+    justifyContent: "flex-end",
+  },
+});
