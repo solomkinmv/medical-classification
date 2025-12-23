@@ -1,11 +1,15 @@
 import "../global.css";
+import {
+  DarkTheme,
+  DefaultTheme,
+  ThemeProvider,
+} from "@react-navigation/native";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect } from "react";
-import { Platform } from "react-native";
+import { Platform, useColorScheme } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { StatusBar } from "expo-status-bar";
-import { useColorScheme } from "nativewind";
 import { isLiquidGlassAvailable } from "expo-glass-effect";
 import { AchiDataProvider } from "@/lib/data-provider";
 import { FavoritesProvider } from "@/lib/favorites-provider";
@@ -16,7 +20,7 @@ export { ErrorBoundary } from "expo-router";
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
-  const { colorScheme } = useColorScheme();
+  const colorScheme = useColorScheme() ?? "light";
   const isDark = colorScheme === "dark";
   const t = isDark ? theme.dark : theme.light;
 
@@ -26,13 +30,14 @@ export default function RootLayout() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <AchiDataProvider>
-        <FavoritesProvider>
-          <Stack
-            screenOptions={{
-              headerShown: false,
-            }}
-          >
+      <ThemeProvider value={isDark ? DarkTheme : DefaultTheme}>
+        <AchiDataProvider>
+          <FavoritesProvider>
+            <Stack
+              screenOptions={{
+                headerShown: false,
+              }}
+            >
             <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
             <Stack.Screen
               name="procedure/[code]"
@@ -58,10 +63,11 @@ export default function RootLayout() {
                 },
               }}
             />
-          </Stack>
-          <StatusBar style="auto" />
-        </FavoritesProvider>
-      </AchiDataProvider>
+            </Stack>
+            <StatusBar style="auto" />
+          </FavoritesProvider>
+        </AchiDataProvider>
+      </ThemeProvider>
     </GestureHandlerRootView>
   );
 }
