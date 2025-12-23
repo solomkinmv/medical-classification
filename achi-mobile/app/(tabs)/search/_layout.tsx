@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, useCallback, useEffect, useRef } from "react";
+import { useColorScheme } from "react-native";
 import { Stack } from "expo-router";
 import { isLiquidGlassAvailable } from "expo-glass-effect";
-import { useColorScheme } from "nativewind";
 import { SEARCH_DEBOUNCE_MS, theme } from "@/lib/constants";
 
 interface SearchContextType {
@@ -25,7 +25,7 @@ export default function SearchLayout() {
   const [debouncedQuery, setDebouncedQuery] = useState("");
   const [isSearching, setIsSearching] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const { colorScheme } = useColorScheme();
+  const colorScheme = useColorScheme();
   const t = colorScheme === "dark" ? theme.dark : theme.light;
 
   const handleChangeText = useCallback((event: { nativeEvent: { text: string } }) => {
@@ -52,6 +52,8 @@ export default function SearchLayout() {
     };
   }, []);
 
+  const headerBg = isLiquidGlassAvailable() ? "transparent" : t.background;
+
   return (
     <SearchContext.Provider value={{ query, debouncedQuery, isSearching }}>
       <Stack
@@ -64,7 +66,7 @@ export default function SearchLayout() {
           options={{
             title: "Пошук",
             headerLargeTitle: true,
-            headerStyle: { backgroundColor: isLiquidGlassAvailable() ? "transparent" : t.background },
+            headerStyle: { backgroundColor: headerBg },
             headerTintColor: t.text,
             headerSearchBarOptions: {
               placeholder: "Введіть код або назву...",

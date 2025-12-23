@@ -1,6 +1,5 @@
-import { View, Text, FlatList } from "react-native";
+import { View, Text, FlatList, useColorScheme } from "react-native";
 import { useLocalSearchParams, Link, Stack } from "expo-router";
-import { useColorScheme } from "nativewind";
 import { AccentCard } from "@/components/AccentCard";
 import { useAchiData } from "@/lib/data-provider";
 import { useFavorites } from "@/lib/favorites-provider";
@@ -15,7 +14,7 @@ import type { CategoryNode, ProcedureCode } from "@/lib/types";
 export default function BrowseScreen() {
   const { path } = useLocalSearchParams<{ path: string[] }>();
   const data = useAchiData();
-  const { colorScheme } = useColorScheme();
+  const colorScheme = useColorScheme() ?? "light";
   const t = colorScheme === "dark" ? theme.dark : theme.light;
 
   const pathSegments = Array.isArray(path) ? path : path ? [path] : [];
@@ -36,17 +35,18 @@ export default function BrowseScreen() {
   const currentPath = navState.path.map((s) => encodeURIComponent(s.key));
 
   return (
-    <View className="flex-1 bg-[#F0F2F5] dark:bg-[#0A0A0A]">
+    <View style={{ flex: 1, backgroundColor: t.background }}>
       <Stack.Screen
         options={{
           title: title.length > 25 ? title.substring(0, 25) + "..." : title,
+          headerStyle: { backgroundColor: t.background },
         }}
       />
 
       {navState.isLeaf && procedureCodes ? (
-        <ProcedureList codes={procedureCodes} />
+        <ProcedureList codes={procedureCodes} backgroundColor={t.background} />
       ) : childCategories ? (
-        <CategoryList categories={childCategories} basePath={currentPath} />
+        <CategoryList categories={childCategories} basePath={currentPath} backgroundColor={t.background} />
       ) : (
         <View className="flex-1 items-center justify-center">
           <Text style={{ fontSize: 14, color: t.textSecondary }}>
@@ -61,13 +61,15 @@ export default function BrowseScreen() {
 interface CategoryListProps {
   categories: [string, CategoryNode][];
   basePath: string[];
+  backgroundColor: string;
 }
 
-function CategoryList({ categories, basePath }: CategoryListProps) {
+function CategoryList({ categories, basePath, backgroundColor }: CategoryListProps) {
   return (
     <FlatList
       data={categories}
       keyExtractor={([key]) => key}
+      style={{ flex: 1, backgroundColor }}
       contentContainerStyle={{
         paddingHorizontal: CONTENT_PADDING_HORIZONTAL,
         paddingBottom: CONTENT_PADDING_BOTTOM,
@@ -101,13 +103,15 @@ function CategoryList({ categories, basePath }: CategoryListProps) {
 
 interface ProcedureListProps {
   codes: ProcedureCode[];
+  backgroundColor: string;
 }
 
-function ProcedureList({ codes }: ProcedureListProps) {
+function ProcedureList({ codes, backgroundColor }: ProcedureListProps) {
   return (
     <FlatList
       data={codes}
       keyExtractor={(item) => item.code}
+      style={{ flex: 1, backgroundColor }}
       contentContainerStyle={{
         paddingHorizontal: CONTENT_PADDING_HORIZONTAL,
         paddingBottom: CONTENT_PADDING_BOTTOM,

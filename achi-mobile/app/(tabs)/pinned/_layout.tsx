@@ -1,12 +1,12 @@
+import { useColorScheme } from "react-native";
 import { Stack } from "expo-router";
-import { useColorScheme } from "nativewind";
 import { isLiquidGlassAvailable } from "expo-glass-effect";
 import { colors, theme } from "@/lib/constants";
 
 export default function PinnedLayout() {
-  const { colorScheme } = useColorScheme();
+  const colorScheme = useColorScheme();
   const t = colorScheme === "dark" ? theme.dark : theme.light;
-  const headerBackground = isLiquidGlassAvailable() ? "transparent" : t.background;
+  const headerBg = isLiquidGlassAvailable() ? "transparent" : t.background;
 
   return (
     <Stack
@@ -19,7 +19,7 @@ export default function PinnedLayout() {
         options={{
           title: "Збережені",
           headerLargeTitle: true,
-          headerStyle: { backgroundColor: headerBackground },
+          headerStyle: { backgroundColor: headerBg },
           headerTintColor: colors.amber[500],
         }}
       />

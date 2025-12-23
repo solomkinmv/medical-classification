@@ -1,9 +1,7 @@
-import { useMemo } from "react";
 import { View, Text, FlatList } from "react-native";
 import { Host, CircularProgress } from "@expo/ui/swift-ui";
 import { Link } from "expo-router";
 import { useColorScheme } from "nativewind";
-import { isLiquidGlassAvailable } from "expo-glass-effect";
 import { AccentCard } from "@/components/AccentCard";
 import { EmptyState } from "@/components/EmptyState";
 import { useFavorites } from "@/lib/favorites-provider";
@@ -14,12 +12,10 @@ export default function PinnedScreen() {
   const { favorites, toggleFavorite, isLoading } = useFavorites();
   const { colorScheme } = useColorScheme();
   const t = colorScheme === "dark" ? theme.dark : theme.light;
-  const isLiquidGlass = useMemo(() => isLiquidGlassAvailable(), []);
-  const backgroundColor = isLiquidGlass ? "transparent" : t.background;
 
   if (isLoading) {
     return (
-      <View className="flex-1 items-center justify-center" style={{ backgroundColor }}>
+      <View className="flex-1 items-center justify-center bg-[#F0F2F5] dark:bg-[#0A0A0A]">
         <View className="items-center">
           <Host matchContents>
             <CircularProgress color={colors.sky[500]} />
@@ -48,7 +44,7 @@ export default function PinnedScreen() {
     <FlatList
       data={favorites}
       keyExtractor={(item) => item.code}
-      style={{ flex: 1, backgroundColor }}
+      className="flex-1 bg-[#F0F2F5] dark:bg-[#0A0A0A]"
       contentContainerStyle={{
         paddingHorizontal: CONTENT_PADDING_HORIZONTAL,
         paddingBottom: CONTENT_PADDING_BOTTOM,

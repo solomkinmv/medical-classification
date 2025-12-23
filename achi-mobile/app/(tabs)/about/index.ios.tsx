@@ -1,8 +1,6 @@
-import { useMemo } from "react";
 import { View, Text, Pressable, Linking, ScrollView, Alert } from "react-native";
 import { Host, Image, Button, ImageProps } from "@expo/ui/swift-ui";
 import { useColorScheme } from "nativewind";
-import { isLiquidGlassAvailable } from "expo-glass-effect";
 import { colors, CONTENT_PADDING_HORIZONTAL, CONTENT_PADDING_BOTTOM, theme } from "@/lib/constants";
 
 type SFSymbolName = ImageProps["systemName"];
@@ -19,8 +17,6 @@ export default function AboutScreen() {
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === "dark";
   const t = isDark ? theme.dark : theme.light;
-  const isLiquidGlass = useMemo(() => isLiquidGlassAvailable(), []);
-  const backgroundColor = isLiquidGlass ? "transparent" : t.background;
 
   const handleOpenPDF = async () => {
     const url = "https://zoiacms.zp.ua/wp-content/uploads/2020/03/Австралійський-класифікатор-мед.інтервенцій.pdf";
@@ -40,7 +36,7 @@ export default function AboutScreen() {
 
   return (
     <ScrollView
-      style={{ flex: 1, backgroundColor }}
+      className="flex-1 bg-[#F0F2F5] dark:bg-[#0A0A0A]"
       contentContainerStyle={{
         paddingHorizontal: CONTENT_PADDING_HORIZONTAL,
         paddingBottom: CONTENT_PADDING_BOTTOM,
