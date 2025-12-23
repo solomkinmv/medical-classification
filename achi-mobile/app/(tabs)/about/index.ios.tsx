@@ -44,7 +44,6 @@ export default function AboutScreen() {
       contentContainerStyle={{
         paddingHorizontal: CONTENT_PADDING_HORIZONTAL,
         paddingBottom: CONTENT_PADDING_BOTTOM,
-        paddingTop: 12,
       }}
       contentInsetAdjustmentBehavior="automatic"
       showsVerticalScrollIndicator={false}

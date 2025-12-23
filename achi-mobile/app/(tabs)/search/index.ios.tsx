@@ -83,7 +83,6 @@ export default function SearchIndex() {
       style={{ flex: 1, backgroundColor }}
       contentContainerStyle={{
         paddingHorizontal: CONTENT_PADDING_HORIZONTAL,
-        paddingTop: 12,
       }}
       contentInsetAdjustmentBehavior="automatic"
       keyboardShouldPersistTaps="handled"
