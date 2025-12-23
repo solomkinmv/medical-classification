@@ -8,9 +8,7 @@ export default function AboutScreen() {
   const { colorScheme } = useColorScheme();
   const t = colorScheme === "dark" ? theme.dark : theme.light;
 
-  const handleOpenPDF = async () => {
-    const url = "https://zoiacms.zp.ua/wp-content/uploads/2020/03/Австралійський-класифікатор-мед.інтервенцій.pdf";
-    
+  const handleOpenURL = async (url: string) => {
     try {
       const canOpen = await Linking.canOpenURL(url);
       if (canOpen) {
@@ -18,9 +16,21 @@ export default function AboutScreen() {
       } else {
         Alert.alert("Помилка", "Не вдалося відкрити посилання");
       }
-    } catch (error) {
-      Alert.alert("Помилка", "Не вдалося відкрити PDF документ");
+    } catch {
+      Alert.alert("Помилка", "Не вдалося відкрити посилання");
     }
+  };
+
+  const handleOpenPDF = () => {
+    handleOpenURL("https://www.dec.gov.ua/wp-content/uploads/2023/01/nk-026_2021_.pdf");
+  };
+
+  const handleOpenDeveloper = () => {
+    handleOpenURL("https://solomk.in");
+  };
+
+  const handleOpenSupport = () => {
+    handleOpenURL("mailto:support+achi@solomk.in");
   };
 
   return (
@@ -33,18 +43,19 @@ export default function AboutScreen() {
       contentInsetAdjustmentBehavior="automatic"
       showsVerticalScrollIndicator={false}
     >
-      <InfoCard icon="medical-outline" title="АКМІ" color={colors.violet[500]}>
+      <InfoCard icon="list-outline" title="АКМІ" color={colors.violet[500]}>
         <Text className="text-gray-600 dark:text-gray-400 leading-6">
-          Австралійська класифікація медичних інтервенцій (ACHI) — це система
-          класифікації процедур та інтервенцій, що використовується в охороні
-          здоров'я.
+          АКМІ (Австралійська класифікація медичних інтервенцій) — українська
+          назва ACHI (Australian Classification of Health Interventions).
+          Табличний перелік інтервенцій, що використовується в охороні здоров'я.
         </Text>
       </InfoCard>
 
-      <InfoCard icon="language-outline" title="Переклад" color={colors.violet[500]}>
+      <InfoCard icon="medical-outline" title="Можливості" color={colors.violet[500]}>
         <Text className="text-gray-600 dark:text-gray-400 leading-6">
-          Український переклад ACHI надає можливість медичним працівникам
-          використовувати стандартизовану класифікацію рідною мовою.
+          Зручний доступ до кодів медичних операцій на основі офіційної
+          української документації. Додаток дозволяє швидко знайти потрібні
+          коди за допомогою простої навігації.
         </Text>
       </InfoCard>
 
@@ -67,11 +78,34 @@ export default function AboutScreen() {
         </Pressable>
       </InfoCard>
 
-      <InfoCard icon="code-slash-outline" title="Розробка" color={colors.violet[500]}>
-        <Text className="text-gray-600 dark:text-gray-400 leading-6">
-          Додаток розроблено з використанням React Native та Expo для
-          забезпечення кросплатформної сумісності.
+      <InfoCard icon="mail-outline" title="Зворотний зв'язок" color={colors.violet[500]}>
+        <Text className="text-gray-600 dark:text-gray-400 leading-6 mb-3">
+          Маєте пропозиції чи зауваження? Напишіть нам.
         </Text>
+        <Pressable
+          className="flex-row items-center mb-2"
+          accessibilityLabel="Написати на пошту"
+          accessibilityRole="link"
+          accessibilityHint="Відкриває поштовий клієнт"
+          onPress={handleOpenSupport}
+        >
+          <Ionicons name="mail-outline" size={16} color={colors.violet[500]} />
+          <Text className="text-violet-500 ml-2 font-medium">
+            support+achi@solomk.in
+          </Text>
+        </Pressable>
+        <Pressable
+          className="flex-row items-center"
+          accessibilityLabel="Відкрити сайт розробника"
+          accessibilityRole="link"
+          accessibilityHint="Відкриває сайт розробника у браузері"
+          onPress={handleOpenDeveloper}
+        >
+          <Ionicons name="globe-outline" size={16} color={colors.violet[500]} />
+          <Text className="text-violet-500 ml-2 font-medium">
+            solomk.in
+          </Text>
+        </Pressable>
       </InfoCard>
 
       <View className="mt-8 items-center">
