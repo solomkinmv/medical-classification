@@ -1,15 +1,17 @@
 import { Stack } from "expo-router";
+import { useColorScheme } from "nativewind";
 import { isLiquidGlassAvailable } from "expo-glass-effect";
-import { colors } from "@/lib/constants";
+import { colors, theme } from "@/lib/constants";
 
 export default function AboutLayout() {
+  const { colorScheme } = useColorScheme();
+  const t = colorScheme === "dark" ? theme.dark : theme.light;
+  const headerBackground = isLiquidGlassAvailable() ? "transparent" : t.background;
+
   return (
     <Stack
       screenOptions={{
-        headerTransparent: true,
-        headerBlurEffect: isLiquidGlassAvailable() ? undefined : "systemChromeMaterial",
         headerLargeTitleShadowVisible: false,
-        headerShadowVisible: false,
       }}
     >
       <Stack.Screen
@@ -17,8 +19,7 @@ export default function AboutLayout() {
         options={{
           title: "Про додаток",
           headerLargeTitle: true,
-          headerLargeStyle: { backgroundColor: "transparent" },
-          headerStyle: { backgroundColor: "transparent" },
+          headerStyle: { backgroundColor: headerBackground },
           headerTintColor: colors.violet[500],
         }}
       />

@@ -54,14 +54,17 @@ export default function SearchLayout() {
 
   return (
     <SearchContext.Provider value={{ query, debouncedQuery, isSearching }}>
-      <Stack>
+      <Stack
+        screenOptions={{
+          headerLargeTitleShadowVisible: false,
+        }}
+      >
         <Stack.Screen
           name="index"
           options={{
             title: "Пошук",
             headerLargeTitle: true,
-            headerTransparent: true,
-            headerBlurEffect: isLiquidGlassAvailable() ? undefined : "systemChromeMaterial",
+            headerStyle: { backgroundColor: isLiquidGlassAvailable() ? "transparent" : t.background },
             headerTintColor: t.text,
             headerSearchBarOptions: {
               placeholder: "Введіть код або назву...",
