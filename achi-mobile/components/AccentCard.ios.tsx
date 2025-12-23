@@ -1,6 +1,6 @@
 import { View, Text, Pressable } from "react-native";
 import { Host, Image, ImageProps } from "@expo/ui/swift-ui";
-import { BlurCard } from "./BlurCard";
+import { Card } from "./Card";
 import { AnimatedBookmarkButton } from "./AnimatedBookmarkButton";
 import type { ReactNode } from "react";
 
@@ -72,7 +72,7 @@ export function AccentCard({
 
   return (
     <CardWrapper className="mb-3" {...wrapperProps}>
-      <BlurCard>
+      <Card>
         <View className="flex-row items-start p-4">
           {/* Vertical accent bar */}
           <View
@@ -146,7 +146,7 @@ export function AccentCard({
             </View>
           )}
         </View>
-      </BlurCard>
+      </Card>
     </CardWrapper>
   );
 }

@@ -1,7 +1,7 @@
 import { View, Text, Pressable, Linking, ScrollView, Alert } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useColorScheme } from "nativewind";
-import { BlurCard } from "@/components/BlurCard";
+import { Card } from "@/components/Card";
 import { colors, CONTENT_PADDING_HORIZONTAL, CONTENT_PADDING_BOTTOM, theme } from "@/lib/constants";
 
 export default function AboutScreen() {
@@ -95,7 +95,7 @@ function InfoCard({ icon, title, color, children }: InfoCardProps) {
       accessible
       accessibilityLabel={title}
     >
-      <BlurCard>
+      <Card>
         <View className="flex-row items-start p-5">
           <View className="w-1 h-16 rounded-full mr-4" style={{ backgroundColor: color }} />
 
@@ -112,7 +112,7 @@ function InfoCard({ icon, title, color, children }: InfoCardProps) {
             {children}
           </View>
         </View>
-      </BlurCard>
+      </Card>
     </View>
   );
 }
