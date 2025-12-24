@@ -43,37 +43,44 @@ export default function AboutScreen() {
       contentInsetAdjustmentBehavior="automatic"
       showsVerticalScrollIndicator={false}
     >
-      <InfoCard icon="list-outline" title="АКМІ" color={colors.violet[500]}>
+      <InfoCard icon="list-outline" title="Що таке АКМІ?" color={colors.violet[500]}>
+        <Text className="text-gray-600 dark:text-gray-400 leading-6 mb-2">
+          АКМІ (Австралійський класифікатор медичних інтервенцій) — українська назва ACHI (Australian Classification of Health Interventions).
+        </Text>
+        <Text className="text-gray-600 dark:text-gray-400 leading-6 mb-2">
+          Структурований довідник кодів із 20 класів за анатомічним принципом. Має 5 рівнів ієрархії: від класу до конкретного коду інтервенції.
+        </Text>
         <Text className="text-gray-600 dark:text-gray-400 leading-6">
-          АКМІ (Австралійська класифікація медичних інтервенцій) — українська
-          назва ACHI (Australian Classification of Health Interventions).
-          Табличний перелік інтервенцій, що використовується в охороні здоров'я.
+          Містить 6 728 кодів медичних процедур українською та англійською мовами.
         </Text>
       </InfoCard>
 
-      <InfoCard icon="medical-outline" title="Можливості" color={colors.violet[500]}>
+      <InfoCard icon="document-text-outline" title="НК 026:2021" color={colors.violet[500]}>
+        <Text className="text-gray-600 dark:text-gray-400 leading-6 mb-2">
+          Національний класифікатор України «Класифікатор медичних інтервенцій».
+        </Text>
+        <Text className="text-gray-600 dark:text-gray-400 leading-6 mb-2">
+          Чинний з 01.09.2021. Затверджено наказом Міністерства економіки України від 04.08.2021 № 360-21.
+        </Text>
         <Text className="text-gray-600 dark:text-gray-400 leading-6">
-          Зручний доступ до кодів медичних операцій на основі офіційної
-          української документації. Додаток дозволяє швидко знайти потрібні
-          коди за допомогою простої навігації.
+          Гармонізовано з Австралійським класифікатором медичних інтервенцій (ACHI), 10-та редакція, 1 липня 2017 року.
         </Text>
       </InfoCard>
 
       <InfoCard icon="book-outline" title="Джерело" color={colors.violet[500]}>
         <Text className="text-gray-600 dark:text-gray-400 leading-6 mb-3">
-          Дані класифікації базуються на офіційному документі Австралійської
-          класифікації медичних інтервенцій.
+          Дані класифікації базуються на офіційному документі.
         </Text>
         <Pressable
           className="flex-row items-center"
-          accessibilityLabel="Відкрити PDF документ"
+          accessibilityLabel="Відкрити PDF документ класифікатора"
           accessibilityRole="link"
           accessibilityHint="Відкриває PDF документ класифікатора у браузері"
           onPress={handleOpenPDF}
         >
           <Ionicons name="open-outline" size={16} color={colors.violet[500]} />
           <Text className="text-violet-500 ml-2 font-medium">
-            Відкрити PDF документ
+            Класифікатор НК 026:2021 (PDF)
           </Text>
         </Pressable>
       </InfoCard>

@@ -1,6 +1,6 @@
-import { useMemo, useEffect } from "react";
+import { useMemo, useRef, useCallback, useEffect } from "react";
 import { View, Text, FlatList, ScrollView } from "react-native";
-import { Link } from "expo-router";
+import { useRouter, useFocusEffect } from "expo-router";
 import { useColorScheme } from "nativewind";
 import { AccentCard } from "@/components/AccentCard";
 import { EmptyState } from "@/components/EmptyState";
@@ -34,12 +34,38 @@ export default function SearchIndex() {
     return searchProcedures(data, debouncedQuery, SEARCH_MAX_RESULTS);
   }, [data, debouncedQuery]);
 
-  const resultsCount = results.length;
+  // Track the last query that had results (for saving on session end)
+  const lastSuccessfulQueryRef = useRef<string | null>(null);
+
+  // Update ref when we have results
+  if (results.length > 0 && debouncedQuery.length >= SEARCH_MIN_QUERY_LENGTH) {
+    lastSuccessfulQueryRef.current = debouncedQuery;
+  }
+
+  // Save when search is cleared (X button) - session end
+  const prevDebouncedQueryRef = useRef<string>(debouncedQuery);
   useEffect(() => {
-    if (resultsCount > 0 && debouncedQuery.length >= SEARCH_MIN_QUERY_LENGTH) {
-      addRecentSearch(debouncedQuery);
+    const wasValid = prevDebouncedQueryRef.current.length >= SEARCH_MIN_QUERY_LENGTH;
+    const isNowInvalid = debouncedQuery.length < SEARCH_MIN_QUERY_LENGTH;
+
+    if (wasValid && isNowInvalid && lastSuccessfulQueryRef.current) {
+      addRecentSearch(lastSuccessfulQueryRef.current);
+      lastSuccessfulQueryRef.current = null;
     }
-  }, [resultsCount, debouncedQuery, addRecentSearch]);
+    prevDebouncedQueryRef.current = debouncedQuery;
+  }, [debouncedQuery, addRecentSearch]);
+
+  // Save search when leaving the screen - session end
+  useFocusEffect(
+    useCallback(() => {
+      return () => {
+        if (lastSuccessfulQueryRef.current) {
+          addRecentSearch(lastSuccessfulQueryRef.current);
+          lastSuccessfulQueryRef.current = null;
+        }
+      };
+    }, [addRecentSearch])
+  );
 
   const lastSearchResults = useMemo(() => {
     if (!lastSearchQuery || lastSearchQuery.length < SEARCH_MIN_QUERY_LENGTH) return [];
@@ -150,25 +176,26 @@ export default function SearchIndex() {
 
 function SearchResultCard({ result }: { result: SearchResult }) {
   const { isFavorite, toggleFavorite } = useFavorites();
+  const router = useRouter();
   const isPinned = isFavorite(result.code.code);
 
   return (
-    <Link href={`/procedure/${result.code.code}` as any} asChild>
-      <AccentCard
-        accentColor={colors.sky[500]}
-        badge={result.code.code}
-        badgeColor={colors.sky[600]}
-        title={result.code.name_ua}
-        subtitle={result.code.name_en}
-        icon={isPinned ? "bookmark" : "bookmark-outline"}
-        iconColor={isPinned ? colors.amber[500] : colors.gray[400]}
-        iconBackground={isPinned ? "rgba(245, 158, 11, 0.15)" : "rgba(156, 163, 175, 0.1)"}
-        iconSize={18}
-        onIconPress={() => toggleFavorite(result.code)}
-        iconAccessibilityLabel={isPinned ? "Видалити закладку" : "Додати закладку"}
-        accessibilityLabel={`${result.code.code}: ${result.code.name_ua}`}
-        accessibilityHint="Відкрити деталі процедури"
-      />
-    </Link>
+    <AccentCard
+      onPress={() => router.push(`/procedure/${result.code.code}`)}
+      accentColor={colors.sky[500]}
+      badge={result.code.code}
+      badgeColor={colors.sky[600]}
+      title={result.code.name_ua}
+      subtitle={result.code.name_en}
+      icon={isPinned ? "bookmark" : "bookmark-outline"}
+      isBookmarked={isPinned}
+      iconColor={isPinned ? colors.amber[500] : colors.gray[400]}
+      iconBackground={isPinned ? "rgba(245, 158, 11, 0.15)" : "rgba(156, 163, 175, 0.1)"}
+      iconSize={18}
+      onIconPress={() => toggleFavorite(result.code)}
+      iconAccessibilityLabel={isPinned ? "Видалити закладку" : "Додати закладку"}
+      accessibilityLabel={`${result.code.code}: ${result.code.name_ua}`}
+      accessibilityHint="Відкрити деталі процедури"
+    />
   );
 }

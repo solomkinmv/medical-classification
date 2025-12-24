@@ -56,6 +56,15 @@ export default function SearchLayout() {
     searchBarRef.current?.setText(externalQuery);
   }, []);
 
+  const handleCancelButtonPress = useCallback(() => {
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current);
+    }
+    setQuery("");
+    setDebouncedQuery("");
+    setIsSearching(false);
+  }, []);
+
   useEffect(() => {
     return () => {
       if (debounceRef.current) {
@@ -85,6 +94,7 @@ export default function SearchLayout() {
               ref: searchBarRef,
               placeholder: "Введіть код або назву...",
               onChangeText: handleChangeText,
+              onCancelButtonPress: handleCancelButtonPress,
               autoCapitalize: "none",
               inputType: "text",
               autoFocus: true,
