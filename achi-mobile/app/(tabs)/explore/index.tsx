@@ -1,11 +1,10 @@
-import { useMemo } from "react";
 import { FlatList, Text } from "react-native";
 import { Link } from "expo-router";
 import { useColorScheme } from "nativewind";
-import { isLiquidGlassAvailable } from "expo-glass-effect";
 import { AccentCard } from "@/components/AccentCard";
 import { useAchiData } from "@/lib/data-provider";
 import { getRootCategories } from "@/lib/navigation";
+import { useBackgroundColor } from "@/lib/useBackgroundColor";
 import { colors, theme, CONTENT_PADDING_HORIZONTAL, CONTENT_PADDING_BOTTOM } from "@/lib/constants";
 import type { CategoryNode } from "@/lib/types";
 
@@ -14,8 +13,7 @@ export default function ExploreScreen() {
   const categories = getRootCategories(data);
   const { colorScheme } = useColorScheme();
   const t = colorScheme === "dark" ? theme.dark : theme.light;
-  const isLiquidGlass = useMemo(() => isLiquidGlassAvailable(), []);
-  const backgroundColor = isLiquidGlass ? "transparent" : t.background;
+  const backgroundColor = useBackgroundColor();
 
   return (
     <FlatList
