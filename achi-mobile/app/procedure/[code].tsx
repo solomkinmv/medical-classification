@@ -79,12 +79,25 @@ export default function ProcedureDetail() {
   }
 
   const navigateToBreadcrumb = (index: number) => {
+    // Get path up to clicked segment, filtering out underscore categories
+    const targetPath = path.slice(0, index + 1).filter((p) => p.key !== "_");
+    const fullPathWithoutUnderscore = path.filter((p) => p.key !== "_");
+
+    // If clicking on the last (current) category, just close the modal
+    if (targetPath.length === fullPathWithoutUnderscore.length) {
+      router.dismiss();
+      return;
+    }
+
+    if (targetPath.length === 0) {
+      router.dismiss();
+      router.push("/(tabs)/explore" as any);
+      return;
+    }
+
     const segmentPath =
       "/(tabs)/explore/" +
-      path
-        .slice(0, index + 1)
-        .map((p) => encodeURIComponent(p.key))
-        .join("/");
+      targetPath.map((p) => encodeURIComponent(p.key)).join("/");
 
     try {
       if (!navigation.isReady()) {
@@ -96,12 +109,19 @@ export default function ProcedureDetail() {
       router.dismiss();
 
       requestAnimationFrame(() => {
+        // Build routes without underscore segments
+        const pathWithoutUnderscore = path.filter((p) => p.key !== "_");
+        const targetIndex = pathWithoutUnderscore.findIndex(
+          (p) => p.key === path[index]?.key
+        );
+        const routePath = pathWithoutUnderscore.slice(0, targetIndex + 1);
+
         const exploreRoutes = [
           { name: "index" as const },
-          ...path.slice(0, index + 1).map((_, i) => ({
+          ...routePath.map((_, i) => ({
             name: "[...path]" as const,
             params: {
-              path: path.slice(0, i + 1).map((p) => p.key),
+              path: routePath.slice(0, i + 1).map((p) => p.key),
             },
           })),
         ];

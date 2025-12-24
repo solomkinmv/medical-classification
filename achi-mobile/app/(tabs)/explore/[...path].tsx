@@ -35,7 +35,10 @@ export default function BrowseScreen() {
     ? getProcedureCodes(navState.children)
     : null;
 
-  const currentPath = navState.path.map((s) => encodeURIComponent(s.key));
+  // Filter out underscore segments from URL path (they're auto-resolved)
+  const currentPath = navState.path
+    .filter((s) => s.key !== "_")
+    .map((s) => encodeURIComponent(s.key));
 
   return (
     <View className="flex-1" style={{ backgroundColor }}>

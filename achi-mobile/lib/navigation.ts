@@ -17,7 +17,7 @@ export interface NavigationState {
 const LEVEL_ORDER: PathSegment["level"][] = ["class", "anatomical", "procedural", "block"];
 
 /**
- * Resolve navigation path and auto-skip single-child nodes
+ * Resolve navigation path and auto-skip single-child nodes and underscore categories
  */
 export function resolveNavigationPath(
   data: AchiData,
@@ -35,10 +35,38 @@ export function resolveNavigationPath(
     }
 
     const decodedSegment = decodeURIComponent(segment);
-    if (decodedSegment in currentChildren) {
-      currentNode = currentChildren[decodedSegment];
+
+    // Try to find segment directly, or look through underscore category
+    let foundNode: CategoryNode | null = null;
+    let foundKey: string = decodedSegment;
+
+    const categoryChildren = currentChildren as Record<string, CategoryNode>;
+    if (decodedSegment in categoryChildren) {
+      foundNode = categoryChildren[decodedSegment];
+    } else if ("_" in categoryChildren) {
+      // Look inside underscore category
+      const underscoreNode = categoryChildren["_"];
+      if (isCategoryChildren(underscoreNode.children)) {
+        const underscoreChildren = underscoreNode.children as Record<string, CategoryNode>;
+        if (decodedSegment in underscoreChildren) {
+          // Auto-include underscore in path (but it won't be in URL)
+          resolvedPath.push({
+            key: "_",
+            name_ua: underscoreNode.name_ua,
+            level: LEVEL_ORDER[levelIndex] ?? "block",
+            code: underscoreNode.code,
+          });
+          levelIndex++;
+          currentChildren = underscoreNode.children;
+          foundNode = underscoreChildren[decodedSegment];
+        }
+      }
+    }
+
+    if (foundNode) {
+      currentNode = foundNode;
       resolvedPath.push({
-        key: decodedSegment,
+        key: foundKey,
         name_ua: currentNode.name_ua,
         level: LEVEL_ORDER[levelIndex] ?? "block",
         code: currentNode.clazz ?? currentNode.code,
@@ -48,22 +76,23 @@ export function resolveNavigationPath(
     }
   }
 
-  // Auto-skip: while current level has only one child category, include it
-  while (
-    currentNode &&
-    isCategoryChildren(currentChildren) &&
-    Object.keys(currentChildren).length === 1
-  ) {
-    const [onlyKey] = Object.keys(currentChildren);
-    currentNode = currentChildren[onlyKey];
-    resolvedPath.push({
-      key: onlyKey,
-      name_ua: currentNode.name_ua,
-      level: LEVEL_ORDER[levelIndex] ?? "block",
-      code: currentNode.code,
-    });
-    currentChildren = currentNode.children;
-    levelIndex++;
+  // Auto-skip: while current level has only one child category or only underscore, include it
+  while (currentNode && isCategoryChildren(currentChildren)) {
+    const keys = Object.keys(currentChildren);
+    if (keys.length === 1) {
+      const [onlyKey] = keys;
+      currentNode = currentChildren[onlyKey];
+      resolvedPath.push({
+        key: onlyKey,
+        name_ua: currentNode.name_ua,
+        level: LEVEL_ORDER[levelIndex] ?? "block",
+        code: currentNode.code,
+      });
+      currentChildren = currentNode.children;
+      levelIndex++;
+    } else {
+      break;
+    }
   }
 
   return {
