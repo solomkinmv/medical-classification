@@ -73,6 +73,7 @@ export default function SearchLayout() {
               onChangeText: handleChangeText,
               autoCapitalize: "none",
               inputType: "text",
+              autoFocus: true,
             },
           }}
         />

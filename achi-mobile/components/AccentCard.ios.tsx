@@ -19,6 +19,8 @@ interface AccentCardProps {
   accentColor: string;
   badge?: string;
   badgeColor?: string;
+  secondaryBadge?: string;
+  blockRange?: string;
   title: string;
   subtitle?: string;
   icon?: string;
@@ -38,6 +40,8 @@ export function AccentCard({
   accentColor,
   badge,
   badgeColor = accentColor,
+  secondaryBadge,
+  blockRange,
   title,
   subtitle,
   icon,
@@ -84,7 +88,7 @@ export function AccentCard({
           <View className="flex-1 pr-3">
             {badge && (
               <Text
-                className="text-xs font-bold mb-2 tracking-wide"
+                className="text-xs font-bold tracking-wide mb-2"
                 style={{ color: badgeColor }}
               >
                 {badge}
@@ -102,6 +106,16 @@ export function AccentCard({
                 numberOfLines={2}
               >
                 {subtitle}
+              </Text>
+            )}
+            {secondaryBadge && (
+              <Text className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                {secondaryBadge}
+              </Text>
+            )}
+            {blockRange && (
+              <Text className="text-xs font-medium text-gray-400 dark:text-gray-500 mt-2">
+                {blockRange}
               </Text>
             )}
             {children}

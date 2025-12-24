@@ -63,6 +63,12 @@ interface CategoryListProps {
   basePath: string[];
 }
 
+function formatBlockRange(node: CategoryNode): string | undefined {
+  if (!node.blockRange) return undefined;
+  const { min, max } = node.blockRange;
+  return min === max ? `Блок: ${min}` : `Блоки: ${min}–${max}`;
+}
+
 function CategoryList({ categories, basePath }: CategoryListProps) {
   return (
     <FlatList
@@ -84,6 +90,7 @@ function CategoryList({ categories, basePath }: CategoryListProps) {
               accentColor={colors.sky[500]}
               badge={node.code}
               badgeColor={colors.sky[600]}
+              blockRange={formatBlockRange(node)}
               title={node.name_ua}
               icon="chevron-forward"
               iconColor={colors.sky[600]}
