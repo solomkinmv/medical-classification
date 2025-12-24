@@ -14,6 +14,8 @@ export interface NavigationState {
   isLeaf: boolean;
 }
 
+const LEVEL_ORDER: PathSegment["level"][] = ["class", "anatomical", "procedural", "block"];
+
 /**
  * Resolve navigation path and auto-skip single-child nodes
  */
@@ -24,6 +26,7 @@ export function resolveNavigationPath(
   const resolvedPath: PathSegment[] = [];
   let currentNode: CategoryNode | null = null;
   let currentChildren: CategoryChildren = data.children;
+  let levelIndex = 0;
 
   // Navigate through path segments
   for (const segment of pathSegments) {
@@ -37,8 +40,11 @@ export function resolveNavigationPath(
       resolvedPath.push({
         key: decodedSegment,
         name_ua: currentNode.name_ua,
+        level: LEVEL_ORDER[levelIndex] ?? "block",
+        code: currentNode.clazz ?? currentNode.code,
       });
       currentChildren = currentNode.children;
+      levelIndex++;
     }
   }
 
@@ -53,8 +59,11 @@ export function resolveNavigationPath(
     resolvedPath.push({
       key: onlyKey,
       name_ua: currentNode.name_ua,
+      level: LEVEL_ORDER[levelIndex] ?? "block",
+      code: currentNode.code,
     });
     currentChildren = currentNode.children;
+    levelIndex++;
   }
 
   return {
@@ -109,7 +118,8 @@ export function findProcedurePath(
 ): PathSegment[] | null {
   function searchNode(
     children: CategoryChildren,
-    currentPath: PathSegment[]
+    currentPath: PathSegment[],
+    levelIndex: number
   ): PathSegment[] | null {
     if (isLeafLevel(children)) {
       const found = children.find((proc) => proc.code === targetCode);
@@ -120,8 +130,16 @@ export function findProcedurePath(
     }
 
     for (const [key, node] of Object.entries(children)) {
-      const newPath = [...currentPath, { key, name_ua: node.name_ua }];
-      const result = searchNode(node.children, newPath);
+      const newPath: PathSegment[] = [
+        ...currentPath,
+        {
+          key,
+          name_ua: node.name_ua,
+          level: LEVEL_ORDER[levelIndex] ?? "block",
+          code: node.clazz ?? node.code,
+        },
+      ];
+      const result = searchNode(node.children, newPath, levelIndex + 1);
       if (result) {
         return result;
       }
@@ -130,5 +148,5 @@ export function findProcedurePath(
     return null;
   }
 
-  return searchNode(data.children, []);
+  return searchNode(data.children, [], 0);
 }

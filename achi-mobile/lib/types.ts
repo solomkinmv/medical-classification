@@ -1,8 +1,15 @@
+/** Block range for categories */
+export interface BlockRange {
+  min: number;
+  max: number;
+}
+
 /** Final procedure code (leaf node) */
 export interface ProcedureCode {
   code: string;
   name_ua: string;
   name_en: string;
+  ask_code: number;
 }
 
 /** Category node at any level (0-3) */
@@ -10,6 +17,7 @@ export interface CategoryNode {
   clazz?: string;
   code?: string;
   name_ua: string;
+  blockRange?: BlockRange;
   children: CategoryChildren;
 }
 
@@ -27,6 +35,8 @@ export interface AchiData {
 export interface PathSegment {
   key: string;
   name_ua: string;
+  level: "class" | "anatomical" | "procedural" | "block";
+  code?: string;
 }
 
 /** Check if children are procedure codes (leaf level) */

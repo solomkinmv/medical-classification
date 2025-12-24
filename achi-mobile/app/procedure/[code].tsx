@@ -12,8 +12,21 @@ import { useFavorites } from "@/lib/favorites-provider";
 import { useBackgroundColor } from "@/lib/useBackgroundColor";
 import { findProcedurePath } from "@/lib/navigation";
 import { colors, theme } from "@/lib/constants";
-import type { AchiData, CategoryChildren, ProcedureCode } from "@/lib/types";
+import type { AchiData, CategoryChildren, ProcedureCode, PathSegment } from "@/lib/types";
 import { isLeafLevel } from "@/lib/types";
+
+function getLevelLabel(level: PathSegment["level"]): string {
+  switch (level) {
+    case "class":
+      return "Клас";
+    case "anatomical":
+      return "Вісь анатомічної локалізації";
+    case "procedural":
+      return "Вісь процедурної типології";
+    case "block":
+      return "АСК";
+  }
+}
 
 export default function ProcedureDetail() {
   const { code } = useLocalSearchParams<{ code: string }>();
@@ -163,7 +176,7 @@ export default function ProcedureDetail() {
         contentInsetAdjustmentBehavior="automatic"
         showsVerticalScrollIndicator={false}
       >
-        {/* Breadcrumb path */}
+        {/* Hierarchy path */}
         {path.length > 0 && (
           <View className="mb-6">
             <Text
@@ -173,30 +186,29 @@ export default function ProcedureDetail() {
                 color: t.textSecondary,
                 textTransform: "uppercase",
                 letterSpacing: 0.5,
+                marginBottom: 12,
               }}
             >
               Розташування
             </Text>
-            <View className="mt-2" style={{ flexDirection: "row", flexWrap: "wrap", alignItems: "center" }}>
-              {path.map((segment, index) => (
-                <View key={segment.key} style={{ flexDirection: "row", alignItems: "center", marginBottom: 4 }}>
-                  <Pressable
-                    onPress={() => navigateToBreadcrumb(index)}
-                    accessibilityRole="button"
-                    accessibilityLabel={`Перейти до ${segment.name_ua}`}
-                  >
-                    <Text style={{ fontSize: 14, fontWeight: "500", color: colors.sky[600] }}>
-                      {segment.name_ua}
-                    </Text>
-                  </Pressable>
-                  {index < path.length - 1 && (
-                    <View style={{ marginHorizontal: 6 }}>
-                      <ChevronIcon size={12} color={colors.gray[400]} />
-                    </View>
-                  )}
-                </View>
-              ))}
-            </View>
+            {path.map((segment, index) => (
+              <Pressable
+                key={segment.key}
+                onPress={() => navigateToBreadcrumb(index)}
+                accessibilityRole="button"
+                accessibilityLabel={`Перейти до ${segment.name_ua}`}
+                style={{ marginBottom: 8 }}
+              >
+                <Text style={{ fontSize: 11, color: t.textMuted, marginBottom: 2 }}>
+                  {segment.level === "class"
+                    ? segment.code
+                    : `${getLevelLabel(segment.level)}${segment.code ? ` (${segment.code})` : ""}`}
+                </Text>
+                <Text style={{ fontSize: 14, fontWeight: "500", color: colors.sky[600] }}>
+                  {segment.name_ua}
+                </Text>
+              </Pressable>
+            ))}
           </View>
         )}
 
