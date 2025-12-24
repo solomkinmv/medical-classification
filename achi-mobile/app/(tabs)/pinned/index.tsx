@@ -62,7 +62,7 @@ interface PinnedCardProps {
 
 function PinnedCard({ procedure, onToggle }: PinnedCardProps) {
   return (
-    <Link href={`/procedure/${procedure.code}` as any} asChild>
+    <Link href={`/procedure/${procedure.code}?accent=amber` as any} asChild>
       <AccentCard
         accentColor={colors.amber[500]}
         badge={procedure.code}

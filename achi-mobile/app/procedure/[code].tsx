@@ -29,7 +29,10 @@ function getLevelLabel(level: PathSegment["level"]): string {
 }
 
 export default function ProcedureDetail() {
-  const { code } = useLocalSearchParams<{ code: string }>();
+  const { code, accent } = useLocalSearchParams<{ code: string; accent?: string }>();
+  const isAmber = accent === "amber";
+  const accentColor = isAmber ? colors.amber[500] : colors.sky[500];
+  const accentColorDark = isAmber ? colors.amber[600] : colors.sky[600];
   const data = useAchiData();
   const { isFavorite, toggleFavorite } = useFavorites();
   const router = useRouter();
@@ -227,7 +230,7 @@ export default function ProcedureDetail() {
                       ? segment.code
                       : `${getLevelLabel(segment.level)}${segment.code ? ` (${segment.code})` : ""}`}
                   </Text>
-                  <Text style={{ fontSize: 14, fontWeight: "500", color: colors.sky[600] }}>
+                  <Text style={{ fontSize: 14, fontWeight: "500", color: accentColorDark }}>
                     {segment.name_ua}
                   </Text>
                 </Pressable>
@@ -239,7 +242,7 @@ export default function ProcedureDetail() {
         <View className="mb-4">
           <View
             className="self-start px-4 py-2 rounded-lg"
-            style={{ backgroundColor: colors.sky[500] }}
+            style={{ backgroundColor: accentColor }}
           >
             <Text style={{ color: "#ffffff", fontWeight: "bold", fontSize: 18, letterSpacing: 0.5 }}>
               {procedure.code}
