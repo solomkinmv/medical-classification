@@ -191,24 +191,27 @@ export default function ProcedureDetail() {
             >
               Розташування
             </Text>
-            {path.map((segment, index) => (
-              <Pressable
-                key={segment.key}
-                onPress={() => navigateToBreadcrumb(index)}
-                accessibilityRole="button"
-                accessibilityLabel={`Перейти до ${segment.name_ua}`}
-                style={{ marginBottom: 8 }}
-              >
-                <Text style={{ fontSize: 11, color: t.textMuted, marginBottom: 2 }}>
-                  {segment.level === "class"
-                    ? segment.code
-                    : `${getLevelLabel(segment.level)}${segment.code ? ` (${segment.code})` : ""}`}
-                </Text>
-                <Text style={{ fontSize: 14, fontWeight: "500", color: colors.sky[600] }}>
-                  {segment.name_ua}
-                </Text>
-              </Pressable>
-            ))}
+            {path
+              .map((segment, index) => ({ segment, originalIndex: index }))
+              .filter(({ segment }) => segment.key !== "_")
+              .map(({ segment, originalIndex }) => (
+                <Pressable
+                  key={segment.key}
+                  onPress={() => navigateToBreadcrumb(originalIndex)}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Перейти до ${segment.name_ua}`}
+                  style={{ marginBottom: 8 }}
+                >
+                  <Text style={{ fontSize: 11, color: t.textMuted, marginBottom: 2 }}>
+                    {segment.level === "class"
+                      ? segment.code
+                      : `${getLevelLabel(segment.level)}${segment.code ? ` (${segment.code})` : ""}`}
+                  </Text>
+                  <Text style={{ fontSize: 14, fontWeight: "500", color: colors.sky[600] }}>
+                    {segment.name_ua}
+                  </Text>
+                </Pressable>
+              ))}
           </View>
         )}
 
