@@ -2,12 +2,14 @@ import { createContext, useContext, useState, useCallback, useEffect, useRef } f
 import { useColorScheme } from "react-native";
 import { Stack } from "expo-router";
 import { isLiquidGlassAvailable } from "expo-glass-effect";
+import type { SearchBarCommands } from "react-native-screens";
 import { SEARCH_DEBOUNCE_MS, theme } from "@/lib/constants";
 
 interface SearchContextType {
   query: string;
   debouncedQuery: string;
   isSearching: boolean;
+  setQueryFromExternal: (query: string) => void;
 }
 
 const SearchContext = createContext<SearchContextType | null>(null);
@@ -25,6 +27,7 @@ export default function SearchLayout() {
   const [debouncedQuery, setDebouncedQuery] = useState("");
   const [isSearching, setIsSearching] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const searchBarRef = useRef<SearchBarCommands>(null!);
   const colorScheme = useColorScheme();
   const t = colorScheme === "dark" ? theme.dark : theme.light;
 
@@ -43,6 +46,16 @@ export default function SearchLayout() {
     }, SEARCH_DEBOUNCE_MS);
   }, []);
 
+  const setQueryFromExternal = useCallback((externalQuery: string) => {
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current);
+    }
+    setQuery(externalQuery);
+    setDebouncedQuery(externalQuery);
+    setIsSearching(false);
+    searchBarRef.current?.setText(externalQuery);
+  }, []);
+
   useEffect(() => {
     return () => {
       if (debounceRef.current) {
@@ -55,7 +68,7 @@ export default function SearchLayout() {
   const headerBg = isLiquidGlassAvailable() ? "transparent" : t.background;
 
   return (
-    <SearchContext.Provider value={{ query, debouncedQuery, isSearching }}>
+    <SearchContext.Provider value={{ query, debouncedQuery, isSearching, setQueryFromExternal }}>
       <Stack
         screenOptions={{
           headerLargeTitleShadowVisible: false,
@@ -69,6 +82,7 @@ export default function SearchLayout() {
             headerStyle: { backgroundColor: headerBg },
             headerTintColor: t.text,
             headerSearchBarOptions: {
+              ref: searchBarRef,
               placeholder: "Введіть код або назву...",
               onChangeText: handleChangeText,
               autoCapitalize: "none",
