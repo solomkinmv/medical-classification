@@ -1,11 +1,15 @@
 import { useMemo } from "react";
 import { View, Text, ScrollView, Pressable, Platform } from "react-native";
-import { useLocalSearchParams, Stack, useRouter } from "expo-router";
+import { useLocalSearchParams, Stack, useRouter, useNavigationContainerRef } from "expo-router";
+import { CommonActions } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Ionicons } from "@expo/vector-icons";
 import { useColorScheme } from "nativewind";
+import { AnimatedBookmarkButton } from "@/components/AnimatedBookmarkButton";
+import { ChevronIcon } from "@/components/ChevronIcon";
+import { CloseButton } from "@/components/CloseButton";
 import { useAchiData } from "@/lib/data-provider";
 import { useFavorites } from "@/lib/favorites-provider";
+import { useBackgroundColor } from "@/lib/useBackgroundColor";
 import { findProcedurePath } from "@/lib/navigation";
 import { colors, theme } from "@/lib/constants";
 import type { AchiData, CategoryChildren, ProcedureCode } from "@/lib/types";
@@ -16,10 +20,12 @@ export default function ProcedureDetail() {
   const data = useAchiData();
   const { isFavorite, toggleFavorite } = useFavorites();
   const router = useRouter();
+  const navigation = useNavigationContainerRef();
   const insets = useSafeAreaInsets();
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === "dark";
   const t = isDark ? theme.dark : theme.light;
+  const backgroundColor = useBackgroundColor();
 
   const procedure = useMemo(
     () => (code ? findProcedure(data, code) : null),
@@ -37,7 +43,7 @@ export default function ProcedureDetail() {
     return (
       <View
         className="flex-1 items-center justify-center"
-        style={{ backgroundColor: t.background }}
+        style={{ backgroundColor }}
       >
         <Text style={{ color: t.textSecondary }}>
           Неправильний код процедури
@@ -50,7 +56,7 @@ export default function ProcedureDetail() {
     return (
       <View
         className="flex-1 items-center justify-center"
-        style={{ backgroundColor: t.background }}
+        style={{ backgroundColor }}
       >
         <Text style={{ color: t.textSecondary }}>
           Процедуру не знайдено
@@ -59,61 +65,96 @@ export default function ProcedureDetail() {
     );
   }
 
-  const categoryPath = path.length > 0
-    ? "/(tabs)/explore/" + path.map((p) => encodeURIComponent(p.key)).join("/")
-    : "/(tabs)/explore";
+  const navigateToBreadcrumb = (index: number) => {
+    const segmentPath =
+      "/(tabs)/explore/" +
+      path
+        .slice(0, index + 1)
+        .map((p) => encodeURIComponent(p.key))
+        .join("/");
+
+    try {
+      if (!navigation.isReady()) {
+        router.dismiss();
+        router.push(segmentPath as any);
+        return;
+      }
+
+      router.dismiss();
+
+      requestAnimationFrame(() => {
+        const exploreRoutes = [
+          { name: "index" as const },
+          ...path.slice(0, index + 1).map((_, i) => ({
+            name: "[...path]" as const,
+            params: {
+              path: path.slice(0, i + 1).map((p) => p.key),
+            },
+          })),
+        ];
+
+        navigation.dispatch(
+          CommonActions.reset({
+            index: 0,
+            routes: [
+              {
+                name: "(tabs)",
+                state: {
+                  index: 0,
+                  routes: [
+                    {
+                      name: "explore",
+                      state: {
+                        index: exploreRoutes.length - 1,
+                        routes: exploreRoutes,
+                      },
+                    },
+                  ],
+                },
+              },
+            ],
+          })
+        );
+      });
+    } catch {
+      router.dismiss();
+      router.push(segmentPath as any);
+    }
+  };
 
   return (
     <>
       <Stack.Screen
         options={{
           title: procedure.code,
-          headerLeft: () =>
-            Platform.OS === "ios" ? (
-              <Pressable
-                onPress={() => router.back()}
-                hitSlop={20}
-                accessibilityLabel="Закрити"
-                accessibilityRole="button"
-              >
-                <Ionicons name="close" size={28} color={t.textSecondary} />
-              </Pressable>
-            ) : undefined,
-          headerRight: () => (
-            <Pressable
-              onPress={() => toggleFavorite(procedure)}
-              hitSlop={20}
-              accessibilityLabel={
-                isPinned ? "Видалити закладку" : "Додати закладку"
-              }
-              accessibilityRole="button"
-            >
-              <View
-                style={{
-                  width: 36,
-                  height: 36,
-                  borderRadius: 18,
-                  alignItems: "center",
-                  justifyContent: "center",
-                  backgroundColor: isPinned
-                    ? "rgba(245, 158, 11, 0.15)"
-                    : "rgba(156, 163, 175, 0.1)",
-                }}
-              >
-                <Ionicons
-                  name={isPinned ? "bookmark" : "bookmark-outline"}
-                  size={18}
-                  color={isPinned ? colors.amber[500] : colors.gray[400]}
+          headerLeft: Platform.OS === "ios"
+            ? () => (
+                <CloseButton
+                  onPress={() => router.back()}
+                  color={t.textSecondary}
                 />
-              </View>
-            </Pressable>
+              )
+            : undefined,
+          headerRight: () => (
+            <AnimatedBookmarkButton
+              isBookmarked={isPinned}
+              onPress={() => toggleFavorite(procedure)}
+              color={isPinned ? colors.amber[500] : colors.gray[400]}
+              backgroundColor={
+                isPinned
+                  ? "rgba(245, 158, 11, 0.15)"
+                  : "rgba(156, 163, 175, 0.1)"
+              }
+              size={18}
+              accessibilityLabel={isPinned ? "Видалити закладку" : "Додати закладку"}
+            />
           ),
         }}
       />
 
       <ScrollView
         className="flex-1"
-        style={{ backgroundColor: t.background }}
+        style={{ backgroundColor }}
         contentContainerStyle={{
           paddingHorizontal: 24,
           paddingTop: Platform.OS === "ios" ? 24 : 16,
@@ -126,45 +167,35 @@ export default function ProcedureDetail() {
         {path.length > 0 && (
           <View className="mb-6">
             <Text
-              className="text-xs font-semibold mb-2 uppercase tracking-wide"
-              style={{ color: t.textSecondary }}
+              style={{
+                fontSize: 12,
+                fontWeight: "600",
+                color: t.textSecondary,
+                textTransform: "uppercase",
+                letterSpacing: 0.5,
+              }}
             >
               Розташування
             </Text>
-            <View style={{ flexDirection: "row", flexWrap: "wrap", alignItems: "center" }}>
-              {path.map((segment, index) => {
-                const segmentPath =
-                  "/(tabs)/explore/" +
-                  path
-                    .slice(0, index + 1)
-                    .map((p) => encodeURIComponent(p.key))
-                    .join("/");
-                return (
-                  <View key={segment.key} style={{ flexDirection: "row", alignItems: "center", marginBottom: 4 }}>
-                    <Pressable
-                      onPress={() => {
-                        router.dismiss();
-                        router.push(segmentPath as any);
-                      }}
-                    >
-                      <Text
-                        className="text-sm font-medium"
-                        style={{ color: colors.sky[600] }}
-                      >
-                        {segment.name_ua}
-                      </Text>
-                    </Pressable>
-                    {index < path.length - 1 && (
-                      <Ionicons
-                        name="chevron-forward"
-                        size={14}
-                        color={colors.gray[400]}
-                        style={{ marginHorizontal: 6 }}
-                      />
-                    )}
-                  </View>
-                );
-              })}
+            <View className="mt-2" style={{ flexDirection: "row", flexWrap: "wrap", alignItems: "center" }}>
+              {path.map((segment, index) => (
+                <View key={segment.key} style={{ flexDirection: "row", alignItems: "center", marginBottom: 4 }}>
+                  <Pressable
+                    onPress={() => navigateToBreadcrumb(index)}
+                    accessibilityRole="button"
+                    accessibilityLabel={`Перейти до ${segment.name_ua}`}
+                  >
+                    <Text style={{ fontSize: 14, fontWeight: "500", color: colors.sky[600] }}>
+                      {segment.name_ua}
+                    </Text>
+                  </Pressable>
+                  {index < path.length - 1 && (
+                    <View style={{ marginHorizontal: 6 }}>
+                      <ChevronIcon size={12} color={colors.gray[400]} />
+                    </View>
+                  )}
+                </View>
+              ))}
             </View>
           </View>
         )}
@@ -175,7 +206,7 @@ export default function ProcedureDetail() {
             className="self-start px-4 py-2 rounded-lg"
             style={{ backgroundColor: colors.sky[500] }}
           >
-            <Text className="text-white font-bold text-lg tracking-wide">
+            <Text style={{ color: "#ffffff", fontWeight: "bold", fontSize: 18, letterSpacing: 0.5 }}>
               {procedure.code}
             </Text>
           </View>
@@ -183,17 +214,19 @@ export default function ProcedureDetail() {
 
         {/* Ukrainian name */}
         <Text
-          className="text-2xl font-semibold mb-3 leading-8"
-          style={{ color: t.text }}
+          style={{
+            fontSize: 24,
+            fontWeight: "600",
+            color: t.text,
+            marginBottom: 12,
+            lineHeight: 32,
+          }}
         >
           {procedure.name_ua}
         </Text>
 
         {/* English name */}
-        <Text
-          className="text-base leading-6"
-          style={{ color: t.textSecondary }}
-        >
+        <Text style={{ fontSize: 16, color: t.textSecondary, lineHeight: 24 }}>
           {procedure.name_en}
         </Text>
       </ScrollView>

@@ -1,11 +1,10 @@
-import { useMemo } from "react";
 import { View, Text, FlatList } from "react-native";
 import { useLocalSearchParams, Link, Stack } from "expo-router";
 import { useColorScheme } from "nativewind";
-import { isLiquidGlassAvailable } from "expo-glass-effect";
 import { AccentCard } from "@/components/AccentCard";
 import { useAchiData } from "@/lib/data-provider";
 import { useFavorites } from "@/lib/favorites-provider";
+import { useBackgroundColor } from "@/lib/useBackgroundColor";
 import {
   resolveNavigationPath,
   getChildCategories,
@@ -19,7 +18,7 @@ export default function BrowseScreen() {
   const data = useAchiData();
   const { colorScheme } = useColorScheme();
   const t = colorScheme === "dark" ? theme.dark : theme.light;
-  const isLiquidGlass = useMemo(() => isLiquidGlassAvailable(), []);
+  const backgroundColor = useBackgroundColor();
 
   const pathSegments = Array.isArray(path) ? path : path ? [path] : [];
   const navState = resolveNavigationPath(data, pathSegments);
@@ -37,7 +36,6 @@ export default function BrowseScreen() {
     : null;
 
   const currentPath = navState.path.map((s) => encodeURIComponent(s.key));
-  const backgroundColor = isLiquidGlass ? "transparent" : t.background;
 
   return (
     <View className="flex-1" style={{ backgroundColor }}>

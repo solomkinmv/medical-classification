@@ -1,11 +1,13 @@
 import { useMemo } from "react";
-import { View, Text, FlatList, ActivityIndicator } from "react-native";
+import { View, Text, FlatList } from "react-native";
 import { Link } from "expo-router";
 import { useColorScheme } from "nativewind";
 import { AccentCard } from "@/components/AccentCard";
 import { EmptyState } from "@/components/EmptyState";
+import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { useAchiData } from "@/lib/data-provider";
 import { useFavorites } from "@/lib/favorites-provider";
+import { useBackgroundColor } from "@/lib/useBackgroundColor";
 import { searchProcedures, type SearchResult } from "@/lib/search";
 import { useSearchQuery } from "./_layout";
 import {
@@ -21,6 +23,7 @@ export default function SearchIndex() {
   const data = useAchiData();
   const { colorScheme } = useColorScheme();
   const t = colorScheme === "dark" ? theme.dark : theme.light;
+  const backgroundColor = useBackgroundColor();
 
   const results = useMemo(() => {
     if (debouncedQuery.length < SEARCH_MIN_QUERY_LENGTH) return [];
@@ -40,8 +43,8 @@ export default function SearchIndex() {
 
   if (isSearching) {
     return (
-      <View className="flex-1 items-center justify-center px-8" style={{ backgroundColor: t.background }}>
-        <ActivityIndicator size="large" color={colors.sky[500]} />
+      <View className="flex-1 items-center justify-center px-8" style={{ backgroundColor }}>
+        <LoadingSpinner color={colors.sky[500]} />
         <Text style={{ color: t.textMuted, marginTop: 16 }}>Пошук...</Text>
       </View>
     );
@@ -63,7 +66,7 @@ export default function SearchIndex() {
     <FlatList
       data={results}
       keyExtractor={(item) => item.code.code}
-      style={{ flex: 1, backgroundColor: t.background }}
+      style={{ flex: 1, backgroundColor }}
       contentContainerStyle={{
         paddingHorizontal: CONTENT_PADDING_HORIZONTAL,
       }}
