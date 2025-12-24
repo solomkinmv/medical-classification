@@ -13,6 +13,7 @@ import { StatusBar } from "expo-status-bar";
 import { isLiquidGlassAvailable } from "expo-glass-effect";
 import { AchiDataProvider } from "@/lib/data-provider";
 import { FavoritesProvider } from "@/lib/favorites-provider";
+import { RecentSearchesProvider } from "@/lib/recent-searches-provider";
 import { theme } from "@/lib/constants";
 
 export { ErrorBoundary } from "expo-router";
@@ -33,7 +34,8 @@ export default function RootLayout() {
       <ThemeProvider value={isDark ? DarkTheme : DefaultTheme}>
         <AchiDataProvider>
           <FavoritesProvider>
-            <Stack
+            <RecentSearchesProvider>
+              <Stack
               screenOptions={{
                 headerShown: false,
               }}
@@ -64,7 +66,8 @@ export default function RootLayout() {
               }}
             />
             </Stack>
-            <StatusBar style="auto" />
+              <StatusBar style="auto" />
+            </RecentSearchesProvider>
           </FavoritesProvider>
         </AchiDataProvider>
       </ThemeProvider>

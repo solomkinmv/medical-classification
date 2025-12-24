@@ -49,6 +49,7 @@ export const theme = {
 export const SEARCH_DEBOUNCE_MS = 300;
 export const SEARCH_MIN_QUERY_LENGTH = 2;
 export const SEARCH_MAX_RESULTS = 100;
+export const RECENT_SEARCHES_MAX_COUNT = 10;
 
 // Layout
 export const CONTENT_PADDING_HORIZONTAL = 16;

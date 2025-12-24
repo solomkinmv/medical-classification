@@ -1,12 +1,14 @@
-import { useMemo } from "react";
-import { View, Text, FlatList } from "react-native";
+import { useMemo, useEffect } from "react";
+import { View, Text, FlatList, ScrollView } from "react-native";
 import { Link } from "expo-router";
 import { useColorScheme } from "nativewind";
 import { AccentCard } from "@/components/AccentCard";
 import { EmptyState } from "@/components/EmptyState";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
+import { RecentSearches } from "@/components/RecentSearches";
 import { useAchiData } from "@/lib/data-provider";
 import { useFavorites } from "@/lib/favorites-provider";
+import { useRecentSearches } from "@/lib/recent-searches-provider";
 import { useBackgroundColor } from "@/lib/useBackgroundColor";
 import { searchProcedures, type SearchResult } from "@/lib/search";
 import { useSearchQuery } from "./_layout";
@@ -15,29 +17,83 @@ import {
   SEARCH_MAX_RESULTS,
   colors,
   CONTENT_PADDING_HORIZONTAL,
+  CONTENT_PADDING_BOTTOM,
   theme,
 } from "@/lib/constants";
 
 export default function SearchIndex() {
-  const { query, debouncedQuery, isSearching } = useSearchQuery();
+  const { query, debouncedQuery, isSearching, setQueryFromExternal } = useSearchQuery();
   const data = useAchiData();
   const { colorScheme } = useColorScheme();
   const t = colorScheme === "dark" ? theme.dark : theme.light;
   const backgroundColor = useBackgroundColor();
+  const { recentSearches, lastSearchQuery, addRecentSearch } = useRecentSearches();
 
   const results = useMemo(() => {
     if (debouncedQuery.length < SEARCH_MIN_QUERY_LENGTH) return [];
     return searchProcedures(data, debouncedQuery, SEARCH_MAX_RESULTS);
   }, [data, debouncedQuery]);
 
+  const resultsCount = results.length;
+  useEffect(() => {
+    if (resultsCount > 0 && debouncedQuery.length >= SEARCH_MIN_QUERY_LENGTH) {
+      addRecentSearch(debouncedQuery);
+    }
+  }, [resultsCount, debouncedQuery, addRecentSearch]);
+
+  const lastSearchResults = useMemo(() => {
+    if (!lastSearchQuery || lastSearchQuery.length < SEARCH_MIN_QUERY_LENGTH) return [];
+    return searchProcedures(data, lastSearchQuery, SEARCH_MAX_RESULTS);
+  }, [data, lastSearchQuery]);
+
   if (query.length < SEARCH_MIN_QUERY_LENGTH) {
+    const hasRecentSearches = recentSearches.length > 0;
+    const hasLastResults = lastSearchResults.length > 0;
+
+    if (!hasRecentSearches && !hasLastResults) {
+      return (
+        <EmptyState
+          icon="magnifyingglass"
+          iconColor={colors.gray[400]}
+          iconBackgroundColor="rgba(156, 163, 175, 0.2)"
+          message={`Введіть щонайменше ${SEARCH_MIN_QUERY_LENGTH} символи для пошуку`}
+        />
+      );
+    }
+
     return (
-      <EmptyState
-        icon="magnifyingglass"
-        iconColor={colors.gray[400]}
-        iconBackgroundColor="rgba(156, 163, 175, 0.2)"
-        message={`Введіть щонайменше ${SEARCH_MIN_QUERY_LENGTH} символи для пошуку`}
-      />
+      <ScrollView
+        style={{ flex: 1, backgroundColor }}
+        contentContainerStyle={{
+          paddingHorizontal: CONTENT_PADDING_HORIZONTAL,
+          paddingBottom: CONTENT_PADDING_BOTTOM,
+        }}
+        contentInsetAdjustmentBehavior="automatic"
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
+        <RecentSearches onSelectQuery={setQueryFromExternal} activeQuery={lastSearchQuery} />
+
+        {hasLastResults && lastSearchQuery && (
+          <>
+            <Text
+              style={{
+                fontSize: 13,
+                fontWeight: "600",
+                color: t.textSecondary,
+                textTransform: "uppercase",
+                letterSpacing: 0.5,
+                marginBottom: 12,
+              }}
+            >
+              Результати для "{lastSearchQuery}"
+            </Text>
+            {lastSearchResults.map((result) => (
+              <SearchResultCard key={result.code.code} result={result} />
+            ))}
+          </>
+        )}
+      </ScrollView>
     );
   }
 
