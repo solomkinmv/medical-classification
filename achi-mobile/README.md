@@ -17,9 +17,31 @@ To build and install a release version on a physical iPhone (without dev server)
 
 - Xcode installed
 - iPhone connected (USB or wirelessly paired via Xcode)
-- Valid Apple Developer signing identity
+- Valid Apple Developer account signed in to Xcode
 
-### Build and Install
+### Option 1: Build via Xcode (Recommended for first-time setup)
+
+1. Generate native iOS project (if not already done):
+   ```bash
+   npx expo prebuild --platform ios
+   ```
+
+2. Open the project in Xcode:
+   ```bash
+   open ios/achimobile.xcworkspace
+   ```
+
+3. Configure signing:
+   - Select the **achimobile** target
+   - Go to **Signing & Capabilities** tab
+   - Check **Automatically manage signing**
+   - Select your **Team** from the dropdown
+
+4. Build and run:
+   - Select your iPhone as the destination
+   - Press `Cmd+R` or Product → Run
+
+### Option 2: Command Line Build (After signing is configured)
 
 1. Generate native iOS project (if not already done):
    ```bash
@@ -44,7 +66,16 @@ To build and install a release version on a physical iPhone (without dev server)
 
 ### Troubleshooting
 
-If Xcode can't find Node, update `ios/.xcode.env.local`:
+**Signing errors:** If you see "No Account for Team" or "No profiles found", open Xcode and configure signing manually (Option 1).
+
+**Node not found:** If Xcode can't find Node, update `ios/.xcode.env.local`:
 ```bash
 export NODE_BINARY=/opt/homebrew/bin/node
+```
+
+**Clean build:** If you encounter build issues:
+```bash
+cd ios
+rm -rf ~/Library/Developer/Xcode/DerivedData/achimobile-*
+pod install
 ```
