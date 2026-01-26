@@ -16,7 +16,11 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.solomkinmv.achi-mobile",
-      "icon": "./assets/images/ios.icon"
+      "icon": "./assets/images/ios.icon",
+      "buildNumber": "1",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -37,6 +41,12 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "125e1426-621a-4c3a-989e-e1196ab10118"
+      }
     }
   }
 }
