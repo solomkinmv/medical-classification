@@ -79,3 +79,50 @@ cd ios
 rm -rf ~/Library/Developer/Xcode/DerivedData/achimobile-*
 pod install
 ```
+
+## TestFlight Deployment
+
+To build and upload the app to TestFlight for beta testing:
+
+### Prerequisites
+
+- Fastlane installed (`brew install fastlane`)
+- EAS CLI installed (`npm install -g eas-cli`)
+- Apple ID with App Store Connect access
+- App-specific password (generate at [appleid.apple.com](https://appleid.apple.com) → Sign-In and Security → App-Specific Passwords)
+
+### Build Locally
+
+Run a local production build:
+
+```bash
+npx eas-cli build --platform ios --profile production --local
+```
+
+This creates an `.ipa` file in the project directory.
+
+### Upload to TestFlight
+
+Upload the built `.ipa` to App Store Connect:
+
+```bash
+xcrun altool --upload-app -f <path-to-ipa> -t ios -u <apple-id> -p <app-specific-password>
+```
+
+Example:
+```bash
+xcrun altool --upload-app -f build-1234567890.ipa -t ios -u your@email.com -p xxxx-xxxx-xxxx-xxxx
+```
+
+After upload, the build will appear in App Store Connect → TestFlight within a few minutes.
+
+### Alternative: EAS Cloud Build
+
+If you prefer cloud builds (requires EAS account):
+
+```bash
+npx eas-cli build --platform ios --profile production
+npx eas-cli submit --platform ios --profile production
+```
+
+Note: Cloud builds require the Xcode 26 image (configured in `eas.json`) for the `.icon` App Icon format.
