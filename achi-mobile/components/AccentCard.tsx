@@ -1,8 +1,20 @@
 import { View, Text, Pressable } from "react-native";
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
+} from "react-native-reanimated";
 import { Ionicons } from "@expo/vector-icons";
 import { Card } from "./Card";
 import { AnimatedBookmarkButton } from "./AnimatedBookmarkButton";
+import { useHaptics } from "@/lib/useHaptics";
+import {
+  ACCENT_BAR_HEIGHT_WITH_SUBTITLE,
+  ACCENT_BAR_HEIGHT_WITHOUT_SUBTITLE,
+} from "@/lib/constants";
 import type { ReactNode } from "react";
+
+const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
 interface AccentCardProps {
   accentColor: string;
@@ -12,7 +24,7 @@ interface AccentCardProps {
   blockRange?: string;
   title: string;
   subtitle?: string;
-  icon?: keyof typeof Ionicons.glyphMap;
+  icon?: string;
   iconColor?: string;
   iconBackground?: string;
   iconSize?: number;
@@ -45,24 +57,129 @@ export function AccentCard({
   accessibilityLabel,
   accessibilityHint,
 }: AccentCardProps) {
-  const CardWrapper = onPress ? Pressable : View;
-  const wrapperProps = onPress
-    ? {
-        onPress,
-        accessibilityLabel,
-        accessibilityRole: "button" as const,
-        accessibilityHint,
-      }
-    : { accessible: !!accessibilityLabel, accessibilityLabel };
+  const scale = useSharedValue(1);
+  const { trigger } = useHaptics();
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }));
+
+  const handlePressIn = () => {
+    scale.value = withTiming(0.98, { duration: 100 });
+  };
+
+  const handlePressOut = () => {
+    scale.value = withTiming(1, { duration: 100 });
+  };
+
+  const handlePress = () => {
+    trigger("light");
+    onPress?.();
+  };
+
+  if (onPress) {
+    return (
+      <AnimatedPressable
+        className="mb-3"
+        style={animatedStyle}
+        onPress={handlePress}
+        onPressIn={handlePressIn}
+        onPressOut={handlePressOut}
+        accessibilityLabel={accessibilityLabel}
+        accessibilityRole="button"
+        accessibilityHint={accessibilityHint}
+      >
+        <AccentCardContent
+          accentColor={accentColor}
+          badge={badge}
+          badgeColor={badgeColor}
+          secondaryBadge={secondaryBadge}
+          blockRange={blockRange}
+          title={title}
+          subtitle={subtitle}
+          icon={icon}
+          iconColor={iconColor}
+          iconBackground={iconBackground}
+          iconSize={iconSize}
+          onIconPress={onIconPress}
+          iconAccessibilityLabel={iconAccessibilityLabel}
+          isBookmarked={isBookmarked}
+        >
+          {children}
+        </AccentCardContent>
+      </AnimatedPressable>
+    );
+  }
 
   return (
-    <CardWrapper className="mb-3" {...wrapperProps}>
+    <View className="mb-3" accessible={!!accessibilityLabel} accessibilityLabel={accessibilityLabel}>
+      <AccentCardContent
+        accentColor={accentColor}
+        badge={badge}
+        badgeColor={badgeColor}
+        secondaryBadge={secondaryBadge}
+        blockRange={blockRange}
+        title={title}
+        subtitle={subtitle}
+        icon={icon}
+        iconColor={iconColor}
+        iconBackground={iconBackground}
+        iconSize={iconSize}
+        onIconPress={onIconPress}
+        iconAccessibilityLabel={iconAccessibilityLabel}
+        isBookmarked={isBookmarked}
+      >
+        {children}
+      </AccentCardContent>
+    </View>
+  );
+}
+
+interface AccentCardContentProps {
+  accentColor: string;
+  badge?: string;
+  badgeColor?: string;
+  secondaryBadge?: string;
+  blockRange?: string;
+  title: string;
+  subtitle?: string;
+  icon?: string;
+  iconColor?: string;
+  iconBackground?: string;
+  iconSize?: number;
+  onIconPress?: () => void;
+  iconAccessibilityLabel?: string;
+  isBookmarked?: boolean;
+  children?: ReactNode;
+}
+
+function AccentCardContent({
+  accentColor,
+  badge,
+  badgeColor = accentColor,
+  secondaryBadge,
+  blockRange,
+  title,
+  subtitle,
+  icon,
+  iconColor,
+  iconBackground,
+  iconSize = 18,
+  onIconPress,
+  iconAccessibilityLabel,
+  isBookmarked,
+  children,
+}: AccentCardContentProps) {
+  return (
       <Card>
         <View className="flex-row items-start p-4">
           {/* Vertical accent bar */}
           <View
             className="w-1 rounded-full mr-4"
-            style={{ height: subtitle ? 64 : 48, backgroundColor: accentColor }}
+            style={{
+              height: subtitle ? ACCENT_BAR_HEIGHT_WITH_SUBTITLE : ACCENT_BAR_HEIGHT_WITHOUT_SUBTITLE,
+              backgroundColor: accentColor,
+            }}
           />
 
           {/* Content */}
@@ -118,20 +235,19 @@ export function AccentCard({
                   className="w-9 h-9 rounded-full items-center justify-center"
                   style={{ backgroundColor: iconBackground }}
                 >
-                  <Ionicons name={icon} size={iconSize} color={iconColor} />
+                  <Ionicons name={icon as keyof typeof Ionicons.glyphMap} size={iconSize} color={iconColor} />
                 </Pressable>
               ) : (
                 <View
                   className="w-8 h-8 rounded-full items-center justify-center"
                   style={{ backgroundColor: iconBackground }}
                 >
-                  <Ionicons name={icon} size={iconSize} color={iconColor} />
+                  <Ionicons name={icon as keyof typeof Ionicons.glyphMap} size={iconSize} color={iconColor} />
                 </View>
               )}
             </View>
           )}
         </View>
       </Card>
-    </CardWrapper>
   );
 }

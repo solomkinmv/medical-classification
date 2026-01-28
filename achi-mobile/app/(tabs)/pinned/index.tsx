@@ -1,27 +1,42 @@
-import { View, Text, FlatList } from "react-native";
+import { useState, useCallback } from "react";
+import { FlatList, RefreshControl } from "react-native";
 import { Link } from "expo-router";
-import { useColorScheme } from "nativewind";
 import { AccentCard } from "@/components/AccentCard";
 import { EmptyState } from "@/components/EmptyState";
-import { LoadingSpinner } from "@/components/LoadingSpinner";
+import { SkeletonList } from "@/components/SkeletonList";
 import { useFavorites } from "@/lib/favorites-provider";
 import { useBackgroundColor } from "@/lib/useBackgroundColor";
-import { colors, CONTENT_PADDING_HORIZONTAL, CONTENT_PADDING_BOTTOM, theme } from "@/lib/constants";
+import {
+  colors,
+  CONTENT_PADDING_HORIZONTAL,
+  CONTENT_PADDING_BOTTOM,
+  CARD_HEIGHT_WITH_SUBTITLE,
+  REFRESH_FEEDBACK_DELAY_MS,
+} from "@/lib/constants";
 import type { ProcedureCode } from "@/lib/types";
 
 export default function PinnedScreen() {
   const { favorites, toggleFavorite, isLoading } = useFavorites();
-  const { colorScheme } = useColorScheme();
-  const t = colorScheme === "dark" ? theme.dark : theme.light;
   const backgroundColor = useBackgroundColor();
+  const [refreshing, setRefreshing] = useState(false);
+
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    // Brief visual feedback - favorites are already in memory
+    setTimeout(() => setRefreshing(false), REFRESH_FEEDBACK_DELAY_MS);
+  }, []);
+
+  const getItemLayout = useCallback(
+    (_: unknown, index: number) => ({
+      length: CARD_HEIGHT_WITH_SUBTITLE,
+      offset: CARD_HEIGHT_WITH_SUBTITLE * index,
+      index,
+    }),
+    []
+  );
 
   if (isLoading) {
-    return (
-      <View className="flex-1 items-center justify-center" style={{ backgroundColor }}>
-        <LoadingSpinner color={colors.sky[500]} />
-        <Text style={{ color: t.textMuted, marginTop: 16 }}>Завантаження...</Text>
-      </View>
-    );
+    return <SkeletonList count={5} hasSubtitle={true} />;
   }
 
   if (favorites.length === 0) {
@@ -48,6 +63,14 @@ export default function PinnedScreen() {
       contentInsetAdjustmentBehavior="automatic"
       showsVerticalScrollIndicator={false}
       removeClippedSubviews
+      getItemLayout={getItemLayout}
+      refreshControl={
+        <RefreshControl
+          refreshing={refreshing}
+          onRefresh={onRefresh}
+          tintColor={colors.amber[500]}
+        />
+      }
       renderItem={({ item }) => (
         <PinnedCard procedure={item} onToggle={() => toggleFavorite(item)} />
       )}

@@ -1,12 +1,7 @@
 import { Pressable, View, type ColorValue } from "react-native";
-import Animated, {
-  Easing,
-  useAnimatedStyle,
-  useSharedValue,
-  withSequence,
-  withTiming,
-} from "react-native-reanimated";
+import Animated from "react-native-reanimated";
 import { Ionicons } from "@expo/vector-icons";
+import { useBookmarkAnimation } from "@/lib/useBookmarkAnimation";
 
 interface AnimatedBookmarkButtonProps {
   isBookmarked: boolean;
@@ -29,19 +24,7 @@ export function AnimatedBookmarkButton({
   containerSize = 36,
   accessibilityLabel = "Toggle bookmark",
 }: AnimatedBookmarkButtonProps) {
-  const scale = useSharedValue(1);
-
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }],
-  }));
-
-  const handlePress = () => {
-    scale.value = withSequence(
-      withTiming(0.8, { duration: 100, easing: Easing.out(Easing.ease) }),
-      withTiming(1, { duration: 100, easing: Easing.elastic(1) })
-    );
-    onPress();
-  };
+  const { animatedStyle, handlePress } = useBookmarkAnimation(isBookmarked, onPress);
 
   return (
     <AnimatedPressable

@@ -1,17 +1,13 @@
 import { View, StyleSheet } from "react-native";
-import { useColorScheme } from "nativewind";
-import { theme } from "@/lib/constants";
+import { useTheme } from "@/lib/useTheme";
 import type { ReactNode } from "react";
 
 interface CardProps {
   children: ReactNode;
-  className?: string;
 }
 
-export function Card({ children, className = "p-4" }: CardProps) {
-  const { colorScheme } = useColorScheme();
-  const isDark = colorScheme === "dark";
-  const t = isDark ? theme.dark : theme.light;
+export function Card({ children }: CardProps) {
+  const { colors: t } = useTheme();
 
   const cardContainerStyle = {
     ...styles.cardContainer,
@@ -20,9 +16,7 @@ export function Card({ children, className = "p-4" }: CardProps) {
 
   return (
     <View style={cardContainerStyle}>
-      <View className={className}>
-        {children}
-      </View>
+      {children}
     </View>
   );
 }

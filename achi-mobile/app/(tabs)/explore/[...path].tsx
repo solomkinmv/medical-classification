@@ -1,6 +1,6 @@
+import { useCallback } from "react";
 import { View, Text, FlatList } from "react-native";
 import { useLocalSearchParams, Link, Stack } from "expo-router";
-import { useColorScheme } from "nativewind";
 import { AccentCard } from "@/components/AccentCard";
 import { useAchiData } from "@/lib/data-provider";
 import { useFavorites } from "@/lib/favorites-provider";
@@ -10,14 +10,18 @@ import {
   getChildCategories,
   getProcedureCodes,
 } from "@/lib/navigation";
-import { colors, theme, CONTENT_PADDING_HORIZONTAL, CONTENT_PADDING_BOTTOM } from "@/lib/constants";
+import {
+  colors,
+  CONTENT_PADDING_HORIZONTAL,
+  CONTENT_PADDING_BOTTOM,
+  CARD_HEIGHT_WITH_SUBTITLE,
+  CARD_HEIGHT_WITHOUT_SUBTITLE,
+} from "@/lib/constants";
 import type { CategoryNode, ProcedureCode } from "@/lib/types";
 
 export default function BrowseScreen() {
   const { path } = useLocalSearchParams<{ path: string[] }>();
   const data = useAchiData();
-  const { colorScheme } = useColorScheme();
-  const t = colorScheme === "dark" ? theme.dark : theme.light;
   const backgroundColor = useBackgroundColor();
 
   const pathSegments = Array.isArray(path) ? path : path ? [path] : [];
@@ -73,6 +77,15 @@ function formatBlockRange(node: CategoryNode): string | undefined {
 }
 
 function CategoryList({ categories, basePath }: CategoryListProps) {
+  const getItemLayout = useCallback(
+    (_: unknown, index: number) => ({
+      length: CARD_HEIGHT_WITHOUT_SUBTITLE,
+      offset: CARD_HEIGHT_WITHOUT_SUBTITLE * index,
+      index,
+    }),
+    []
+  );
+
   return (
     <FlatList
       data={categories}
@@ -84,6 +97,7 @@ function CategoryList({ categories, basePath }: CategoryListProps) {
       contentInsetAdjustmentBehavior="automatic"
       showsVerticalScrollIndicator={false}
       removeClippedSubviews
+      getItemLayout={getItemLayout}
       renderItem={({ item: [key, node] }) => {
         const href =
           "/(tabs)/explore/" + [...basePath, encodeURIComponent(key)].join("/");
@@ -115,6 +129,15 @@ interface ProcedureListProps {
 }
 
 function ProcedureList({ codes }: ProcedureListProps) {
+  const getItemLayout = useCallback(
+    (_: unknown, index: number) => ({
+      length: CARD_HEIGHT_WITH_SUBTITLE,
+      offset: CARD_HEIGHT_WITH_SUBTITLE * index,
+      index,
+    }),
+    []
+  );
+
   return (
     <FlatList
       data={codes}
@@ -126,6 +149,7 @@ function ProcedureList({ codes }: ProcedureListProps) {
       contentInsetAdjustmentBehavior="automatic"
       showsVerticalScrollIndicator={false}
       removeClippedSubviews
+      getItemLayout={getItemLayout}
       renderItem={({ item }) => <ProcedureCard procedure={item} />}
     />
   );

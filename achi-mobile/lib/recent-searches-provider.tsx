@@ -4,6 +4,7 @@ import {
   useState,
   useEffect,
   useCallback,
+  useMemo,
   type ReactNode,
 } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -32,25 +33,34 @@ export function RecentSearchesProvider({ children }: RecentSearchesProviderProps
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    loadRecentSearches();
-  }, []);
+    let isMounted = true;
 
-  const loadRecentSearches = async () => {
-    try {
-      const stored = await AsyncStorage.getItem(STORAGE_KEY);
-      if (stored) {
-        const parsed = JSON.parse(stored) as string[];
-        setRecentSearches(parsed);
-        if (parsed.length > 0) {
-          setLastSearchQuery(parsed[0]);
+    const loadRecentSearches = async () => {
+      try {
+        const stored = await AsyncStorage.getItem(STORAGE_KEY);
+        if (stored && isMounted) {
+          const parsed = JSON.parse(stored);
+          if (Array.isArray(parsed)) {
+            setRecentSearches(parsed);
+            if (parsed.length > 0) {
+              setLastSearchQuery(parsed[0]);
+            }
+          }
+        }
+      } catch (error) {
+        console.error("Failed to load recent searches:", error);
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
         }
       }
-    } catch (error) {
-      console.error("Failed to load recent searches:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    };
+
+    loadRecentSearches();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const saveRecentSearches = async (searches: string[]) => {
     try {
@@ -97,17 +107,20 @@ export function RecentSearchesProvider({ children }: RecentSearchesProviderProps
     });
   }, []);
 
+  const value = useMemo(
+    () => ({
+      recentSearches,
+      lastSearchQuery,
+      addRecentSearch,
+      removeRecentSearch,
+      clearRecentSearches,
+      isLoading,
+    }),
+    [recentSearches, lastSearchQuery, addRecentSearch, removeRecentSearch, clearRecentSearches, isLoading]
+  );
+
   return (
-    <RecentSearchesContext.Provider
-      value={{
-        recentSearches,
-        lastSearchQuery,
-        addRecentSearch,
-        removeRecentSearch,
-        clearRecentSearches,
-        isLoading,
-      }}
-    >
+    <RecentSearchesContext.Provider value={value}>
       {children}
     </RecentSearchesContext.Provider>
   );

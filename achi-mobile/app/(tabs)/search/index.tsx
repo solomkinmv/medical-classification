@@ -1,15 +1,15 @@
 import { useMemo, useRef, useCallback, useEffect } from "react";
-import { View, Text, FlatList, ScrollView } from "react-native";
+import { Text, FlatList, ScrollView } from "react-native";
 import { useRouter, useFocusEffect } from "expo-router";
-import { useColorScheme } from "nativewind";
 import { AccentCard } from "@/components/AccentCard";
 import { EmptyState } from "@/components/EmptyState";
-import { LoadingSpinner } from "@/components/LoadingSpinner";
+import { SkeletonList } from "@/components/SkeletonList";
 import { RecentSearches } from "@/components/RecentSearches";
 import { useAchiData } from "@/lib/data-provider";
 import { useFavorites } from "@/lib/favorites-provider";
 import { useRecentSearches } from "@/lib/recent-searches-provider";
 import { useBackgroundColor } from "@/lib/useBackgroundColor";
+import { useTheme } from "@/lib/useTheme";
 import { searchProcedures, type SearchResult } from "@/lib/search";
 import { useSearchQuery } from "./_layout";
 import {
@@ -18,14 +18,14 @@ import {
   colors,
   CONTENT_PADDING_HORIZONTAL,
   CONTENT_PADDING_BOTTOM,
-  theme,
+  CARD_HEIGHT_WITH_SUBTITLE,
+  SEARCH_RESULTS_HEADER_HEIGHT,
 } from "@/lib/constants";
 
 export default function SearchIndex() {
   const { query, debouncedQuery, isSearching, setQueryFromExternal } = useSearchQuery();
   const data = useAchiData();
-  const { colorScheme } = useColorScheme();
-  const t = colorScheme === "dark" ? theme.dark : theme.light;
+  const { colors: t } = useTheme();
   const backgroundColor = useBackgroundColor();
   const { recentSearches, lastSearchQuery, addRecentSearch } = useRecentSearches();
 
@@ -38,9 +38,11 @@ export default function SearchIndex() {
   const lastSuccessfulQueryRef = useRef<string | null>(null);
 
   // Update ref when we have results
-  if (results.length > 0 && debouncedQuery.length >= SEARCH_MIN_QUERY_LENGTH) {
-    lastSuccessfulQueryRef.current = debouncedQuery;
-  }
+  useEffect(() => {
+    if (results.length > 0 && debouncedQuery.length >= SEARCH_MIN_QUERY_LENGTH) {
+      lastSuccessfulQueryRef.current = debouncedQuery;
+    }
+  }, [results.length, debouncedQuery]);
 
   // Save when search is cleared (X button) - session end
   const prevDebouncedQueryRef = useRef<string>(debouncedQuery);
@@ -71,6 +73,15 @@ export default function SearchIndex() {
     if (!lastSearchQuery || lastSearchQuery.length < SEARCH_MIN_QUERY_LENGTH) return [];
     return searchProcedures(data, lastSearchQuery, SEARCH_MAX_RESULTS);
   }, [data, lastSearchQuery]);
+
+  const getItemLayout = useCallback(
+    (_: unknown, index: number) => ({
+      length: CARD_HEIGHT_WITH_SUBTITLE,
+      offset: SEARCH_RESULTS_HEADER_HEIGHT + CARD_HEIGHT_WITH_SUBTITLE * index,
+      index,
+    }),
+    []
+  );
 
   if (query.length < SEARCH_MIN_QUERY_LENGTH) {
     const hasRecentSearches = recentSearches.length > 0;
@@ -124,12 +135,7 @@ export default function SearchIndex() {
   }
 
   if (isSearching) {
-    return (
-      <View className="flex-1 items-center justify-center px-8" style={{ backgroundColor }}>
-        <LoadingSpinner color={colors.sky[500]} />
-        <Text style={{ color: t.textMuted, marginTop: 16 }}>Пошук...</Text>
-      </View>
-    );
+    return <SkeletonList count={5} hasSubtitle={true} />;
   }
 
   if (results.length === 0) {
@@ -159,6 +165,7 @@ export default function SearchIndex() {
       maxToRenderPerBatch={10}
       initialNumToRender={10}
       windowSize={5}
+      getItemLayout={getItemLayout}
       ListHeaderComponent={
         <Text className="text-sm text-gray-500 dark:text-gray-400 mb-3">
           Знайдено: {results.length}{" "}

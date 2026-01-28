@@ -1,19 +1,32 @@
+import { useCallback } from "react";
 import { FlatList, Text } from "react-native";
 import { Link } from "expo-router";
-import { useColorScheme } from "nativewind";
 import { AccentCard } from "@/components/AccentCard";
 import { useAchiData } from "@/lib/data-provider";
 import { getRootCategories } from "@/lib/navigation";
 import { useBackgroundColor } from "@/lib/useBackgroundColor";
-import { colors, theme, CONTENT_PADDING_HORIZONTAL, CONTENT_PADDING_BOTTOM } from "@/lib/constants";
+import {
+  colors,
+  CONTENT_PADDING_HORIZONTAL,
+  CONTENT_PADDING_BOTTOM,
+  CARD_HEIGHT_WITHOUT_SUBTITLE,
+  EXPLORE_HEADER_HEIGHT,
+} from "@/lib/constants";
 import type { CategoryNode } from "@/lib/types";
 
 export default function ExploreScreen() {
   const data = useAchiData();
   const categories = getRootCategories(data);
-  const { colorScheme } = useColorScheme();
-  const t = colorScheme === "dark" ? theme.dark : theme.light;
   const backgroundColor = useBackgroundColor();
+
+  const getItemLayout = useCallback(
+    (_: unknown, index: number) => ({
+      length: CARD_HEIGHT_WITHOUT_SUBTITLE,
+      offset: EXPLORE_HEADER_HEIGHT + CARD_HEIGHT_WITHOUT_SUBTITLE * index,
+      index,
+    }),
+    []
+  );
 
   return (
     <FlatList
@@ -27,6 +40,7 @@ export default function ExploreScreen() {
       contentInsetAdjustmentBehavior="automatic"
       showsVerticalScrollIndicator={false}
       removeClippedSubviews
+      getItemLayout={getItemLayout}
       ListHeaderComponent={
         <Text className="text-sm text-gray-500 dark:text-gray-400 mb-4">
           Австралійська класифікація медичних інтервенцій

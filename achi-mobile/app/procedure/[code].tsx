@@ -3,15 +3,15 @@ import { View, Text, ScrollView, Pressable, Platform } from "react-native";
 import { useLocalSearchParams, Stack, useRouter, useNavigationContainerRef } from "expo-router";
 import { CommonActions } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useColorScheme } from "nativewind";
 import { AnimatedBookmarkButton } from "@/components/AnimatedBookmarkButton";
 import { ChevronIcon } from "@/components/ChevronIcon";
 import { CloseButton } from "@/components/CloseButton";
 import { useAchiData } from "@/lib/data-provider";
 import { useFavorites } from "@/lib/favorites-provider";
 import { useBackgroundColor } from "@/lib/useBackgroundColor";
+import { useTheme } from "@/lib/useTheme";
 import { findProcedurePath } from "@/lib/navigation";
-import { colors, theme } from "@/lib/constants";
+import { colors } from "@/lib/constants";
 import type { AchiData, CategoryChildren, ProcedureCode, PathSegment } from "@/lib/types";
 import { isLeafLevel } from "@/lib/types";
 
@@ -38,9 +38,7 @@ export default function ProcedureDetail() {
   const router = useRouter();
   const navigation = useNavigationContainerRef();
   const insets = useSafeAreaInsets();
-  const { colorScheme } = useColorScheme();
-  const isDark = colorScheme === "dark";
-  const t = isDark ? theme.dark : theme.light;
+  const { colors: t } = useTheme();
   const backgroundColor = useBackgroundColor();
 
   const procedure = useMemo(

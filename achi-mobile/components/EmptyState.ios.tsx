@@ -1,7 +1,6 @@
 import { View, Text } from "react-native";
 import { Host, Image, ImageProps } from "@expo/ui/swift-ui";
-import { useColorScheme } from "nativewind";
-import { theme as themeColors } from "@/lib/constants";
+import { useTheme } from "@/lib/useTheme";
 
 type SFSymbolName = ImageProps["systemName"];
 
@@ -20,12 +19,10 @@ export function EmptyState({
   title,
   message,
 }: EmptyStateProps) {
-  const { colorScheme } = useColorScheme();
-  const isDark = colorScheme === "dark";
-  const t = isDark ? themeColors.dark : themeColors.light;
+  const { colors: t } = useTheme();
 
   return (
-    <View className="flex-1 items-center justify-center px-8 bg-[#F0F2F5] dark:bg-[#0A0A0A]">
+    <View className="flex-1 items-center justify-center px-8" style={{ backgroundColor: t.background }}>
       <View className="items-center">
         <View
           className="w-20 h-20 rounded-full items-center justify-center mb-4"
