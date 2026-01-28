@@ -54,3 +54,20 @@ export const RECENT_SEARCHES_MAX_COUNT = 10;
 // Layout
 export const CONTENT_PADDING_HORIZONTAL = 16;
 export const CONTENT_PADDING_BOTTOM = 100;
+
+// Card heights for FlatList getItemLayout optimization
+// Card with badge + title + subtitle + padding + margin
+export const CARD_HEIGHT_WITH_SUBTITLE = 100;
+// Card with badge + title + padding + margin
+export const CARD_HEIGHT_WITHOUT_SUBTITLE = 84;
+
+// Accent bar heights
+export const ACCENT_BAR_HEIGHT_WITH_SUBTITLE = 64;
+export const ACCENT_BAR_HEIGHT_WITHOUT_SUBTITLE = 48;
+
+// List header heights for getItemLayout offset calculations
+export const SEARCH_RESULTS_HEADER_HEIGHT = 28;
+export const EXPLORE_HEADER_HEIGHT = 32;
+
+// UI feedback delays
+export const REFRESH_FEEDBACK_DELAY_MS = 300;

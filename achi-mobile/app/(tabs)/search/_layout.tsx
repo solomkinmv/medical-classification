@@ -1,9 +1,9 @@
-import { createContext, useContext, useState, useCallback, useEffect, useRef } from "react";
-import { useColorScheme } from "react-native";
+import { createContext, useContext, useState, useCallback, useEffect, useRef, useMemo } from "react";
 import { Stack } from "expo-router";
 import { isLiquidGlassAvailable } from "expo-glass-effect";
 import type { SearchBarCommands } from "react-native-screens";
-import { SEARCH_DEBOUNCE_MS, theme } from "@/lib/constants";
+import { SEARCH_DEBOUNCE_MS } from "@/lib/constants";
+import { useTheme } from "@/lib/useTheme";
 
 interface SearchContextType {
   query: string;
@@ -16,7 +16,7 @@ const SearchContext = createContext<SearchContextType | null>(null);
 
 export function useSearchQuery(): SearchContextType {
   const context = useContext(SearchContext);
-  if (!context) {
+  if (context === null) {
     throw new Error("useSearchQuery must be used within SearchLayout");
   }
   return context;
@@ -27,9 +27,8 @@ export default function SearchLayout() {
   const [debouncedQuery, setDebouncedQuery] = useState("");
   const [isSearching, setIsSearching] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const searchBarRef = useRef<SearchBarCommands>(null!);
-  const colorScheme = useColorScheme();
-  const t = colorScheme === "dark" ? theme.dark : theme.light;
+  const searchBarRef = useRef<SearchBarCommands>(null) as React.RefObject<SearchBarCommands>;
+  const { colors: t } = useTheme();
 
   const handleChangeText = useCallback((event: { nativeEvent: { text: string } }) => {
     const text = event.nativeEvent.text;
@@ -53,7 +52,7 @@ export default function SearchLayout() {
     setQuery(externalQuery);
     setDebouncedQuery(externalQuery);
     setIsSearching(false);
-    searchBarRef.current?.setText(externalQuery);
+    searchBarRef.current?.setText?.(externalQuery);
   }, []);
 
   const handleCancelButtonPress = useCallback(() => {
@@ -76,8 +75,13 @@ export default function SearchLayout() {
 
   const headerBg = isLiquidGlassAvailable() ? "transparent" : t.background;
 
+  const contextValue = useMemo(
+    () => ({ query, debouncedQuery, isSearching, setQueryFromExternal }),
+    [query, debouncedQuery, isSearching, setQueryFromExternal]
+  );
+
   return (
-    <SearchContext.Provider value={{ query, debouncedQuery, isSearching, setQueryFromExternal }}>
+    <SearchContext.Provider value={contextValue}>
       <Stack
         screenOptions={{
           headerLargeTitleShadowVisible: false,

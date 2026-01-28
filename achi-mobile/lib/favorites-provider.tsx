@@ -4,6 +4,7 @@ import {
   useState,
   useEffect,
   useCallback,
+  useMemo,
   type ReactNode,
 } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -29,29 +30,39 @@ export function FavoritesProvider({ children }: FavoritesProviderProps) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    let isMounted = true;
+
+    const loadFavorites = async () => {
+      try {
+        const stored = await AsyncStorage.getItem(STORAGE_KEY);
+        if (stored && isMounted) {
+          const parsed = JSON.parse(stored);
+          if (Array.isArray(parsed)) {
+            setFavorites(parsed);
+          }
+        }
+      } catch (error) {
+        console.error("Failed to load favorites:", error);
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      }
+    };
+
     loadFavorites();
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
-  const loadFavorites = async () => {
-    try {
-      const stored = await AsyncStorage.getItem(STORAGE_KEY);
-      if (stored) {
-        setFavorites(JSON.parse(stored));
-      }
-    } catch (error) {
-      console.error("Failed to load favorites:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const saveFavorites = async (newFavorites: ProcedureCode[]) => {
+  const saveFavorites = useCallback(async (newFavorites: ProcedureCode[]) => {
     try {
       await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(newFavorites));
     } catch (error) {
       console.error("Failed to save favorites:", error);
     }
-  };
+  }, []);
 
   const isFavorite = useCallback(
     (code: string) => {
@@ -71,13 +82,16 @@ export function FavoritesProvider({ children }: FavoritesProviderProps) {
         return newFavorites;
       });
     },
-    []
+    [saveFavorites]
+  );
+
+  const value = useMemo(
+    () => ({ favorites, isFavorite, toggleFavorite, isLoading }),
+    [favorites, isFavorite, toggleFavorite, isLoading]
   );
 
   return (
-    <FavoritesContext.Provider
-      value={{ favorites, isFavorite, toggleFavorite, isLoading }}
-    >
+    <FavoritesContext.Provider value={value}>
       {children}
     </FavoritesContext.Provider>
   );

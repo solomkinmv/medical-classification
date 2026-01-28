@@ -1,10 +1,9 @@
 import { View, Text } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { useColorScheme } from "nativewind";
-import { theme as themeColors } from "@/lib/constants";
+import { useTheme } from "@/lib/useTheme";
 
 const SF_TO_IONICONS: Record<string, keyof typeof Ionicons.glyphMap> = {
-  "bookmark": "bookmark-outline",
+  "bookmark": "bookmark",
   "magnifyingglass": "search-outline",
   "exclamationmark.circle": "alert-circle-outline",
 };
@@ -24,9 +23,7 @@ export function EmptyState({
   title,
   message,
 }: EmptyStateProps) {
-  const { colorScheme } = useColorScheme();
-  const isDark = colorScheme === "dark";
-  const t = isDark ? themeColors.dark : themeColors.light;
+  const { colors: t } = useTheme();
 
   const ioniconsName = SF_TO_IONICONS[icon] ?? "help-circle-outline";
 
