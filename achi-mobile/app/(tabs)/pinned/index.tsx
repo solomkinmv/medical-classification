@@ -1,7 +1,8 @@
 import { useState, useCallback } from "react";
-import { FlatList, RefreshControl } from "react-native";
+import { FlatList, RefreshControl, ScrollView } from "react-native";
 import { Link } from "expo-router";
 import { AccentCard } from "@/components/AccentCard";
+import { ClassifierSwitcher } from "@/components/ClassifierSwitcher";
 import { EmptyState } from "@/components/EmptyState";
 import { SkeletonList } from "@/components/SkeletonList";
 import { useFavorites } from "@/lib/favorites-provider";
@@ -33,17 +34,27 @@ export default function PinnedScreen() {
 
   if (favorites.length === 0) {
     return (
-      <EmptyState
-        icon="bookmark"
-        iconColor={colors.amber[500]}
-        iconBackgroundColor="rgba(245, 158, 11, 0.15)"
-        title="Немає збережених"
-        message={
-          activeClassifier === "mkh10"
-            ? "Натисніть на закладку біля діагнозу, щоб зберегти його тут"
-            : "Натисніть на закладку біля процедури, щоб зберегти її тут"
-        }
-      />
+      <ScrollView
+        style={{ flex: 1, backgroundColor }}
+        contentContainerStyle={{
+          flexGrow: 1,
+          paddingHorizontal: CONTENT_PADDING_HORIZONTAL,
+        }}
+        contentInsetAdjustmentBehavior="automatic"
+      >
+        <ClassifierSwitcher />
+        <EmptyState
+          icon="bookmark"
+          iconColor={colors.amber[500]}
+          iconBackgroundColor="rgba(245, 158, 11, 0.15)"
+          title="Немає збережених"
+          message={
+            activeClassifier === "mkh10"
+              ? "Натисніть на закладку біля діагнозу, щоб зберегти його тут"
+              : "Натисніть на закладку біля процедури, щоб зберегти її тут"
+          }
+        />
+      </ScrollView>
     );
   }
 
@@ -59,6 +70,7 @@ export default function PinnedScreen() {
       contentInsetAdjustmentBehavior="automatic"
       showsVerticalScrollIndicator={false}
       removeClippedSubviews
+      ListHeaderComponent={<ClassifierSwitcher />}
       refreshControl={
         <RefreshControl
           refreshing={refreshing}

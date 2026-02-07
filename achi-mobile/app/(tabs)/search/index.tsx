@@ -1,7 +1,8 @@
 import { useMemo, useRef, useCallback, useEffect } from "react";
-import { Text, FlatList, ScrollView } from "react-native";
+import { Text, FlatList, ScrollView, View } from "react-native";
 import { useRouter, useFocusEffect } from "expo-router";
 import { AccentCard } from "@/components/AccentCard";
+import { ClassifierSwitcher } from "@/components/ClassifierSwitcher";
 import { EmptyState } from "@/components/EmptyState";
 import { SkeletonList } from "@/components/SkeletonList";
 import { RecentSearches } from "@/components/RecentSearches";
@@ -104,12 +105,27 @@ export default function SearchIndex() {
 
     if (!hasRecentSearches && !hasLastResults) {
       return (
-        <EmptyState
-          icon="magnifyingglass"
-          iconColor={colors.gray[400]}
-          iconBackgroundColor="rgba(156, 163, 175, 0.2)"
-          message={`Введіть щонайменше ${SEARCH_MIN_QUERY_LENGTH} символи для пошуку`}
-        />
+        <ScrollView
+          style={{ flex: 1, backgroundColor }}
+          contentContainerStyle={{
+            flexGrow: 1,
+            paddingHorizontal: CONTENT_PADDING_HORIZONTAL,
+          }}
+          contentInsetAdjustmentBehavior="automatic"
+          keyboardShouldPersistTaps="handled"
+        >
+          <ClassifierSwitcher />
+          <EmptyState
+            icon="magnifyingglass"
+            iconColor={colors.gray[400]}
+            iconBackgroundColor="rgba(156, 163, 175, 0.2)"
+            message={
+              activeClassifier === "mkh10"
+                ? `Введіть щонайменше ${SEARCH_MIN_QUERY_LENGTH} символи для пошуку діагнозів МКХ-10`
+                : `Введіть щонайменше ${SEARCH_MIN_QUERY_LENGTH} символи для пошуку процедур АКМІ`
+            }
+          />
+        </ScrollView>
       );
     }
 
@@ -124,6 +140,7 @@ export default function SearchIndex() {
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
+        <ClassifierSwitcher />
         <RecentSearches
           onSelectQuery={setQueryFromExternal}
           activeQuery={lastSearchQuery}
@@ -158,13 +175,24 @@ export default function SearchIndex() {
 
   if (results.length === 0) {
     return (
-      <EmptyState
-        icon="exclamationmark.circle"
-        iconColor={colors.gray[400]}
-        iconBackgroundColor="rgba(156, 163, 175, 0.2)"
-        title="Нічого не знайдено"
-        message="Спробуйте інший пошуковий запит"
-      />
+      <ScrollView
+        style={{ flex: 1, backgroundColor }}
+        contentContainerStyle={{
+          flexGrow: 1,
+          paddingHorizontal: CONTENT_PADDING_HORIZONTAL,
+        }}
+        contentInsetAdjustmentBehavior="automatic"
+        keyboardShouldPersistTaps="handled"
+      >
+        <ClassifierSwitcher />
+        <EmptyState
+          icon="exclamationmark.circle"
+          iconColor={colors.gray[400]}
+          iconBackgroundColor="rgba(156, 163, 175, 0.2)"
+          title="Нічого не знайдено"
+          message="Спробуйте інший пошуковий запит"
+        />
+      </ScrollView>
     );
   }
 
@@ -175,6 +203,7 @@ export default function SearchIndex() {
       style={{ flex: 1, backgroundColor }}
       contentContainerStyle={{
         paddingHorizontal: CONTENT_PADDING_HORIZONTAL,
+        paddingBottom: CONTENT_PADDING_BOTTOM,
       }}
       contentInsetAdjustmentBehavior="automatic"
       keyboardShouldPersistTaps="handled"
@@ -184,9 +213,12 @@ export default function SearchIndex() {
       initialNumToRender={10}
       windowSize={5}
       ListHeaderComponent={
-        <Text className="text-sm text-gray-500 dark:text-gray-400 mb-3">
-          Знайдено: {results.length} {pluralizeResults(results.length)}
-        </Text>
+        <View>
+          <ClassifierSwitcher />
+          <Text className="text-sm text-gray-500 dark:text-gray-400 mb-3">
+            Знайдено: {results.length} {pluralizeResults(results.length)}
+          </Text>
+        </View>
       }
       renderItem={({ item }) => <SearchResultCard result={item} />}
     />
