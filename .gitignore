@@ -10,3 +10,5 @@ xcuserdata/
 
 ## Build output
 build/
+# ralphex progress logs
+progress*.txt
