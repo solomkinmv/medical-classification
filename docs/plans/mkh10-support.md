@@ -72,13 +72,13 @@ CSV columns (meddata.pp.ua):
 ## Implementation Steps
 
 ### Task 1: Create МКХ-10 data parser
-- [ ] Create `mkh10/mkh10_parser.py` that reads `mkh10-data/nk-025-2021.csv`
-- [ ] Build 5-level hierarchy: Class → Block → Nosology → 4-digit → 5-digit (optional leaf)
-- [ ] Output format must match the existing ACHI JSON pattern (nested dict with `children`, leaf arrays with `code`, `name_ua`, `name_en`)
-- [ ] Handle the 5-digit codes: when present (not "-"), they become leaf children under the 4-digit code; when absent, the 4-digit code is the leaf
-- [ ] Generate `mkh10/data/mkh10.json` and copy to `achi-mobile/data/mkh10.json`
-- [ ] Validate output: verify record counts (22 classes, 228 blocks, 2078 nosologies, correct leaf counts)
-- [ ] Run parser and verify output JSON is well-formed
+- [x] Create `mkh10/mkh10_parser.py` that reads `mkh10-data/nk-025-2021.csv`
+- [x] Build 5-level hierarchy: Class → Block → Nosology → 4-digit → 5-digit (optional leaf)
+- [x] Output format must match the existing ACHI JSON pattern (nested dict with `children`, leaf arrays with `code`, `name_ua`, `name_en`)
+- [x] Handle the 5-digit codes: when present (not "-"), they become leaf children under the 4-digit code; when absent, the 4-digit code is the leaf
+- [x] Generate `mkh10/data/mkh10.json` and copy to `achi-mobile/data/mkh10.json`
+- [x] Validate output: verify record counts (22 classes, 228 blocks, 2078 nosologies, correct leaf counts)
+- [x] Run parser and verify output JSON is well-formed
 
 ### Task 2: Add МКХ-10 types to the app
 - [ ] Add `Mkh10Data` interface to `lib/types.ts` (reuse the same `CategoryNode`/`CategoryChildren` pattern but with МКХ-10 level names)
