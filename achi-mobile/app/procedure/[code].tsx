@@ -1,21 +1,34 @@
 import { useMemo } from "react";
 import { View, Text, ScrollView, Pressable, Platform } from "react-native";
-import { useLocalSearchParams, Stack, useRouter, useNavigationContainerRef } from "expo-router";
+import {
+  useLocalSearchParams,
+  Stack,
+  useRouter,
+  useNavigationContainerRef,
+} from "expo-router";
 import { CommonActions } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { AnimatedBookmarkButton } from "@/components/AnimatedBookmarkButton";
 import { CloseButton } from "@/components/CloseButton";
-import { useAchiData } from "@/lib/data-provider";
 import { useClassifier } from "@/lib/classifier-provider";
 import { useFavorites } from "@/lib/favorites-provider";
 import { useBackgroundColor } from "@/lib/useBackgroundColor";
 import { useTheme } from "@/lib/useTheme";
 import { findProcedurePath } from "@/lib/navigation";
 import { colors, getClassifierColors } from "@/lib/constants";
-import type { AchiData, CategoryChildren, ClassifierType, LeafCode, PathSegment } from "@/lib/types";
+import type {
+  AchiData,
+  CategoryChildren,
+  ClassifierType,
+  LeafCode,
+  PathSegment,
+} from "@/lib/types";
 import { isLeafLevel } from "@/lib/types";
 
-function getLevelLabel(level: PathSegment["level"], classifier: ClassifierType): string {
+function getLevelLabel(
+  level: PathSegment["level"],
+  classifier: ClassifierType,
+): string {
   switch (level) {
     case "class":
       return "Клас";
@@ -36,8 +49,7 @@ function getLevelLabel(level: PathSegment["level"], classifier: ClassifierType):
 
 export default function ProcedureDetail() {
   const { code } = useLocalSearchParams<{ code: string }>();
-  const data = useAchiData();
-  const { activeClassifier } = useClassifier();
+  const { activeClassifier, activeData: data } = useClassifier();
   const classifierColors = getClassifierColors(activeClassifier);
   const accentColor = classifierColors.accent500;
   const accentColorDark = classifierColors.accent600;
@@ -50,12 +62,15 @@ export default function ProcedureDetail() {
 
   const procedure = useMemo(
     () => (code ? findProcedure(data, code) : null),
-    [data, code]
+    [data, code],
   );
 
   const path = useMemo(
-    () => (procedure ? findProcedurePath(data, procedure.code, activeClassifier) ?? [] : []),
-    [data, procedure, activeClassifier]
+    () =>
+      procedure
+        ? (findProcedurePath(data, procedure.code, activeClassifier) ?? [])
+        : [],
+    [data, procedure, activeClassifier],
   );
 
   const isPinned = procedure ? isFavorite(procedure.code) : false;
@@ -66,9 +81,7 @@ export default function ProcedureDetail() {
         className="flex-1 items-center justify-center"
         style={{ backgroundColor }}
       >
-        <Text style={{ color: t.textSecondary }}>
-          Неправильний код
-        </Text>
+        <Text style={{ color: t.textSecondary }}>Неправильний код</Text>
       </View>
     );
   }
@@ -79,9 +92,7 @@ export default function ProcedureDetail() {
         className="flex-1 items-center justify-center"
         style={{ backgroundColor }}
       >
-        <Text style={{ color: t.textSecondary }}>
-          Код не знайдено
-        </Text>
+        <Text style={{ color: t.textSecondary }}>Код не знайдено</Text>
       </View>
     );
   }
@@ -120,7 +131,7 @@ export default function ProcedureDetail() {
         // Build routes without underscore segments
         const pathWithoutUnderscore = path.filter((p) => p.key !== "_");
         const targetIndex = pathWithoutUnderscore.findIndex(
-          (p) => p.key === path[index]?.key
+          (p) => p.key === path[index]?.key,
         );
         const routePath = pathWithoutUnderscore.slice(0, targetIndex + 1);
 
@@ -154,7 +165,7 @@ export default function ProcedureDetail() {
                 },
               },
             ],
-          })
+          }),
         );
       });
     } catch {
@@ -168,14 +179,15 @@ export default function ProcedureDetail() {
       <Stack.Screen
         options={{
           title: procedure.code,
-          headerLeft: Platform.OS === "ios"
-            ? () => (
-                <CloseButton
-                  onPress={() => router.back()}
-                  color={t.textSecondary}
-                />
-              )
-            : undefined,
+          headerLeft:
+            Platform.OS === "ios"
+              ? () => (
+                  <CloseButton
+                    onPress={() => router.back()}
+                    color={t.textSecondary}
+                  />
+                )
+              : undefined,
           headerRight: () => (
             <AnimatedBookmarkButton
               isBookmarked={isPinned}
@@ -187,7 +199,9 @@ export default function ProcedureDetail() {
                   : "rgba(156, 163, 175, 0.1)"
               }
               size={18}
-              accessibilityLabel={isPinned ? "Видалити закладку" : "Додати закладку"}
+              accessibilityLabel={
+                isPinned ? "Видалити закладку" : "Додати закладку"
+              }
             />
           ),
         }}
@@ -230,12 +244,24 @@ export default function ProcedureDetail() {
                   accessibilityLabel={`Перейти до ${segment.name_ua}`}
                   style={{ marginBottom: 8 }}
                 >
-                  <Text style={{ fontSize: 11, color: t.textMuted, marginBottom: 2 }}>
+                  <Text
+                    style={{
+                      fontSize: 11,
+                      color: t.textMuted,
+                      marginBottom: 2,
+                    }}
+                  >
                     {segment.level === "class"
                       ? segment.code
                       : `${getLevelLabel(segment.level, activeClassifier)}${segment.code ? ` (${segment.code})` : ""}`}
                   </Text>
-                  <Text style={{ fontSize: 14, fontWeight: "500", color: accentColorDark }}>
+                  <Text
+                    style={{
+                      fontSize: 14,
+                      fontWeight: "500",
+                      color: accentColorDark,
+                    }}
+                  >
                     {segment.name_ua}
                   </Text>
                 </Pressable>
@@ -249,7 +275,14 @@ export default function ProcedureDetail() {
             className="self-start px-4 py-2 rounded-lg"
             style={{ backgroundColor: accentColor }}
           >
-            <Text style={{ color: "#ffffff", fontWeight: "bold", fontSize: 18, letterSpacing: 0.5 }}>
+            <Text
+              style={{
+                color: "#ffffff",
+                fontWeight: "bold",
+                fontSize: 18,
+                letterSpacing: 0.5,
+              }}
+            >
               {procedure.code}
             </Text>
           </View>
@@ -269,9 +302,13 @@ export default function ProcedureDetail() {
         </Text>
 
         {/* English name */}
-        <Text style={{ fontSize: 16, color: t.textSecondary, lineHeight: 24 }}>
-          {procedure.name_en}
-        </Text>
+        {procedure.name_en ? (
+          <Text
+            style={{ fontSize: 16, color: t.textSecondary, lineHeight: 24 }}
+          >
+            {procedure.name_en}
+          </Text>
+        ) : null}
       </ScrollView>
     </>
   );

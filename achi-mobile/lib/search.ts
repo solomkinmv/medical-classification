@@ -9,7 +9,7 @@ export interface SearchResult {
 export function searchProcedures(
   data: AchiData,
   query: string,
-  limit: number = 50
+  limit: number = 50,
 ): SearchResult[] {
   const results: SearchResult[] = [];
   const normalizedQuery = query.toLowerCase().trim();
@@ -22,7 +22,7 @@ export function searchProcedures(
         const matches =
           code.code.toLowerCase().includes(normalizedQuery) ||
           code.name_ua.toLowerCase().includes(normalizedQuery) ||
-          code.name_en.toLowerCase().includes(normalizedQuery);
+          (code.name_en ?? "").toLowerCase().includes(normalizedQuery);
 
         if (matches) {
           results.push({ code, path: [...path] });

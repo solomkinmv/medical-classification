@@ -1,3 +1,5 @@
+import type { ClassifierType } from "./types";
+
 // Header animation constants
 export const HEADER_MAX_HEIGHT = 120;
 export const HEADER_MIN_HEIGHT = 60;
@@ -34,18 +36,18 @@ export const colors = {
 // Theme colors for light/dark mode
 export const theme = {
   light: {
-    background: "#F0F2F5",    // slightly darker for more contrast
+    background: "#F0F2F5", // slightly darker for more contrast
     card: "#FFFFFF",
-    text: "#111827",         // gray-900
+    text: "#111827", // gray-900
     textSecondary: "#6b7280", // gray-500
-    textMuted: "#9ca3af",     // gray-400
+    textMuted: "#9ca3af", // gray-400
   },
   dark: {
     background: "#0A0A0A",
     card: "#1C1C1E",
-    text: "#f3f4f6",          // gray-100
+    text: "#f3f4f6", // gray-100
     textSecondary: "#9ca3af", // gray-400
-    textMuted: "#6b7280",     // gray-500
+    textMuted: "#6b7280", // gray-500
   },
 } as const;
 
@@ -59,26 +61,17 @@ export const RECENT_SEARCHES_MAX_COUNT = 10;
 export const CONTENT_PADDING_HORIZONTAL = 16;
 export const CONTENT_PADDING_BOTTOM = 100;
 
-// Card heights for FlatList getItemLayout optimization
-// Card with badge + title + subtitle + padding + margin
-export const CARD_HEIGHT_WITH_SUBTITLE = 100;
-// Card with badge + title + padding + margin
+// Card height for FlatList getItemLayout optimization (categories without subtitle)
 export const CARD_HEIGHT_WITHOUT_SUBTITLE = 84;
 
 // Accent bar heights
 export const ACCENT_BAR_HEIGHT_WITH_SUBTITLE = 64;
 export const ACCENT_BAR_HEIGHT_WITHOUT_SUBTITLE = 48;
 
-// List header heights for getItemLayout offset calculations
-export const SEARCH_RESULTS_HEADER_HEIGHT = 28;
-export const EXPLORE_HEADER_HEIGHT = 32;
-
 // UI feedback delays
 export const REFRESH_FEEDBACK_DELAY_MS = 300;
 
 // Classifier-specific accent colors
-import type { ClassifierType } from "./types";
-
 export function getClassifierColors(classifier: ClassifierType) {
   if (classifier === "mkh10") {
     return {

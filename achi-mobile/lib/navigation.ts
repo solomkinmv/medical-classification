@@ -15,10 +15,22 @@ export interface NavigationState {
   isLeaf: boolean;
 }
 
-const ACHI_LEVEL_ORDER: PathSegment["level"][] = ["class", "anatomical", "procedural", "block"];
-const MKH10_LEVEL_ORDER: PathSegment["level"][] = ["class", "block", "nosology", "disease"];
+const ACHI_LEVEL_ORDER: PathSegment["level"][] = [
+  "class",
+  "anatomical",
+  "procedural",
+  "block",
+];
+const MKH10_LEVEL_ORDER: PathSegment["level"][] = [
+  "class",
+  "block",
+  "nosology",
+  "disease",
+];
 
-export function getLevelOrder(classifier: ClassifierType): PathSegment["level"][] {
+export function getLevelOrder(
+  classifier: ClassifierType,
+): PathSegment["level"][] {
   return classifier === "mkh10" ? MKH10_LEVEL_ORDER : ACHI_LEVEL_ORDER;
 }
 
@@ -28,7 +40,7 @@ export function getLevelOrder(classifier: ClassifierType): PathSegment["level"][
 export function resolveNavigationPath(
   data: AchiData,
   pathSegments: string[],
-  classifier: ClassifierType = "achi"
+  classifier: ClassifierType = "achi",
 ): NavigationState {
   const levelOrder = getLevelOrder(classifier);
   const resolvedPath: PathSegment[] = [];
@@ -55,7 +67,10 @@ export function resolveNavigationPath(
       // Look inside underscore category
       const underscoreNode = categoryChildren["_"];
       if (isCategoryChildren(underscoreNode.children)) {
-        const underscoreChildren = underscoreNode.children as Record<string, CategoryNode>;
+        const underscoreChildren = underscoreNode.children as Record<
+          string,
+          CategoryNode
+        >;
         if (decodedSegment in underscoreChildren) {
           // Auto-include underscore in path (but it won't be in URL)
           resolvedPath.push({
@@ -119,18 +134,10 @@ export function getRootCategories(data: AchiData): [string, CategoryNode][] {
 }
 
 /**
- * Build URL path from path segments
- */
-export function buildPathUrl(segments: PathSegment[]): string {
-  if (segments.length === 0) return "/browse";
-  return "/browse/" + segments.map((s) => encodeURIComponent(s.key)).join("/");
-}
-
-/**
  * Get child categories from a node
  */
 export function getChildCategories(
-  children: CategoryChildren
+  children: CategoryChildren,
 ): [string, CategoryNode][] | null {
   if (isLeafLevel(children)) return null;
   return Object.entries(children);
@@ -139,9 +146,7 @@ export function getChildCategories(
 /**
  * Get leaf codes from leaf level
  */
-export function getLeafCodes(
-  children: CategoryChildren
-): LeafCode[] | null {
+export function getLeafCodes(children: CategoryChildren): LeafCode[] | null {
   if (!isLeafLevel(children)) return null;
   return children;
 }
@@ -152,14 +157,14 @@ export function getLeafCodes(
 export function findProcedurePath(
   data: AchiData,
   targetCode: string,
-  classifier: ClassifierType = "achi"
+  classifier: ClassifierType = "achi",
 ): PathSegment[] | null {
   const levelOrder = getLevelOrder(classifier);
 
   function searchNode(
     children: CategoryChildren,
     currentPath: PathSegment[],
-    levelIndex: number
+    levelIndex: number,
   ): PathSegment[] | null {
     if (isLeafLevel(children)) {
       const found = children.find((proc) => proc.code === targetCode);

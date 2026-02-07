@@ -11,7 +11,6 @@ import {
   colors,
   CONTENT_PADDING_HORIZONTAL,
   CONTENT_PADDING_BOTTOM,
-  CARD_HEIGHT_WITH_SUBTITLE,
   REFRESH_FEEDBACK_DELAY_MS,
 } from "@/lib/constants";
 import type { LeafCode } from "@/lib/types";
@@ -27,15 +26,6 @@ export default function PinnedScreen() {
     // Brief visual feedback - favorites are already in memory
     setTimeout(() => setRefreshing(false), REFRESH_FEEDBACK_DELAY_MS);
   }, []);
-
-  const getItemLayout = useCallback(
-    (_: unknown, index: number) => ({
-      length: CARD_HEIGHT_WITH_SUBTITLE,
-      offset: CARD_HEIGHT_WITH_SUBTITLE * index,
-      index,
-    }),
-    []
-  );
 
   if (isLoading) {
     return <SkeletonList count={5} hasSubtitle={true} />;
@@ -69,7 +59,6 @@ export default function PinnedScreen() {
       contentInsetAdjustmentBehavior="automatic"
       showsVerticalScrollIndicator={false}
       removeClippedSubviews
-      getItemLayout={getItemLayout}
       refreshControl={
         <RefreshControl
           refreshing={refreshing}

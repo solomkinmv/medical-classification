@@ -1,4 +1,12 @@
-import { createContext, useContext, useState, useCallback, useEffect, useRef, useMemo } from "react";
+import {
+  createContext,
+  useContext,
+  useState,
+  useCallback,
+  useEffect,
+  useRef,
+  useMemo,
+} from "react";
 import { Stack } from "expo-router";
 import { isLiquidGlassAvailable } from "expo-glass-effect";
 import type { SearchBarCommands } from "react-native-screens";
@@ -27,23 +35,28 @@ export default function SearchLayout() {
   const [debouncedQuery, setDebouncedQuery] = useState("");
   const [isSearching, setIsSearching] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const searchBarRef = useRef<SearchBarCommands>(null) as React.RefObject<SearchBarCommands>;
+  const searchBarRef = useRef<SearchBarCommands>(
+    null,
+  ) as React.RefObject<SearchBarCommands>;
   const { colors: t } = useTheme();
 
-  const handleChangeText = useCallback((event: { nativeEvent: { text: string } }) => {
-    const text = event.nativeEvent.text;
-    setQuery(text);
-    setIsSearching(true);
+  const handleChangeText = useCallback(
+    (event: { nativeEvent: { text: string } }) => {
+      const text = event.nativeEvent.text;
+      setQuery(text);
+      setIsSearching(true);
 
-    if (debounceRef.current) {
-      clearTimeout(debounceRef.current);
-    }
+      if (debounceRef.current) {
+        clearTimeout(debounceRef.current);
+      }
 
-    debounceRef.current = setTimeout(() => {
-      setDebouncedQuery(text);
-      setIsSearching(false);
-    }, SEARCH_DEBOUNCE_MS);
-  }, []);
+      debounceRef.current = setTimeout(() => {
+        setDebouncedQuery(text);
+        setIsSearching(false);
+      }, SEARCH_DEBOUNCE_MS);
+    },
+    [],
+  );
 
   const setQueryFromExternal = useCallback((externalQuery: string) => {
     if (debounceRef.current) {
@@ -77,7 +90,7 @@ export default function SearchLayout() {
 
   const contextValue = useMemo(
     () => ({ query, debouncedQuery, isSearching, setQueryFromExternal }),
-    [query, debouncedQuery, isSearching, setQueryFromExternal]
+    [query, debouncedQuery, isSearching, setQueryFromExternal],
   );
 
   return (

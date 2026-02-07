@@ -1,15 +1,22 @@
 import { View, Text, ScrollView, Pressable, Alert } from "react-native";
 import { useColorScheme } from "nativewind";
 import { useRecentSearches } from "@/lib/recent-searches-provider";
-import { colors, theme } from "@/lib/constants";
+import { useClassifier } from "@/lib/classifier-provider";
+import { colors, theme, getClassifierColors } from "@/lib/constants";
 
 interface RecentSearchesProps {
   onSelectQuery: (query: string) => void;
   activeQuery?: string | null;
 }
 
-export function RecentSearches({ onSelectQuery, activeQuery }: RecentSearchesProps) {
-  const { recentSearches, removeRecentSearch, clearRecentSearches } = useRecentSearches();
+export function RecentSearches({
+  onSelectQuery,
+  activeQuery,
+}: RecentSearchesProps) {
+  const { recentSearches, removeRecentSearch, clearRecentSearches } =
+    useRecentSearches();
+  const { activeClassifier } = useClassifier();
+  const classifierColors = getClassifierColors(activeClassifier);
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === "dark";
   const t = isDark ? theme.dark : theme.light;
@@ -38,9 +45,7 @@ export function RecentSearches({ onSelectQuery, activeQuery }: RecentSearchesPro
           accessibilityLabel="Очистити всі останні пошуки"
           accessibilityRole="button"
         >
-          <Text style={{ fontSize: 13, color: colors.sky[500] }}>
-            Очистити
-          </Text>
+          <Text style={{ fontSize: 13, color: classifierColors.accent500 }}>Очистити</Text>
         </Pressable>
       </View>
       <ScrollView
@@ -55,14 +60,14 @@ export function RecentSearches({ onSelectQuery, activeQuery }: RecentSearchesPro
               key={query}
               onPress={() => onSelectQuery(query)}
               onLongPress={() => {
-                Alert.alert(
-                  "Видалити пошук?",
-                  `"${query}"`,
-                  [
-                    { text: "Скасувати", style: "cancel" },
-                    { text: "Видалити", style: "destructive", onPress: () => removeRecentSearch(query) },
-                  ]
-                );
+                Alert.alert("Видалити пошук?", `"${query}"`, [
+                  { text: "Скасувати", style: "cancel" },
+                  {
+                    text: "Видалити",
+                    style: "destructive",
+                    onPress: () => removeRecentSearch(query),
+                  },
+                ]);
               }}
               accessibilityLabel={`Пошук: ${query}`}
               accessibilityHint="Натисніть для пошуку, утримуйте для видалення"
@@ -72,8 +77,10 @@ export function RecentSearches({ onSelectQuery, activeQuery }: RecentSearchesPro
                 paddingVertical: 8,
                 borderRadius: 20,
                 backgroundColor: isActive
-                  ? colors.sky[500]
-                  : isDark ? colors.gray[800] : colors.gray[100],
+                  ? classifierColors.accent500
+                  : isDark
+                    ? colors.gray[800]
+                    : colors.gray[100],
               }}
             >
               <Text

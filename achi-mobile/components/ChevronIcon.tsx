@@ -7,5 +7,7 @@ interface ChevronIconProps {
 }
 
 export function ChevronIcon({ size, color }: ChevronIconProps) {
-  return <Ionicons name="chevron-forward" size={size} color={color as string} />;
+  return (
+    <Ionicons name="chevron-forward" size={size} color={color as string} />
+  );
 }
