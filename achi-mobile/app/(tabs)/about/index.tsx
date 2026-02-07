@@ -21,8 +21,12 @@ export default function AboutScreen() {
     }
   };
 
-  const handleOpenPDF = () => {
+  const handleOpenAchiPDF = () => {
     handleOpenURL("https://www.dec.gov.ua/wp-content/uploads/2023/01/nk-026_2021_.pdf");
+  };
+
+  const handleOpenMkh10PDF = () => {
+    handleOpenURL("https://www.dec.gov.ua/wp-content/uploads/2021/11/naczionalnyj-klasyfikator-nk-025.pdf");
   };
 
   const handleOpenDeveloper = () => {
@@ -76,11 +80,47 @@ export default function AboutScreen() {
           accessibilityLabel="Відкрити PDF документ класифікатора"
           accessibilityRole="link"
           accessibilityHint="Відкриває PDF документ класифікатора у браузері"
-          onPress={handleOpenPDF}
+          onPress={handleOpenAchiPDF}
         >
           <Ionicons name="open-outline" size={16} color={colors.violet[500]} />
           <Text className="text-violet-500 ml-2 font-medium">
             Класифікатор НК 026:2021 (PDF)
+          </Text>
+        </Pressable>
+      </InfoCard>
+
+      <InfoCard icon="medkit-outline" title="Що таке МКХ-10?" color={colors.emerald[500]}>
+        <Text className="text-gray-600 dark:text-gray-400 leading-6 mb-2">
+          МКХ-10 (Міжнародна класифікація хвороб 10-го перегляду) — система кодування діагнозів та захворювань, прийнята Всесвітньою організацією охорони здоров'я.
+        </Text>
+        <Text className="text-gray-600 dark:text-gray-400 leading-6 mb-2">
+          Структурований довідник із 22 класів захворювань. Має 5 рівнів ієрархії: клас, блок, нозологія, 4-значний та 5-значний код.
+        </Text>
+        <Text className="text-gray-600 dark:text-gray-400 leading-6">
+          Містить 16 960 кодів захворювань українською та англійською мовами.
+        </Text>
+      </InfoCard>
+
+      <InfoCard icon="document-text-outline" title="НК 025:2021" color={colors.emerald[500]}>
+        <Text className="text-gray-600 dark:text-gray-400 leading-6 mb-2">
+          Національний класифікатор України «Класифікатор хвороб та споріднених проблем охорони здоров'я».
+        </Text>
+        <Text className="text-gray-600 dark:text-gray-400 leading-6 mb-2">
+          Чинний з 01.09.2021. Затверджено наказом Міністерства економіки України від 04.08.2021 № 360-21.
+        </Text>
+        <Text className="text-gray-600 dark:text-gray-400 leading-6 mb-3">
+          Гармонізовано з МКХ-10-АМ (Австралійська модифікація), 1 липня 2017 року.
+        </Text>
+        <Pressable
+          className="flex-row items-center"
+          accessibilityLabel="Відкрити PDF документ класифікатора МКХ-10"
+          accessibilityRole="link"
+          accessibilityHint="Відкриває PDF документ класифікатора МКХ-10 у браузері"
+          onPress={handleOpenMkh10PDF}
+        >
+          <Ionicons name="open-outline" size={16} color={colors.emerald[500]} />
+          <Text className="text-emerald-500 ml-2 font-medium">
+            Класифікатор НК 025:2021 (PDF)
           </Text>
         </Pressable>
       </InfoCard>

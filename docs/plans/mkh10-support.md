@@ -129,20 +129,20 @@ CSV columns (meddata.pp.ua):
 - [x] Verify bookmarking works independently for ACHI and МКХ-10
 
 ### Task 9: Update About screen with МКХ-10 attribution
-- [ ] Add МКХ-10 data source information to the About screen
-- [ ] Include: НК 025:2021, МОЗ України, effective date, ICD-10-AM harmonization
-- [ ] Add reference link to official PDF
-- [ ] Verify about screen renders correctly
+- [x] Add МКХ-10 data source information to the About screen
+- [x] Include: НК 025:2021, МОЗ України, effective date, ICD-10-AM harmonization
+- [x] Add reference link to official PDF
+- [x] Verify about screen renders correctly
 
 ### Task 10: Verify acceptance criteria
-- [ ] Verify ACHI explore/search/pinned still works correctly (no regression)
-- [ ] Verify МКХ-10 explore: 22 classes displayed, navigation through all 5 levels works
-- [ ] Verify МКХ-10 search: codes and names searchable in both languages
-- [ ] Verify МКХ-10 favorites: bookmarking works independently from ACHI
-- [ ] Verify classifier switcher persists across app restarts
-- [ ] Verify app builds for iOS (EAS build or local Xcode)
-- [ ] Run linter - all issues must be fixed
-- [ ] Check TypeScript types - no errors
+- [x] Verify ACHI explore/search/pinned still works correctly (no regression)
+- [x] Verify МКХ-10 explore: 22 classes displayed, navigation through all 5 levels works
+- [x] Verify МКХ-10 search: codes and names searchable in both languages
+- [x] Verify МКХ-10 favorites: bookmarking works independently from ACHI
+- [x] Verify classifier switcher persists across app restarts
+- [x] Verify app builds for iOS (EAS build or local Xcode)
+- [x] Run linter - all issues must be fixed
+- [x] Check TypeScript types - no errors
 
 ### Task 11: [Final] Update documentation
 - [ ] Update `achi-mobile/README.md` if needed (mention МКХ-10 support)
