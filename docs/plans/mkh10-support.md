@@ -111,10 +111,10 @@ CSV columns (meddata.pp.ua):
 - [x] Verify switching between classifiers works, explore tab shows correct categories
 
 ### Task 6: Update Search to work with active classifier
-- [ ] Search tab should search within the currently active classifier
-- [ ] Update search results display to show correct accent color based on classifier
-- [ ] Update empty state message if needed
-- [ ] Verify search works for both ACHI and МКХ-10 codes/names
+- [x] Search tab should search within the currently active classifier
+- [x] Update search results display to show correct accent color based on classifier
+- [x] Update empty state message if needed
+- [x] Verify search works for both ACHI and МКХ-10 codes/names
 
 ### Task 7: Update Procedure/Disease detail screen
 - [ ] Update `procedure/[code].tsx` to find the code in the active classifier's data

@@ -6,6 +6,7 @@ import { EmptyState } from "@/components/EmptyState";
 import { SkeletonList } from "@/components/SkeletonList";
 import { RecentSearches } from "@/components/RecentSearches";
 import { useAchiData } from "@/lib/data-provider";
+import { useClassifier } from "@/lib/classifier-provider";
 import { useFavorites } from "@/lib/favorites-provider";
 import { useRecentSearches } from "@/lib/recent-searches-provider";
 import { useBackgroundColor } from "@/lib/useBackgroundColor";
@@ -20,6 +21,7 @@ import {
   CONTENT_PADDING_BOTTOM,
   CARD_HEIGHT_WITH_SUBTITLE,
   SEARCH_RESULTS_HEADER_HEIGHT,
+  getClassifierColors,
 } from "@/lib/constants";
 
 export default function SearchIndex() {
@@ -183,15 +185,17 @@ export default function SearchIndex() {
 
 function SearchResultCard({ result }: { result: SearchResult }) {
   const { isFavorite, toggleFavorite } = useFavorites();
+  const { activeClassifier } = useClassifier();
   const router = useRouter();
   const isPinned = isFavorite(result.code.code);
+  const classifierColors = getClassifierColors(activeClassifier);
 
   return (
     <AccentCard
       onPress={() => router.push(`/procedure/${result.code.code}`)}
-      accentColor={colors.sky[500]}
+      accentColor={classifierColors.accent500}
       badge={result.code.code}
-      badgeColor={colors.sky[600]}
+      badgeColor={classifierColors.accent600}
       title={result.code.name_ua}
       subtitle={result.code.name_en}
       icon={isPinned ? "bookmark" : "bookmark-outline"}
@@ -202,7 +206,7 @@ function SearchResultCard({ result }: { result: SearchResult }) {
       onIconPress={() => toggleFavorite(result.code)}
       iconAccessibilityLabel={isPinned ? "Видалити закладку" : "Додати закладку"}
       accessibilityLabel={`${result.code.code}: ${result.code.name_ua}`}
-      accessibilityHint="Відкрити деталі процедури"
+      accessibilityHint="Відкрити деталі"
     />
   );
 }
