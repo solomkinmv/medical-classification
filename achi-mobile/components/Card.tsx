@@ -14,11 +14,7 @@ export function Card({ children }: CardProps) {
     backgroundColor: t.card,
   };
 
-  return (
-    <View style={cardContainerStyle}>
-      {children}
-    </View>
-  );
+  return <View style={cardContainerStyle}>{children}</View>;
 }
 
 const styles = StyleSheet.create({
@@ -29,6 +25,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 12,
     elevation: 4,
-    overflow: 'hidden',
+    overflow: "hidden",
   },
 });

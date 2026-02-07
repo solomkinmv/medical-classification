@@ -5,7 +5,6 @@ import {
   useEffect,
   useCallback,
   useMemo,
-  useRef,
   type ReactNode,
 } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -33,11 +32,6 @@ export function FavoritesProvider({ children }: FavoritesProviderProps) {
   const { activeClassifier } = useClassifier();
   const [favorites, setFavorites] = useState<LeafCode[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const classifierRef = useRef(activeClassifier);
-
-  useEffect(() => {
-    classifierRef.current = activeClassifier;
-  }, [activeClassifier]);
 
   useEffect(() => {
     let isMounted = true;
@@ -78,20 +72,20 @@ export function FavoritesProvider({ children }: FavoritesProviderProps) {
   const saveFavorites = useCallback(
     async (newFavorites: LeafCode[]) => {
       try {
-        const key = getStorageKey(classifierRef.current);
+        const key = getStorageKey(activeClassifier);
         await AsyncStorage.setItem(key, JSON.stringify(newFavorites));
       } catch (error) {
         console.error("Failed to save favorites:", error);
       }
     },
-    []
+    [activeClassifier],
   );
 
   const isFavorite = useCallback(
     (code: string) => {
       return favorites.some((f) => f.code === code);
     },
-    [favorites]
+    [favorites],
   );
 
   const toggleFavorite = useCallback(
@@ -101,16 +95,18 @@ export function FavoritesProvider({ children }: FavoritesProviderProps) {
         const newFavorites = exists
           ? prev.filter((f) => f.code !== procedure.code)
           : [...prev, procedure];
-        saveFavorites(newFavorites);
+        saveFavorites(newFavorites).catch((error) => {
+          console.error("Failed to save favorites:", error);
+        });
         return newFavorites;
       });
     },
-    [saveFavorites]
+    [saveFavorites],
   );
 
   const value = useMemo(
     () => ({ favorites, isFavorite, toggleFavorite, isLoading }),
-    [favorites, isFavorite, toggleFavorite, isLoading]
+    [favorites, isFavorite, toggleFavorite, isLoading],
   );
 
   return (

@@ -24,7 +24,10 @@ export function AnimatedBookmarkButton({
   containerSize = 36,
   accessibilityLabel = "Toggle bookmark",
 }: AnimatedBookmarkButtonProps) {
-  const { animatedStyle, handlePress } = useBookmarkAnimation(isBookmarked, onPress);
+  const { animatedStyle, handlePress } = useBookmarkAnimation(
+    isBookmarked,
+    onPress,
+  );
 
   return (
     <AnimatedPressable

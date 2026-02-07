@@ -29,7 +29,6 @@ interface ClassifierProviderProps {
 export function ClassifierProvider({ children }: ClassifierProviderProps) {
   const [activeClassifier, setActiveClassifierState] =
     useState<ClassifierType>("achi");
-  const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -42,10 +41,6 @@ export function ClassifierProvider({ children }: ClassifierProviderProps) {
         }
       } catch (error) {
         console.error("Failed to load classifier preference:", error);
-      } finally {
-        if (isMounted) {
-          setIsLoaded(true);
-        }
       }
     };
 
@@ -55,30 +50,22 @@ export function ClassifierProvider({ children }: ClassifierProviderProps) {
     };
   }, []);
 
-  const setActiveClassifier = useCallback(
-    (classifier: ClassifierType) => {
-      setActiveClassifierState(classifier);
-      AsyncStorage.setItem(STORAGE_KEY, classifier).catch((error) => {
-        console.error("Failed to save classifier preference:", error);
-      });
-    },
-    []
-  );
+  const setActiveClassifier = useCallback((classifier: ClassifierType) => {
+    setActiveClassifierState(classifier);
+    AsyncStorage.setItem(STORAGE_KEY, classifier).catch((error) => {
+      console.error("Failed to save classifier preference:", error);
+    });
+  }, []);
 
   const activeData = useMemo(
-    () =>
-      (activeClassifier === "achi" ? achiData : mkh10Data) as AchiData,
-    [activeClassifier]
+    () => (activeClassifier === "achi" ? achiData : mkh10Data) as AchiData,
+    [activeClassifier],
   );
 
   const value = useMemo(
     () => ({ activeClassifier, setActiveClassifier, activeData }),
-    [activeClassifier, setActiveClassifier, activeData]
+    [activeClassifier, setActiveClassifier, activeData],
   );
-
-  if (!isLoaded) {
-    return null;
-  }
 
   return (
     <ClassifierContext.Provider value={value}>

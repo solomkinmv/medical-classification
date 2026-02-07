@@ -2,7 +2,13 @@ import { useCallback } from "react";
 import { Platform } from "react-native";
 import * as Haptics from "expo-haptics";
 
-type HapticStyle = "light" | "medium" | "heavy" | "success" | "warning" | "error";
+type HapticStyle =
+  | "light"
+  | "medium"
+  | "heavy"
+  | "success"
+  | "warning"
+  | "error";
 
 const impactStyles: Record<string, Haptics.ImpactFeedbackStyle> = {
   light: Haptics.ImpactFeedbackStyle.Light,

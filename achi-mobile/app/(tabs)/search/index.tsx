@@ -5,7 +5,6 @@ import { AccentCard } from "@/components/AccentCard";
 import { EmptyState } from "@/components/EmptyState";
 import { SkeletonList } from "@/components/SkeletonList";
 import { RecentSearches } from "@/components/RecentSearches";
-import { useAchiData } from "@/lib/data-provider";
 import { useClassifier } from "@/lib/classifier-provider";
 import { useFavorites } from "@/lib/favorites-provider";
 import { useRecentSearches } from "@/lib/recent-searches-provider";
@@ -19,29 +18,50 @@ import {
   colors,
   CONTENT_PADDING_HORIZONTAL,
   CONTENT_PADDING_BOTTOM,
-  CARD_HEIGHT_WITH_SUBTITLE,
-  SEARCH_RESULTS_HEADER_HEIGHT,
   getClassifierColors,
 } from "@/lib/constants";
 
+function pluralizeResults(count: number): string {
+  const lastTwo = count % 100;
+  const lastOne = count % 10;
+  if (lastTwo >= 11 && lastTwo <= 19) return "результатів";
+  if (lastOne === 1) return "результат";
+  if (lastOne >= 2 && lastOne <= 4) return "результати";
+  return "результатів";
+}
+
 export default function SearchIndex() {
-  const { query, debouncedQuery, isSearching, setQueryFromExternal } = useSearchQuery();
-  const data = useAchiData();
+  const { query, debouncedQuery, isSearching, setQueryFromExternal } =
+    useSearchQuery();
+  const { activeClassifier, activeData: data } = useClassifier();
   const { colors: t } = useTheme();
   const backgroundColor = useBackgroundColor();
-  const { recentSearches, lastSearchQuery, addRecentSearch } = useRecentSearches();
+  const { recentSearches, lastSearchQuery, addRecentSearch } =
+    useRecentSearches();
+
+  // Track the last query that had results (for saving on session end)
+  const lastSuccessfulQueryRef = useRef<string | null>(null);
+
+  const prevClassifierRef = useRef(activeClassifier);
+  useEffect(() => {
+    if (prevClassifierRef.current !== activeClassifier) {
+      prevClassifierRef.current = activeClassifier;
+      lastSuccessfulQueryRef.current = null;
+      setQueryFromExternal("");
+    }
+  }, [activeClassifier, setQueryFromExternal]);
 
   const results = useMemo(() => {
     if (debouncedQuery.length < SEARCH_MIN_QUERY_LENGTH) return [];
     return searchProcedures(data, debouncedQuery, SEARCH_MAX_RESULTS);
   }, [data, debouncedQuery]);
 
-  // Track the last query that had results (for saving on session end)
-  const lastSuccessfulQueryRef = useRef<string | null>(null);
-
   // Update ref when we have results
   useEffect(() => {
-    if (results.length > 0 && debouncedQuery.length >= SEARCH_MIN_QUERY_LENGTH) {
+    if (
+      results.length > 0 &&
+      debouncedQuery.length >= SEARCH_MIN_QUERY_LENGTH
+    ) {
       lastSuccessfulQueryRef.current = debouncedQuery;
     }
   }, [results.length, debouncedQuery]);
@@ -49,7 +69,8 @@ export default function SearchIndex() {
   // Save when search is cleared (X button) - session end
   const prevDebouncedQueryRef = useRef<string>(debouncedQuery);
   useEffect(() => {
-    const wasValid = prevDebouncedQueryRef.current.length >= SEARCH_MIN_QUERY_LENGTH;
+    const wasValid =
+      prevDebouncedQueryRef.current.length >= SEARCH_MIN_QUERY_LENGTH;
     const isNowInvalid = debouncedQuery.length < SEARCH_MIN_QUERY_LENGTH;
 
     if (wasValid && isNowInvalid && lastSuccessfulQueryRef.current) {
@@ -68,22 +89,14 @@ export default function SearchIndex() {
           lastSuccessfulQueryRef.current = null;
         }
       };
-    }, [addRecentSearch])
+    }, [addRecentSearch]),
   );
 
   const lastSearchResults = useMemo(() => {
-    if (!lastSearchQuery || lastSearchQuery.length < SEARCH_MIN_QUERY_LENGTH) return [];
+    if (!lastSearchQuery || lastSearchQuery.length < SEARCH_MIN_QUERY_LENGTH)
+      return [];
     return searchProcedures(data, lastSearchQuery, SEARCH_MAX_RESULTS);
   }, [data, lastSearchQuery]);
-
-  const getItemLayout = useCallback(
-    (_: unknown, index: number) => ({
-      length: CARD_HEIGHT_WITH_SUBTITLE,
-      offset: SEARCH_RESULTS_HEADER_HEIGHT + CARD_HEIGHT_WITH_SUBTITLE * index,
-      index,
-    }),
-    []
-  );
 
   if (query.length < SEARCH_MIN_QUERY_LENGTH) {
     const hasRecentSearches = recentSearches.length > 0;
@@ -111,7 +124,10 @@ export default function SearchIndex() {
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        <RecentSearches onSelectQuery={setQueryFromExternal} activeQuery={lastSearchQuery} />
+        <RecentSearches
+          onSelectQuery={setQueryFromExternal}
+          activeQuery={lastSearchQuery}
+        />
 
         {hasLastResults && lastSearchQuery && (
           <>
@@ -125,7 +141,7 @@ export default function SearchIndex() {
                 marginBottom: 12,
               }}
             >
-              Результати для "{lastSearchQuery}"
+              Результати для &ldquo;{lastSearchQuery}&rdquo;
             </Text>
             {lastSearchResults.map((result) => (
               <SearchResultCard key={result.code.code} result={result} />
@@ -167,15 +183,9 @@ export default function SearchIndex() {
       maxToRenderPerBatch={10}
       initialNumToRender={10}
       windowSize={5}
-      getItemLayout={getItemLayout}
       ListHeaderComponent={
         <Text className="text-sm text-gray-500 dark:text-gray-400 mb-3">
-          Знайдено: {results.length}{" "}
-          {results.length === 1
-            ? "результат"
-            : results.length < 5
-            ? "результати"
-            : "результатів"}
+          Знайдено: {results.length} {pluralizeResults(results.length)}
         </Text>
       }
       renderItem={({ item }) => <SearchResultCard result={item} />}
@@ -198,13 +208,17 @@ function SearchResultCard({ result }: { result: SearchResult }) {
       badgeColor={classifierColors.accent600}
       title={result.code.name_ua}
       subtitle={result.code.name_en}
-      icon={isPinned ? "bookmark" : "bookmark-outline"}
+      icon="bookmark"
       isBookmarked={isPinned}
       iconColor={isPinned ? colors.amber[500] : colors.gray[400]}
-      iconBackground={isPinned ? "rgba(245, 158, 11, 0.15)" : "rgba(156, 163, 175, 0.1)"}
+      iconBackground={
+        isPinned ? "rgba(245, 158, 11, 0.15)" : "rgba(156, 163, 175, 0.1)"
+      }
       iconSize={18}
       onIconPress={() => toggleFavorite(result.code)}
-      iconAccessibilityLabel={isPinned ? "Видалити закладку" : "Додати закладку"}
+      iconAccessibilityLabel={
+        isPinned ? "Видалити закладку" : "Додати закладку"
+      }
       accessibilityLabel={`${result.code.code}: ${result.code.name_ua}`}
       accessibilityHint="Відкрити деталі"
     />

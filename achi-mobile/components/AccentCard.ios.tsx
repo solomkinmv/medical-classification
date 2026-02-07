@@ -20,11 +20,11 @@ type SFSymbolName = ImageProps["systemName"];
 
 const SF_SYMBOL_MAP: Record<string, SFSymbolName> = {
   "chevron-forward": "chevron.right",
-  "bookmark": "bookmark.fill",
+  bookmark: "bookmark.fill",
   "bookmark-outline": "bookmark",
   "search-outline": "magnifyingglass",
   "alert-circle-outline": "exclamationmark.circle",
-  "close": "xmark",
+  close: "xmark",
 };
 
 interface AccentCardProps {
@@ -93,7 +93,9 @@ export function AccentCard({
     : undefined;
 
   if (__DEV__ && icon && !SF_SYMBOL_MAP[icon]) {
-    console.warn(`AccentCard: Unmapped icon "${icon}". Add it to SF_SYMBOL_MAP.`);
+    console.warn(
+      `AccentCard: Unmapped icon "${icon}". Add it to SF_SYMBOL_MAP.`,
+    );
   }
 
   if (onPress) {
@@ -132,7 +134,11 @@ export function AccentCard({
   }
 
   return (
-    <View className="mb-3" accessible={!!accessibilityLabel} accessibilityLabel={accessibilityLabel}>
+    <View
+      className="mb-3"
+      accessible={!!accessibilityLabel}
+      accessibilityLabel={accessibilityLabel}
+    >
       <AccentCardContent
         accentColor={accentColor}
         badge={badge}
@@ -200,7 +206,9 @@ function AccentCardContent({
         <View
           className="w-1 rounded-full mr-4"
           style={{
-            height: subtitle ? ACCENT_BAR_HEIGHT_WITH_SUBTITLE : ACCENT_BAR_HEIGHT_WITHOUT_SUBTITLE,
+            height: subtitle
+              ? ACCENT_BAR_HEIGHT_WITH_SUBTITLE
+              : ACCENT_BAR_HEIGHT_WITHOUT_SUBTITLE,
             backgroundColor: accentColor,
           }}
         />
@@ -254,31 +262,41 @@ function AccentCardContent({
               accessibilityLabel={iconAccessibilityLabel}
             />
           </View>
-        ) : sfSymbol && (
-          <View className="mt-1">
-            {onIconPress ? (
-              <Pressable
-                onPress={onIconPress}
-                accessibilityLabel={iconAccessibilityLabel}
-                accessibilityRole="button"
-                className="w-9 h-9 rounded-full items-center justify-center"
-                style={{ backgroundColor: iconBackground }}
-              >
-                <Host matchContents>
-                  <Image systemName={sfSymbol} size={iconSize} color={iconColor} />
-                </Host>
-              </Pressable>
-            ) : (
-              <View
-                className="w-8 h-8 rounded-full items-center justify-center"
-                style={{ backgroundColor: iconBackground }}
-              >
-                <Host matchContents>
-                  <Image systemName={sfSymbol} size={iconSize} color={iconColor} />
-                </Host>
-              </View>
-            )}
-          </View>
+        ) : (
+          sfSymbol && (
+            <View className="mt-1">
+              {onIconPress ? (
+                <Pressable
+                  onPress={onIconPress}
+                  accessibilityLabel={iconAccessibilityLabel}
+                  accessibilityRole="button"
+                  className="w-9 h-9 rounded-full items-center justify-center"
+                  style={{ backgroundColor: iconBackground }}
+                >
+                  <Host matchContents>
+                    <Image
+                      systemName={sfSymbol}
+                      size={iconSize}
+                      color={iconColor}
+                    />
+                  </Host>
+                </Pressable>
+              ) : (
+                <View
+                  className="w-8 h-8 rounded-full items-center justify-center"
+                  style={{ backgroundColor: iconBackground }}
+                >
+                  <Host matchContents>
+                    <Image
+                      systemName={sfSymbol}
+                      size={iconSize}
+                      color={iconColor}
+                    />
+                  </Host>
+                </View>
+              )}
+            </View>
+          )
         )}
       </View>
     </Card>

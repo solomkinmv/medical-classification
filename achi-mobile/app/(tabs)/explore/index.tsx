@@ -1,17 +1,13 @@
-import { useCallback } from "react";
 import { FlatList, Text, View } from "react-native";
 import { Link } from "expo-router";
 import { AccentCard } from "@/components/AccentCard";
 import { ClassifierSwitcher } from "@/components/ClassifierSwitcher";
-import { useAchiData } from "@/lib/data-provider";
 import { useClassifier } from "@/lib/classifier-provider";
 import { getRootCategories } from "@/lib/navigation";
 import { useBackgroundColor } from "@/lib/useBackgroundColor";
 import {
   CONTENT_PADDING_HORIZONTAL,
   CONTENT_PADDING_BOTTOM,
-  CARD_HEIGHT_WITHOUT_SUBTITLE,
-  EXPLORE_HEADER_HEIGHT,
   getClassifierColors,
 } from "@/lib/constants";
 import type { CategoryNode } from "@/lib/types";
@@ -22,20 +18,10 @@ const SUBTITLE: Record<string, string> = {
 };
 
 export default function ExploreScreen() {
-  const data = useAchiData();
-  const { activeClassifier } = useClassifier();
+  const { activeClassifier, activeData: data } = useClassifier();
   const categories = getRootCategories(data);
   const backgroundColor = useBackgroundColor();
   const classifierColors = getClassifierColors(activeClassifier);
-
-  const getItemLayout = useCallback(
-    (_: unknown, index: number) => ({
-      length: CARD_HEIGHT_WITHOUT_SUBTITLE,
-      offset: EXPLORE_HEADER_HEIGHT + CARD_HEIGHT_WITHOUT_SUBTITLE * index,
-      index,
-    }),
-    []
-  );
 
   return (
     <FlatList
@@ -49,7 +35,6 @@ export default function ExploreScreen() {
       contentInsetAdjustmentBehavior="automatic"
       showsVerticalScrollIndicator={false}
       removeClippedSubviews
-      getItemLayout={getItemLayout}
       ListHeaderComponent={
         <View>
           <ClassifierSwitcher />
@@ -102,7 +87,9 @@ function CategoryCard({
         iconColor={iconColor}
         iconBackground={iconBackground}
         iconSize={16}
-        accessibilityLabel={node.clazz ? `${node.clazz}: ${node.name_ua}` : node.name_ua}
+        accessibilityLabel={
+          node.clazz ? `${node.clazz}: ${node.name_ua}` : node.name_ua
+        }
         accessibilityHint="Відкрити категорію для перегляду підкатегорій"
       />
     </Link>

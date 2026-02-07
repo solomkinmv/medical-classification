@@ -23,11 +23,7 @@ export function SkeletonCard({ hasSubtitle = true }: SkeletonCardProps) {
   const shimmer = useSharedValue(0);
 
   useEffect(() => {
-    shimmer.value = withRepeat(
-      withTiming(1, { duration: 1200 }),
-      -1,
-      false
-    );
+    shimmer.value = withRepeat(withTiming(1, { duration: 1200 }), -1, false);
     return () => {
       cancelAnimation(shimmer);
     };
@@ -47,7 +43,9 @@ export function SkeletonCard({ hasSubtitle = true }: SkeletonCardProps) {
           style={[
             styles.accentBar,
             {
-              height: hasSubtitle ? ACCENT_BAR_HEIGHT_WITH_SUBTITLE : ACCENT_BAR_HEIGHT_WITHOUT_SUBTITLE,
+              height: hasSubtitle
+                ? ACCENT_BAR_HEIGHT_WITH_SUBTITLE
+                : ACCENT_BAR_HEIGHT_WITHOUT_SUBTITLE,
               backgroundColor: skeletonBg,
             },
             shimmerStyle,
@@ -58,18 +56,30 @@ export function SkeletonCard({ hasSubtitle = true }: SkeletonCardProps) {
         <View style={styles.textContent}>
           {/* Badge skeleton */}
           <Animated.View
-            style={[styles.badge, { backgroundColor: skeletonBg }, shimmerStyle]}
+            style={[
+              styles.badge,
+              { backgroundColor: skeletonBg },
+              shimmerStyle,
+            ]}
           />
 
           {/* Title skeleton */}
           <Animated.View
-            style={[styles.title, { backgroundColor: skeletonBg }, shimmerStyle]}
+            style={[
+              styles.title,
+              { backgroundColor: skeletonBg },
+              shimmerStyle,
+            ]}
           />
 
           {/* Subtitle skeleton (if applicable) */}
           {hasSubtitle && (
             <Animated.View
-              style={[styles.subtitle, { backgroundColor: skeletonBg }, shimmerStyle]}
+              style={[
+                styles.subtitle,
+                { backgroundColor: skeletonBg },
+                shimmerStyle,
+              ]}
             />
           )}
         </View>

@@ -8,6 +8,6 @@ export function useTheme() {
 
   return useMemo(
     () => ({ colorScheme, isDark, colors: isDark ? theme.dark : theme.light }),
-    [colorScheme, isDark]
+    [colorScheme, isDark],
   );
 }

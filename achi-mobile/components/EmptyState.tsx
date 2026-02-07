@@ -3,8 +3,8 @@ import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "@/lib/useTheme";
 
 const SF_TO_IONICONS: Record<string, keyof typeof Ionicons.glyphMap> = {
-  "bookmark": "bookmark",
-  "magnifyingglass": "search-outline",
+  bookmark: "bookmark",
+  magnifyingglass: "search-outline",
   "exclamationmark.circle": "alert-circle-outline",
 };
 
@@ -28,7 +28,10 @@ export function EmptyState({
   const ioniconsName = SF_TO_IONICONS[icon] ?? "help-circle-outline";
 
   return (
-    <View className="flex-1 items-center justify-center px-8" style={{ backgroundColor: t.background }}>
+    <View
+      className="flex-1 items-center justify-center px-8"
+      style={{ backgroundColor: t.background }}
+    >
       <View
         className="w-20 h-20 rounded-full items-center justify-center mb-4"
         style={{ backgroundColor: iconBackgroundColor }}

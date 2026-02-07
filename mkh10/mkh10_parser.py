@@ -115,6 +115,21 @@ def parse_mkh10_file(csv_path: str) -> dict:
         nosology_node = block_node["children"][nosology_ua]
 
         # Level 3+: Disease codes
+        # Skip rows where nosology has no subdivisions (code_4 is "-")
+        # These terminal nosologies become their own leaf codes
+        if code_4 == '-':
+            if "_leaves" not in nosology_node["children"]:
+                nosology_node["children"]["_leaves"] = []
+            leaves = nosology_node["children"]["_leaves"]
+            leaf = {
+                "code": nosology_code,
+                "name_ua": nosology_ua,
+                "name_en": nosology_en if nosology_en and nosology_en != '-' else ""
+            }
+            if not any(c["code"] == nosology_code for c in leaves):
+                leaves.append(leaf)
+            continue
+
         has_five = code_4 in four_digit_has_five
 
         if has_five:
@@ -129,10 +144,11 @@ def parse_mkh10_file(csv_path: str) -> dict:
             four_node = nosology_node["children"][name_4_ua]
 
             if code_5 and code_5 != '-':
+                en_name = name_5_en if name_5_en and name_5_en != '-' else name_4_en
                 leaf = {
                     "code": code_5,
                     "name_ua": name_5_ua if name_5_ua and name_5_ua != '-' else name_4_ua,
-                    "name_en": name_5_en if name_5_en and name_5_en != '-' else name_4_en
+                    "name_en": en_name if en_name and en_name != '-' else ""
                 }
                 # Avoid duplicates
                 if not any(c["code"] == code_5 for c in four_node["children"]):
@@ -146,7 +162,7 @@ def parse_mkh10_file(csv_path: str) -> dict:
             leaf = {
                 "code": code_4,
                 "name_ua": name_4_ua,
-                "name_en": name_4_en
+                "name_en": name_4_en if name_4_en and name_4_en != '-' else ""
             }
             if not any(c["code"] == code_4 for c in leaves):
                 leaves.append(leaf)
