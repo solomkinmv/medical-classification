@@ -145,8 +145,8 @@ CSV columns (meddata.pp.ua):
 - [x] Check TypeScript types - no errors
 
 ### Task 11: [Final] Update documentation
-- [ ] Update `achi-mobile/README.md` if needed (mention МКХ-10 support)
-- [ ] Update Obsidian knowledge base notes with any new findings
+- [x] Update `achi-mobile/README.md` if needed (mention МКХ-10 support)
+- [x] Update Obsidian knowledge base notes with any new findings
 
 ## Technical Details
 
