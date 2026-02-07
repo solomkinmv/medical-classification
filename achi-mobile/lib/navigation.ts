@@ -4,6 +4,7 @@ import type {
   CategoryChildren,
   PathSegment,
   LeafCode,
+  ClassifierType,
 } from "./types";
 import { isLeafLevel, isCategoryChildren } from "./types";
 
@@ -14,15 +15,22 @@ export interface NavigationState {
   isLeaf: boolean;
 }
 
-const LEVEL_ORDER: PathSegment["level"][] = ["class", "anatomical", "procedural", "block"];
+const ACHI_LEVEL_ORDER: PathSegment["level"][] = ["class", "anatomical", "procedural", "block"];
+const MKH10_LEVEL_ORDER: PathSegment["level"][] = ["class", "block", "nosology", "disease"];
+
+export function getLevelOrder(classifier: ClassifierType): PathSegment["level"][] {
+  return classifier === "mkh10" ? MKH10_LEVEL_ORDER : ACHI_LEVEL_ORDER;
+}
 
 /**
  * Resolve navigation path and auto-skip single-child nodes and underscore categories
  */
 export function resolveNavigationPath(
   data: AchiData,
-  pathSegments: string[]
+  pathSegments: string[],
+  classifier: ClassifierType = "achi"
 ): NavigationState {
+  const levelOrder = getLevelOrder(classifier);
   const resolvedPath: PathSegment[] = [];
   let currentNode: CategoryNode | null = null;
   let currentChildren: CategoryChildren = data.children;
@@ -53,7 +61,7 @@ export function resolveNavigationPath(
           resolvedPath.push({
             key: "_",
             name_ua: underscoreNode.name_ua,
-            level: LEVEL_ORDER[levelIndex] ?? "block",
+            level: levelOrder[levelIndex] ?? "block",
             code: underscoreNode.code,
           });
           levelIndex++;
@@ -68,7 +76,7 @@ export function resolveNavigationPath(
       resolvedPath.push({
         key: foundKey,
         name_ua: currentNode.name_ua,
-        level: LEVEL_ORDER[levelIndex] ?? "block",
+        level: levelOrder[levelIndex] ?? "block",
         code: currentNode.clazz ?? currentNode.code,
       });
       currentChildren = currentNode.children;
@@ -85,7 +93,7 @@ export function resolveNavigationPath(
       resolvedPath.push({
         key: onlyKey,
         name_ua: currentNode.name_ua,
-        level: LEVEL_ORDER[levelIndex] ?? "block",
+        level: levelOrder[levelIndex] ?? "block",
         code: currentNode.code,
       });
       currentChildren = currentNode.children;
@@ -139,12 +147,15 @@ export function getLeafCodes(
 }
 
 /**
- * Find the full path to a procedure code in the ACHI tree
+ * Find the full path to a code in the tree
  */
 export function findProcedurePath(
   data: AchiData,
-  targetCode: string
+  targetCode: string,
+  classifier: ClassifierType = "achi"
 ): PathSegment[] | null {
+  const levelOrder = getLevelOrder(classifier);
+
   function searchNode(
     children: CategoryChildren,
     currentPath: PathSegment[],
@@ -164,7 +175,7 @@ export function findProcedurePath(
         {
           key,
           name_ua: node.name_ua,
-          level: LEVEL_ORDER[levelIndex] ?? "block",
+          level: levelOrder[levelIndex] ?? "block",
           code: node.clazz ?? node.code,
         },
       ];

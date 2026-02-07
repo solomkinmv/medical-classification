@@ -1,6 +1,6 @@
 import { createContext, useContext, type ReactNode } from "react";
 import type { AchiData } from "./types";
-import achiData from "@/data/achi.json";
+import { useClassifier } from "./classifier-provider";
 
 const AchiDataContext = createContext<AchiData | null>(null);
 
@@ -9,8 +9,10 @@ interface AchiDataProviderProps {
 }
 
 export function AchiDataProvider({ children }: AchiDataProviderProps) {
+  const { activeData } = useClassifier();
+
   return (
-    <AchiDataContext.Provider value={achiData as AchiData}>
+    <AchiDataContext.Provider value={activeData}>
       {children}
     </AchiDataContext.Provider>
   );
