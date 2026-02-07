@@ -7,15 +7,16 @@ import { AnimatedBookmarkButton } from "@/components/AnimatedBookmarkButton";
 import { ChevronIcon } from "@/components/ChevronIcon";
 import { CloseButton } from "@/components/CloseButton";
 import { useAchiData } from "@/lib/data-provider";
+import { useClassifier } from "@/lib/classifier-provider";
 import { useFavorites } from "@/lib/favorites-provider";
 import { useBackgroundColor } from "@/lib/useBackgroundColor";
 import { useTheme } from "@/lib/useTheme";
 import { findProcedurePath } from "@/lib/navigation";
 import { colors } from "@/lib/constants";
-import type { AchiData, CategoryChildren, LeafCode, PathSegment } from "@/lib/types";
+import type { AchiData, CategoryChildren, ClassifierType, LeafCode, PathSegment } from "@/lib/types";
 import { isLeafLevel } from "@/lib/types";
 
-function getLevelLabel(level: PathSegment["level"]): string {
+function getLevelLabel(level: PathSegment["level"], classifier: ClassifierType): string {
   switch (level) {
     case "class":
       return "Клас";
@@ -24,7 +25,7 @@ function getLevelLabel(level: PathSegment["level"]): string {
     case "procedural":
       return "Вісь процедурної типології";
     case "block":
-      return "АСК";
+      return classifier === "mkh10" ? "Блок" : "АСК";
     case "nosology":
       return "Нозологія";
     case "disease":
@@ -40,6 +41,7 @@ export default function ProcedureDetail() {
   const accentColor = isAmber ? colors.amber[500] : colors.sky[500];
   const accentColorDark = isAmber ? colors.amber[600] : colors.sky[600];
   const data = useAchiData();
+  const { activeClassifier } = useClassifier();
   const { isFavorite, toggleFavorite } = useFavorites();
   const router = useRouter();
   const navigation = useNavigationContainerRef();
@@ -53,8 +55,8 @@ export default function ProcedureDetail() {
   );
 
   const path = useMemo(
-    () => (procedure ? findProcedurePath(data, procedure.code) ?? [] : []),
-    [data, procedure]
+    () => (procedure ? findProcedurePath(data, procedure.code, activeClassifier) ?? [] : []),
+    [data, procedure, activeClassifier]
   );
 
   const isPinned = procedure ? isFavorite(procedure.code) : false;
@@ -232,7 +234,7 @@ export default function ProcedureDetail() {
                   <Text style={{ fontSize: 11, color: t.textMuted, marginBottom: 2 }}>
                     {segment.level === "class"
                       ? segment.code
-                      : `${getLevelLabel(segment.level)}${segment.code ? ` (${segment.code})` : ""}`}
+                      : `${getLevelLabel(segment.level, activeClassifier)}${segment.code ? ` (${segment.code})` : ""}`}
                   </Text>
                   <Text style={{ fontSize: 14, fontWeight: "500", color: accentColorDark }}>
                     {segment.name_ua}

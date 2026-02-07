@@ -97,11 +97,11 @@ CSV columns (meddata.pp.ua):
 - [x] Verify app still builds and renders ACHI data correctly
 
 ### Task 4: Update data-provider and navigation for multi-classifier support
-- [ ] Update `useAchiData()` hook to use data from classifier context (or add a new `useClassifierData()` hook)
-- [ ] Update `navigation.ts` `LEVEL_ORDER` to support МКХ-10 levels (class → block → nosology → disease)
-- [ ] Update `getLevelLabel()` in `procedure/[code].tsx` to return correct labels based on classifier type
-- [ ] Update `search.ts` to work with both data formats (the `searchProcedures` function should work generically since it traverses the same tree structure)
-- [ ] Verify explore/search still works for ACHI
+- [x] Update `useAchiData()` hook to use data from classifier context (or add a new `useClassifierData()` hook)
+- [x] Update `navigation.ts` `LEVEL_ORDER` to support МКХ-10 levels (class → block → nosology → disease)
+- [x] Update `getLevelLabel()` in `procedure/[code].tsx` to return correct labels based on classifier type
+- [x] Update `search.ts` to work with both data formats (the `searchProcedures` function should work generically since it traverses the same tree structure)
+- [x] Verify explore/search still works for ACHI
 
 ### Task 5: Add classifier switcher UI to Explore tab
 - [ ] Add a segmented control / pill switcher at the top of Explore screen: "АКМІ" | "МКХ-10"

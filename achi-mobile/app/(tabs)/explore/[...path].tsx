@@ -3,6 +3,7 @@ import { View, Text, FlatList } from "react-native";
 import { useLocalSearchParams, Link, Stack } from "expo-router";
 import { AccentCard } from "@/components/AccentCard";
 import { useAchiData } from "@/lib/data-provider";
+import { useClassifier } from "@/lib/classifier-provider";
 import { useFavorites } from "@/lib/favorites-provider";
 import { useBackgroundColor } from "@/lib/useBackgroundColor";
 import {
@@ -22,10 +23,11 @@ import type { CategoryNode, LeafCode } from "@/lib/types";
 export default function BrowseScreen() {
   const { path } = useLocalSearchParams<{ path: string[] }>();
   const data = useAchiData();
+  const { activeClassifier } = useClassifier();
   const backgroundColor = useBackgroundColor();
 
   const pathSegments = Array.isArray(path) ? path : path ? [path] : [];
-  const navState = resolveNavigationPath(data, pathSegments);
+  const navState = resolveNavigationPath(data, pathSegments, activeClassifier);
 
   const title =
     navState.path.length > 0
