@@ -124,7 +124,10 @@ function buildHierarchy(rows: ParsedRow[]): AchiData {
     // Level 2: Procedural typology (e.g., "Обстеження")
     const proceduralName = toTitleCase(row.proceduralName);
     const proceduralKey = proceduralName;
-    const anatomicalChildren = anatomicalNode.children as Record<string, CategoryNode>;
+    const anatomicalChildren = anatomicalNode.children as Record<
+      string,
+      CategoryNode
+    >;
     if (!anatomicalChildren[proceduralKey]) {
       anatomicalChildren[proceduralKey] = {
         code: row.proceduralAxis,
@@ -136,7 +139,10 @@ function buildHierarchy(rows: ParsedRow[]): AchiData {
 
     // Level 3: Block (e.g., "Обстеження черепа, оболонок мозку або головного мозку")
     const blockKey = row.blockName;
-    const proceduralChildren = proceduralNode.children as Record<string, CategoryNode>;
+    const proceduralChildren = proceduralNode.children as Record<
+      string,
+      CategoryNode
+    >;
     if (!proceduralChildren[blockKey]) {
       proceduralChildren[blockKey] = {
         code: row.blockAxis,
@@ -163,7 +169,7 @@ function buildHierarchy(rows: ParsedRow[]): AchiData {
 
 function calculateBlockRanges(data: AchiData): void {
   function getBlockRange(
-    node: CategoryNode
+    node: CategoryNode,
   ): { min: number; max: number } | null {
     if (Array.isArray(node.children)) {
       // Leaf level - get min/max from procedure codes
@@ -224,10 +230,7 @@ function calculateBlockRanges(data: AchiData): void {
 }
 
 function main(): void {
-  const csvPath = path.resolve(
-    __dirname,
-    "../../data-source/nk-026-2021.csv"
-  );
+  const csvPath = path.resolve(__dirname, "../../data-source/nk-026-2021.csv");
   const outputPath = path.resolve(__dirname, "../data/achi.json");
 
   console.log("Parsing CSV from:", csvPath);

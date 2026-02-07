@@ -45,7 +45,9 @@ export function RecentSearches({
           accessibilityLabel="Очистити всі останні пошуки"
           accessibilityRole="button"
         >
-          <Text style={{ fontSize: 13, color: classifierColors.accent500 }}>Очистити</Text>
+          <Text style={{ fontSize: 13, color: classifierColors.accent500 }}>
+            Очистити
+          </Text>
         </Pressable>
       </View>
       <ScrollView
