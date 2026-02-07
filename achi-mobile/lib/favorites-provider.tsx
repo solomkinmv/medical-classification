@@ -5,12 +5,16 @@ import {
   useEffect,
   useCallback,
   useMemo,
+  useRef,
   type ReactNode,
 } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import type { LeafCode } from "./types";
+import { useClassifier } from "./classifier-provider";
+import type { ClassifierType, LeafCode } from "./types";
 
-const STORAGE_KEY = "achi_favorites";
+function getStorageKey(classifier: ClassifierType): string {
+  return `${classifier}_favorites`;
+}
 
 interface FavoritesContextType {
   favorites: LeafCode[];
@@ -26,23 +30,38 @@ interface FavoritesProviderProps {
 }
 
 export function FavoritesProvider({ children }: FavoritesProviderProps) {
+  const { activeClassifier } = useClassifier();
   const [favorites, setFavorites] = useState<LeafCode[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const classifierRef = useRef(activeClassifier);
+
+  useEffect(() => {
+    classifierRef.current = activeClassifier;
+  }, [activeClassifier]);
 
   useEffect(() => {
     let isMounted = true;
+    setIsLoading(true);
 
     const loadFavorites = async () => {
       try {
-        const stored = await AsyncStorage.getItem(STORAGE_KEY);
+        const key = getStorageKey(activeClassifier);
+        const stored = await AsyncStorage.getItem(key);
         if (stored && isMounted) {
           const parsed = JSON.parse(stored);
           if (Array.isArray(parsed)) {
             setFavorites(parsed);
+          } else {
+            setFavorites([]);
           }
+        } else if (isMounted) {
+          setFavorites([]);
         }
       } catch (error) {
         console.error("Failed to load favorites:", error);
+        if (isMounted) {
+          setFavorites([]);
+        }
       } finally {
         if (isMounted) {
           setIsLoading(false);
@@ -54,15 +73,19 @@ export function FavoritesProvider({ children }: FavoritesProviderProps) {
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [activeClassifier]);
 
-  const saveFavorites = useCallback(async (newFavorites: LeafCode[]) => {
-    try {
-      await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(newFavorites));
-    } catch (error) {
-      console.error("Failed to save favorites:", error);
-    }
-  }, []);
+  const saveFavorites = useCallback(
+    async (newFavorites: LeafCode[]) => {
+      try {
+        const key = getStorageKey(classifierRef.current);
+        await AsyncStorage.setItem(key, JSON.stringify(newFavorites));
+      } catch (error) {
+        console.error("Failed to save favorites:", error);
+      }
+    },
+    []
+  );
 
   const isFavorite = useCallback(
     (code: string) => {
