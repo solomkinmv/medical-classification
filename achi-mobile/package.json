@@ -5,7 +5,9 @@
   "scripts": {
     "start": "expo start",
     "android": "expo run:android",
-    "ios": "expo run:ios"
+    "ios": "expo run:ios",
+    "deploy:ios": "eas build --platform ios --profile production --local --non-interactive && IPA=$(ls -t build-*.ipa | head -1) && eas submit --platform ios --path ./$IPA --non-interactive && rm -f $IPA",
+    "lint": "expo lint"
   },
   "dependencies": {
     "@expo/ui": "~0.2.0-beta.7",
