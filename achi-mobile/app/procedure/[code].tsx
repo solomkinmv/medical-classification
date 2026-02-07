@@ -4,7 +4,6 @@ import { useLocalSearchParams, Stack, useRouter, useNavigationContainerRef } fro
 import { CommonActions } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { AnimatedBookmarkButton } from "@/components/AnimatedBookmarkButton";
-import { ChevronIcon } from "@/components/ChevronIcon";
 import { CloseButton } from "@/components/CloseButton";
 import { useAchiData } from "@/lib/data-provider";
 import { useClassifier } from "@/lib/classifier-provider";
@@ -12,7 +11,7 @@ import { useFavorites } from "@/lib/favorites-provider";
 import { useBackgroundColor } from "@/lib/useBackgroundColor";
 import { useTheme } from "@/lib/useTheme";
 import { findProcedurePath } from "@/lib/navigation";
-import { colors } from "@/lib/constants";
+import { colors, getClassifierColors } from "@/lib/constants";
 import type { AchiData, CategoryChildren, ClassifierType, LeafCode, PathSegment } from "@/lib/types";
 import { isLeafLevel } from "@/lib/types";
 
@@ -36,12 +35,12 @@ function getLevelLabel(level: PathSegment["level"], classifier: ClassifierType):
 }
 
 export default function ProcedureDetail() {
-  const { code, accent } = useLocalSearchParams<{ code: string; accent?: string }>();
-  const isAmber = accent === "amber";
-  const accentColor = isAmber ? colors.amber[500] : colors.sky[500];
-  const accentColorDark = isAmber ? colors.amber[600] : colors.sky[600];
+  const { code } = useLocalSearchParams<{ code: string }>();
   const data = useAchiData();
   const { activeClassifier } = useClassifier();
+  const classifierColors = getClassifierColors(activeClassifier);
+  const accentColor = classifierColors.accent500;
+  const accentColorDark = classifierColors.accent600;
   const { isFavorite, toggleFavorite } = useFavorites();
   const router = useRouter();
   const navigation = useNavigationContainerRef();
@@ -68,7 +67,7 @@ export default function ProcedureDetail() {
         style={{ backgroundColor }}
       >
         <Text style={{ color: t.textSecondary }}>
-          Неправильний код процедури
+          Неправильний код
         </Text>
       </View>
     );
@@ -81,7 +80,7 @@ export default function ProcedureDetail() {
         style={{ backgroundColor }}
       >
         <Text style={{ color: t.textSecondary }}>
-          Процедуру не знайдено
+          Код не знайдено
         </Text>
       </View>
     );
