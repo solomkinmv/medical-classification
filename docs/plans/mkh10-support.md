@@ -117,10 +117,10 @@ CSV columns (meddata.pp.ua):
 - [x] Verify search works for both ACHI and МКХ-10 codes/names
 
 ### Task 7: Update Procedure/Disease detail screen
-- [ ] Update `procedure/[code].tsx` to find the code in the active classifier's data
-- [ ] Update breadcrumb labels to show МКХ-10 hierarchy labels (Клас, Блок, Нозологія, etc.)
-- [ ] Use classifier-appropriate accent color
-- [ ] Verify detail screen works for both ACHI procedures and МКХ-10 diagnoses
+- [x] Update `procedure/[code].tsx` to find the code in the active classifier's data
+- [x] Update breadcrumb labels to show МКХ-10 hierarchy labels (Клас, Блок, Нозологія, etc.)
+- [x] Use classifier-appropriate accent color
+- [x] Verify detail screen works for both ACHI procedures and МКХ-10 diagnoses
 
 ### Task 8: Update Favorites for multi-classifier support
 - [ ] Namespace favorites storage: use separate AsyncStorage keys (`achi_favorites` and `mkh10_favorites`)
