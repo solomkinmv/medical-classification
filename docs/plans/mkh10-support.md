@@ -81,12 +81,12 @@ CSV columns (meddata.pp.ua):
 - [x] Run parser and verify output JSON is well-formed
 
 ### Task 2: Add МКХ-10 types to the app
-- [ ] Add `Mkh10Data` interface to `lib/types.ts` (reuse the same `CategoryNode`/`CategoryChildren` pattern but with МКХ-10 level names)
-- [ ] Add `DiagnosisCode` interface (similar to `ProcedureCode` but for diseases: `code`, `name_ua`, `name_en`)
-- [ ] Add `ClassifierType` type: `"achi" | "mkh10"`
-- [ ] Update `PathSegment` level union to include МКХ-10 levels: `"class" | "block" | "nosology" | "disease"` (alongside existing ACHI levels)
-- [ ] Add type guards for МКХ-10 data if needed
-- [ ] Verify TypeScript compilation passes
+- [x] Add `Mkh10Data` interface to `lib/types.ts` (reuse the same `CategoryNode`/`CategoryChildren` pattern but with МКХ-10 level names)
+- [x] Add `DiagnosisCode` interface (similar to `ProcedureCode` but for diseases: `code`, `name_ua`, `name_en`)
+- [x] Add `ClassifierType` type: `"achi" | "mkh10"`
+- [x] Update `PathSegment` level union to include МКХ-10 levels: `"class" | "block" | "nosology" | "disease"` (alongside existing ACHI levels)
+- [x] Add type guards for МКХ-10 data if needed
+- [x] Verify TypeScript compilation passes
 
 ### Task 3: Create classifier switcher context
 - [ ] Create `lib/classifier-provider.tsx` with `ClassifierType` state (`"achi"` | `"mkh10"`)

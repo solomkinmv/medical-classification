@@ -8,14 +8,14 @@ import {
   type ReactNode,
 } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import type { ProcedureCode } from "./types";
+import type { LeafCode } from "./types";
 
 const STORAGE_KEY = "achi_favorites";
 
 interface FavoritesContextType {
-  favorites: ProcedureCode[];
+  favorites: LeafCode[];
   isFavorite: (code: string) => boolean;
-  toggleFavorite: (procedure: ProcedureCode) => void;
+  toggleFavorite: (item: LeafCode) => void;
   isLoading: boolean;
 }
 
@@ -26,7 +26,7 @@ interface FavoritesProviderProps {
 }
 
 export function FavoritesProvider({ children }: FavoritesProviderProps) {
-  const [favorites, setFavorites] = useState<ProcedureCode[]>([]);
+  const [favorites, setFavorites] = useState<LeafCode[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -56,7 +56,7 @@ export function FavoritesProvider({ children }: FavoritesProviderProps) {
     };
   }, []);
 
-  const saveFavorites = useCallback(async (newFavorites: ProcedureCode[]) => {
+  const saveFavorites = useCallback(async (newFavorites: LeafCode[]) => {
     try {
       await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(newFavorites));
     } catch (error) {
@@ -72,7 +72,7 @@ export function FavoritesProvider({ children }: FavoritesProviderProps) {
   );
 
   const toggleFavorite = useCallback(
-    (procedure: ProcedureCode) => {
+    (procedure: LeafCode) => {
       setFavorites((prev) => {
         const exists = prev.some((f) => f.code === procedure.code);
         const newFavorites = exists

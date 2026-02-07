@@ -8,7 +8,7 @@ import { useBackgroundColor } from "@/lib/useBackgroundColor";
 import {
   resolveNavigationPath,
   getChildCategories,
-  getProcedureCodes,
+  getLeafCodes,
 } from "@/lib/navigation";
 import {
   colors,
@@ -17,7 +17,7 @@ import {
   CARD_HEIGHT_WITH_SUBTITLE,
   CARD_HEIGHT_WITHOUT_SUBTITLE,
 } from "@/lib/constants";
-import type { CategoryNode, ProcedureCode } from "@/lib/types";
+import type { CategoryNode, LeafCode } from "@/lib/types";
 
 export default function BrowseScreen() {
   const { path } = useLocalSearchParams<{ path: string[] }>();
@@ -36,7 +36,7 @@ export default function BrowseScreen() {
     ? getChildCategories(navState.children)
     : null;
   const procedureCodes = navState.children
-    ? getProcedureCodes(navState.children)
+    ? getLeafCodes(navState.children)
     : null;
 
   // Filter out underscore segments from URL path (they're auto-resolved)
@@ -125,7 +125,7 @@ function CategoryList({ categories, basePath }: CategoryListProps) {
 
 
 interface ProcedureListProps {
-  codes: ProcedureCode[];
+  codes: LeafCode[];
 }
 
 function ProcedureList({ codes }: ProcedureListProps) {
@@ -155,7 +155,7 @@ function ProcedureList({ codes }: ProcedureListProps) {
   );
 }
 
-function ProcedureCard({ procedure }: { procedure: ProcedureCode }) {
+function ProcedureCard({ procedure }: { procedure: LeafCode }) {
   const { isFavorite, toggleFavorite } = useFavorites();
   const isPinned = isFavorite(procedure.code);
 
