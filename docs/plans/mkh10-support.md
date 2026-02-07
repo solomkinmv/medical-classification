@@ -89,12 +89,12 @@ CSV columns (meddata.pp.ua):
 - [x] Verify TypeScript compilation passes
 
 ### Task 3: Create classifier switcher context
-- [ ] Create `lib/classifier-provider.tsx` with `ClassifierType` state (`"achi"` | `"mkh10"`)
-- [ ] Provide `activeClassifier`, `setActiveClassifier`, `activeData` (returns the correct JSON based on selection)
-- [ ] Import both `achi.json` and `mkh10.json` data files
-- [ ] Persist selected classifier in AsyncStorage
-- [ ] Wrap the provider in `app/_layout.tsx` (inside existing providers)
-- [ ] Verify app still builds and renders ACHI data correctly
+- [x] Create `lib/classifier-provider.tsx` with `ClassifierType` state (`"achi"` | `"mkh10"`)
+- [x] Provide `activeClassifier`, `setActiveClassifier`, `activeData` (returns the correct JSON based on selection)
+- [x] Import both `achi.json` and `mkh10.json` data files
+- [x] Persist selected classifier in AsyncStorage
+- [x] Wrap the provider in `app/_layout.tsx` (inside existing providers)
+- [x] Verify app still builds and renders ACHI data correctly
 
 ### Task 4: Update data-provider and navigation for multi-classifier support
 - [ ] Update `useAchiData()` hook to use data from classifier context (or add a new `useClassifierData()` hook)
