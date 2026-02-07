@@ -18,6 +18,7 @@ interface ClassifierContextType {
   activeClassifier: ClassifierType;
   setActiveClassifier: (classifier: ClassifierType) => void;
   activeData: AchiData;
+  isReady: boolean;
 }
 
 const ClassifierContext = createContext<ClassifierContextType | null>(null);
@@ -29,6 +30,7 @@ interface ClassifierProviderProps {
 export function ClassifierProvider({ children }: ClassifierProviderProps) {
   const [activeClassifier, setActiveClassifierState] =
     useState<ClassifierType>("achi");
+  const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -41,6 +43,10 @@ export function ClassifierProvider({ children }: ClassifierProviderProps) {
         }
       } catch (error) {
         console.error("Failed to load classifier preference:", error);
+      } finally {
+        if (isMounted) {
+          setIsReady(true);
+        }
       }
     };
 
@@ -63,8 +69,8 @@ export function ClassifierProvider({ children }: ClassifierProviderProps) {
   );
 
   const value = useMemo(
-    () => ({ activeClassifier, setActiveClassifier, activeData }),
-    [activeClassifier, setActiveClassifier, activeData],
+    () => ({ activeClassifier, setActiveClassifier, activeData, isReady }),
+    [activeClassifier, setActiveClassifier, activeData, isReady],
   );
 
   return (

@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { View, Text, FlatList } from "react-native";
 import { useLocalSearchParams, Link, Stack } from "expo-router";
 import { AccentCard } from "@/components/AccentCard";
@@ -161,7 +162,7 @@ function ProcedureList({ codes, classifierColors }: ProcedureListProps) {
   );
 }
 
-function ProcedureCard({
+const ProcedureCard = memo(function ProcedureCard({
   procedure,
   classifierColors,
 }: {
@@ -195,4 +196,4 @@ function ProcedureCard({
       />
     </Link>
   );
-}
+});

@@ -1,4 +1,4 @@
-import { useMemo, useRef, useCallback, useEffect } from "react";
+import { useMemo, useRef, useCallback, useEffect, memo } from "react";
 import { Text, FlatList, ScrollView, View } from "react-native";
 import { useRouter, useFocusEffect } from "expo-router";
 import { AccentCard } from "@/components/AccentCard";
@@ -225,7 +225,11 @@ export default function SearchIndex() {
   );
 }
 
-function SearchResultCard({ result }: { result: SearchResult }) {
+const SearchResultCard = memo(function SearchResultCard({
+  result,
+}: {
+  result: SearchResult;
+}) {
   const { isFavorite, toggleFavorite } = useFavorites();
   const { activeClassifier } = useClassifier();
   const router = useRouter();
@@ -255,4 +259,4 @@ function SearchResultCard({ result }: { result: SearchResult }) {
       accessibilityHint="Відкрити деталі"
     />
   );
-}
+});

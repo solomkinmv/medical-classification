@@ -20,6 +20,7 @@ interface FavoritesContextType {
   isFavorite: (code: string) => boolean;
   toggleFavorite: (item: LeafCode) => void;
   isLoading: boolean;
+  isReady: boolean;
 }
 
 const FavoritesContext = createContext<FavoritesContextType | null>(null);
@@ -30,31 +31,38 @@ interface FavoritesProviderProps {
 
 export function FavoritesProvider({ children }: FavoritesProviderProps) {
   const { activeClassifier } = useClassifier();
-  const [favorites, setFavorites] = useState<LeafCode[]>([]);
+  const [cache, setCache] = useState<Record<string, LeafCode[]>>({});
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     let isMounted = true;
-    setIsLoading(true);
 
-    const loadFavorites = async () => {
+    const loadAll = async () => {
       try {
-        const key = getStorageKey(activeClassifier);
-        const stored = await AsyncStorage.getItem(key);
-        if (stored && isMounted) {
-          const parsed = JSON.parse(stored);
-          if (Array.isArray(parsed)) {
-            setFavorites(parsed);
-          } else {
-            setFavorites([]);
-          }
-        } else if (isMounted) {
-          setFavorites([]);
+        const [achiStored, mkh10Stored] = await Promise.all([
+          AsyncStorage.getItem(getStorageKey("achi")),
+          AsyncStorage.getItem(getStorageKey("mkh10")),
+        ]);
+
+        if (isMounted) {
+          const parse = (raw: string | null): LeafCode[] => {
+            if (!raw) return [];
+            try {
+              const parsed = JSON.parse(raw);
+              return Array.isArray(parsed) ? parsed : [];
+            } catch {
+              return [];
+            }
+          };
+          setCache({
+            achi: parse(achiStored),
+            mkh10: parse(mkh10Stored),
+          });
         }
       } catch (error) {
         console.error("Failed to load favorites:", error);
         if (isMounted) {
-          setFavorites([]);
+          setCache({ achi: [], mkh10: [] });
         }
       } finally {
         if (isMounted) {
@@ -63,23 +71,13 @@ export function FavoritesProvider({ children }: FavoritesProviderProps) {
       }
     };
 
-    loadFavorites();
+    loadAll();
     return () => {
       isMounted = false;
     };
-  }, [activeClassifier]);
+  }, []);
 
-  const saveFavorites = useCallback(
-    async (newFavorites: LeafCode[]) => {
-      try {
-        const key = getStorageKey(activeClassifier);
-        await AsyncStorage.setItem(key, JSON.stringify(newFavorites));
-      } catch (error) {
-        console.error("Failed to save favorites:", error);
-      }
-    },
-    [activeClassifier],
-  );
+  const favorites = cache[activeClassifier] ?? [];
 
   const isFavorite = useCallback(
     (code: string) => {
@@ -90,23 +88,29 @@ export function FavoritesProvider({ children }: FavoritesProviderProps) {
 
   const toggleFavorite = useCallback(
     (procedure: LeafCode) => {
-      setFavorites((prev) => {
-        const exists = prev.some((f) => f.code === procedure.code);
+      setCache((prev) => {
+        const current = prev[activeClassifier] ?? [];
+        const exists = current.some((f) => f.code === procedure.code);
         const newFavorites = exists
-          ? prev.filter((f) => f.code !== procedure.code)
-          : [...prev, procedure];
-        saveFavorites(newFavorites).catch((error) => {
+          ? current.filter((f) => f.code !== procedure.code)
+          : [...current, procedure];
+        AsyncStorage.setItem(
+          getStorageKey(activeClassifier),
+          JSON.stringify(newFavorites),
+        ).catch((error) => {
           console.error("Failed to save favorites:", error);
         });
-        return newFavorites;
+        return { ...prev, [activeClassifier]: newFavorites };
       });
     },
-    [saveFavorites],
+    [activeClassifier],
   );
 
+  const isReady = !isLoading;
+
   const value = useMemo(
-    () => ({ favorites, isFavorite, toggleFavorite, isLoading }),
-    [favorites, isFavorite, toggleFavorite, isLoading],
+    () => ({ favorites, isFavorite, toggleFavorite, isLoading, isReady }),
+    [favorites, isFavorite, toggleFavorite, isLoading, isReady],
   );
 
   return (

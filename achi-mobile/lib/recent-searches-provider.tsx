@@ -23,6 +23,7 @@ interface RecentSearchesContextType {
   removeRecentSearch: (query: string) => void;
   clearRecentSearches: () => void;
   isLoading: boolean;
+  isReady: boolean;
 }
 
 const RecentSearchesContext = createContext<RecentSearchesContextType | null>(
@@ -33,44 +34,56 @@ interface RecentSearchesProviderProps {
   children: ReactNode;
 }
 
+interface CachedSearches {
+  searches: string[];
+  lastQuery: string | null;
+}
+
 export function RecentSearchesProvider({
   children,
 }: RecentSearchesProviderProps) {
   const { activeClassifier } = useClassifier();
-  const [recentSearches, setRecentSearches] = useState<string[]>([]);
-  const [lastSearchQuery, setLastSearchQuery] = useState<string | null>(null);
+  const [cache, setCache] = useState<Record<string, CachedSearches>>({});
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     let isMounted = true;
-    setIsLoading(true);
 
-    const loadRecentSearches = async () => {
+    const loadAll = async () => {
       try {
-        const key = getStorageKey(activeClassifier);
-        const stored = await AsyncStorage.getItem(key);
-        if (stored && isMounted) {
-          const parsed = JSON.parse(stored);
-          if (Array.isArray(parsed)) {
-            setRecentSearches(parsed);
-            if (parsed.length > 0) {
-              setLastSearchQuery(parsed[0]);
-            } else {
-              setLastSearchQuery(null);
+        const [achiStored, mkh10Stored] = await Promise.all([
+          AsyncStorage.getItem(getStorageKey("achi")),
+          AsyncStorage.getItem(getStorageKey("mkh10")),
+        ]);
+
+        if (isMounted) {
+          const parse = (raw: string | null): CachedSearches => {
+            if (!raw) return { searches: [], lastQuery: null };
+            try {
+              const parsed = JSON.parse(raw);
+              if (Array.isArray(parsed)) {
+                return {
+                  searches: parsed,
+                  lastQuery: parsed.length > 0 ? parsed[0] : null,
+                };
+              }
+            } catch {
+              // ignore parse errors
             }
-          } else {
-            setRecentSearches([]);
-            setLastSearchQuery(null);
-          }
-        } else if (isMounted) {
-          setRecentSearches([]);
-          setLastSearchQuery(null);
+            return { searches: [], lastQuery: null };
+          };
+          setCache({
+            achi: parse(achiStored),
+            mkh10: parse(mkh10Stored),
+          });
         }
       } catch (error) {
         console.error("Failed to load recent searches:", error);
         if (isMounted) {
-          setRecentSearches([]);
-          setLastSearchQuery(null);
+          setCache({
+            achi: { searches: [], lastQuery: null },
+            mkh10: { searches: [], lastQuery: null },
+          });
         }
       } finally {
         if (isMounted) {
@@ -79,20 +92,24 @@ export function RecentSearchesProvider({
       }
     };
 
-    loadRecentSearches();
+    loadAll();
     return () => {
       isMounted = false;
     };
-  }, [activeClassifier]);
+  }, []);
 
-  const saveRecentSearches = useCallback(
-    async (searches: string[]) => {
-      try {
-        const key = getStorageKey(activeClassifier);
-        await AsyncStorage.setItem(key, JSON.stringify(searches));
-      } catch (error) {
+  const cached = cache[activeClassifier] ?? { searches: [], lastQuery: null };
+  const recentSearches = cached.searches;
+  const lastSearchQuery = cached.lastQuery;
+
+  const saveSearches = useCallback(
+    (searches: string[]) => {
+      AsyncStorage.setItem(
+        getStorageKey(activeClassifier),
+        JSON.stringify(searches),
+      ).catch((error) => {
         console.error("Failed to save recent searches:", error);
-      }
+      });
     },
     [activeClassifier],
   );
@@ -102,45 +119,57 @@ export function RecentSearchesProvider({
       const trimmed = query.trim();
       if (!trimmed) return;
 
-      setRecentSearches((prev) => {
-        const filtered = prev.filter((s) => s !== trimmed);
+      setCache((prev) => {
+        const current = prev[activeClassifier] ?? {
+          searches: [],
+          lastQuery: null,
+        };
+        const filtered = current.searches.filter((s) => s !== trimmed);
         const newSearches = [trimmed, ...filtered].slice(
           0,
           RECENT_SEARCHES_MAX_COUNT,
         );
-        saveRecentSearches(newSearches).catch((error) => {
-          console.error("Failed to save recent search:", error);
-        });
-        return newSearches;
+        saveSearches(newSearches);
+        return {
+          ...prev,
+          [activeClassifier]: { searches: newSearches, lastQuery: trimmed },
+        };
       });
-      setLastSearchQuery(trimmed);
     },
-    [saveRecentSearches],
+    [activeClassifier, saveSearches],
   );
 
   const removeRecentSearch = useCallback(
     (query: string) => {
-      setRecentSearches((prev) => {
-        const newSearches = prev.filter((s) => s !== query);
-        saveRecentSearches(newSearches).catch((error) => {
-          console.error("Failed to save recent searches:", error);
-        });
-        setLastSearchQuery((prevQuery) =>
-          prevQuery === query ? (newSearches[0] ?? null) : prevQuery,
-        );
-        return newSearches;
+      setCache((prev) => {
+        const current = prev[activeClassifier] ?? {
+          searches: [],
+          lastQuery: null,
+        };
+        const newSearches = current.searches.filter((s) => s !== query);
+        saveSearches(newSearches);
+        const newLastQuery =
+          current.lastQuery === query
+            ? (newSearches[0] ?? null)
+            : current.lastQuery;
+        return {
+          ...prev,
+          [activeClassifier]: { searches: newSearches, lastQuery: newLastQuery },
+        };
       });
     },
-    [saveRecentSearches],
+    [activeClassifier, saveSearches],
   );
 
   const clearRecentSearches = useCallback(() => {
-    setRecentSearches([]);
-    setLastSearchQuery(null);
-    saveRecentSearches([]).catch((error) => {
-      console.error("Failed to clear recent searches:", error);
-    });
-  }, [saveRecentSearches]);
+    setCache((prev) => ({
+      ...prev,
+      [activeClassifier]: { searches: [], lastQuery: null },
+    }));
+    saveSearches([]);
+  }, [activeClassifier, saveSearches]);
+
+  const isReady = !isLoading;
 
   const value = useMemo(
     () => ({
@@ -150,6 +179,7 @@ export function RecentSearchesProvider({
       removeRecentSearch,
       clearRecentSearches,
       isLoading,
+      isReady,
     }),
     [
       recentSearches,
@@ -158,6 +188,7 @@ export function RecentSearchesProvider({
       removeRecentSearch,
       clearRecentSearches,
       isLoading,
+      isReady,
     ],
   );
 

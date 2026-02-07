@@ -1,5 +1,7 @@
+import { useState, useEffect, useCallback, useRef } from "react";
 import { Pressable, Text, View, StyleSheet } from "react-native";
 import { useClassifier } from "@/lib/classifier-provider";
+import { useHaptics } from "@/lib/useHaptics";
 import { colors } from "@/lib/constants";
 import type { ClassifierType } from "@/lib/types";
 
@@ -10,11 +12,39 @@ const SEGMENTS: { key: ClassifierType; label: string }[] = [
 
 export function ClassifierSwitcher() {
   const { activeClassifier, setActiveClassifier } = useClassifier();
+  const [selected, setSelected] = useState(activeClassifier);
+  const { selection } = useHaptics();
+  const rafRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    setSelected(activeClassifier);
+  }, [activeClassifier]);
+
+  useEffect(() => {
+    return () => {
+      if (rafRef.current !== null) {
+        cancelAnimationFrame(rafRef.current);
+      }
+    };
+  }, []);
+
+  const handlePress = useCallback(
+    (key: ClassifierType) => {
+      if (key === selected) return;
+      setSelected(key);
+      selection();
+      rafRef.current = requestAnimationFrame(() => {
+        setActiveClassifier(key);
+        rafRef.current = null;
+      });
+    },
+    [selected, selection, setActiveClassifier],
+  );
 
   return (
     <View style={styles.container}>
       {SEGMENTS.map(({ key, label }) => {
-        const isActive = activeClassifier === key;
+        const isActive = selected === key;
         const activeColor =
           key === "achi" ? colors.sky[500] : colors.emerald[500];
 
@@ -25,7 +55,7 @@ export function ClassifierSwitcher() {
               styles.segment,
               isActive && { backgroundColor: activeColor },
             ]}
-            onPress={() => setActiveClassifier(key)}
+            onPress={() => handlePress(key)}
             accessibilityRole="tab"
             accessibilityState={{ selected: isActive }}
             accessibilityLabel={label}

@@ -1,4 +1,4 @@
-import { View } from "react-native";
+import { ScrollView } from "react-native";
 import { SkeletonCard } from "./SkeletonCard";
 import { useBackgroundColor } from "@/lib/useBackgroundColor";
 import {
@@ -18,18 +18,17 @@ export function SkeletonList({
   const backgroundColor = useBackgroundColor();
 
   return (
-    <View
-      style={{
-        flex: 1,
-        backgroundColor,
+    <ScrollView
+      style={{ flex: 1, backgroundColor }}
+      contentContainerStyle={{
         paddingHorizontal: CONTENT_PADDING_HORIZONTAL,
-        paddingTop: 16,
         paddingBottom: CONTENT_PADDING_BOTTOM,
       }}
+      contentInsetAdjustmentBehavior="automatic"
     >
       {Array.from({ length: count }).map((_, index) => (
         <SkeletonCard key={index} hasSubtitle={hasSubtitle} />
       ))}
-    </View>
+    </ScrollView>
   );
 }

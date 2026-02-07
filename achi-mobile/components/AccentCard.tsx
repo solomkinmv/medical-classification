@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { View, Text, Pressable } from "react-native";
 import Animated, {
   useAnimatedStyle,
@@ -37,7 +38,7 @@ interface AccentCardProps {
   accessibilityHint?: string;
 }
 
-export function AccentCard({
+export const AccentCard = memo(function AccentCard({
   accentColor,
   badge,
   badgeColor = accentColor,
@@ -137,7 +138,7 @@ export function AccentCard({
       </AccentCardContent>
     </View>
   );
-}
+});
 
 interface AccentCardContentProps {
   accentColor: string;

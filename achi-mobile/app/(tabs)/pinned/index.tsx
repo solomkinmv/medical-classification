@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, memo } from "react";
 import { FlatList, RefreshControl, ScrollView } from "react-native";
 import { Link } from "expo-router";
 import { AccentCard } from "@/components/AccentCard";
@@ -79,7 +79,7 @@ export default function PinnedScreen() {
         />
       }
       renderItem={({ item }) => (
-        <PinnedCard procedure={item} onToggle={() => toggleFavorite(item)} />
+        <PinnedCard procedure={item} toggleFavorite={toggleFavorite} />
       )}
     />
   );
@@ -87,10 +87,13 @@ export default function PinnedScreen() {
 
 interface PinnedCardProps {
   procedure: LeafCode;
-  onToggle: () => void;
+  toggleFavorite: (item: LeafCode) => void;
 }
 
-function PinnedCard({ procedure, onToggle }: PinnedCardProps) {
+const PinnedCard = memo(function PinnedCard({
+  procedure,
+  toggleFavorite,
+}: PinnedCardProps) {
   return (
     <Link href={`/procedure/${procedure.code}` as any} asChild>
       <AccentCard
@@ -103,7 +106,7 @@ function PinnedCard({ procedure, onToggle }: PinnedCardProps) {
         iconColor={colors.amber[500]}
         iconBackground="rgba(245, 158, 11, 0.15)"
         iconSize={18}
-        onIconPress={onToggle}
+        onIconPress={() => toggleFavorite(procedure)}
         isBookmarked={true}
         iconAccessibilityLabel="Видалити закладку"
         accessibilityLabel={`${procedure.code}: ${procedure.name_ua}`}
@@ -111,4 +114,4 @@ function PinnedCard({ procedure, onToggle }: PinnedCardProps) {
       />
     </Link>
   );
-}
+});
