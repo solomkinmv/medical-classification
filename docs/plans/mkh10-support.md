@@ -123,10 +123,10 @@ CSV columns (meddata.pp.ua):
 - [x] Verify detail screen works for both ACHI procedures and МКХ-10 diagnoses
 
 ### Task 8: Update Favorites for multi-classifier support
-- [ ] Namespace favorites storage: use separate AsyncStorage keys (`achi_favorites` and `mkh10_favorites`)
-- [ ] Update `favorites-provider.tsx` to filter by active classifier
-- [ ] Update Pinned screen to show favorites from the active classifier
-- [ ] Verify bookmarking works independently for ACHI and МКХ-10
+- [x] Namespace favorites storage: use separate AsyncStorage keys (`achi_favorites` and `mkh10_favorites`)
+- [x] Update `favorites-provider.tsx` to filter by active classifier
+- [x] Update Pinned screen to show favorites from the active classifier
+- [x] Verify bookmarking works independently for ACHI and МКХ-10
 
 ### Task 9: Update About screen with МКХ-10 attribution
 - [ ] Add МКХ-10 data source information to the About screen

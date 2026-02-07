@@ -5,6 +5,7 @@ import { AccentCard } from "@/components/AccentCard";
 import { EmptyState } from "@/components/EmptyState";
 import { SkeletonList } from "@/components/SkeletonList";
 import { useFavorites } from "@/lib/favorites-provider";
+import { useClassifier } from "@/lib/classifier-provider";
 import { useBackgroundColor } from "@/lib/useBackgroundColor";
 import {
   colors,
@@ -17,6 +18,7 @@ import type { LeafCode } from "@/lib/types";
 
 export default function PinnedScreen() {
   const { favorites, toggleFavorite, isLoading } = useFavorites();
+  const { activeClassifier } = useClassifier();
   const backgroundColor = useBackgroundColor();
   const [refreshing, setRefreshing] = useState(false);
 
@@ -46,7 +48,11 @@ export default function PinnedScreen() {
         iconColor={colors.amber[500]}
         iconBackgroundColor="rgba(245, 158, 11, 0.15)"
         title="Немає збережених"
-        message="Натисніть на закладку біля процедури, щоб зберегти її тут"
+        message={
+          activeClassifier === "mkh10"
+            ? "Натисніть на закладку біля діагнозу, щоб зберегти його тут"
+            : "Натисніть на закладку біля процедури, щоб зберегти її тут"
+        }
       />
     );
   }
@@ -100,7 +106,7 @@ function PinnedCard({ procedure, onToggle }: PinnedCardProps) {
         isBookmarked={true}
         iconAccessibilityLabel="Видалити закладку"
         accessibilityLabel={`${procedure.code}: ${procedure.name_ua}`}
-        accessibilityHint="Відкрити деталі процедури"
+        accessibilityHint="Відкрити деталі"
       />
     </Link>
   );
