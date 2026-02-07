@@ -17,6 +17,7 @@ import {
   CONTENT_PADDING_BOTTOM,
   CARD_HEIGHT_WITH_SUBTITLE,
   CARD_HEIGHT_WITHOUT_SUBTITLE,
+  getClassifierColors,
 } from "@/lib/constants";
 import type { CategoryNode, LeafCode } from "@/lib/types";
 
@@ -25,6 +26,7 @@ export default function BrowseScreen() {
   const data = useAchiData();
   const { activeClassifier } = useClassifier();
   const backgroundColor = useBackgroundColor();
+  const classifierColors = getClassifierColors(activeClassifier);
 
   const pathSegments = Array.isArray(path) ? path : path ? [path] : [];
   const navState = resolveNavigationPath(data, pathSegments, activeClassifier);
@@ -32,7 +34,7 @@ export default function BrowseScreen() {
   const title =
     navState.path.length > 0
       ? navState.path[navState.path.length - 1].name_ua
-      : "АКМІ";
+      : activeClassifier === "mkh10" ? "МКХ-10" : "АКМІ";
 
   const childCategories = navState.children
     ? getChildCategories(navState.children)
@@ -51,13 +53,14 @@ export default function BrowseScreen() {
       <Stack.Screen
         options={{
           title: title.length > 25 ? title.substring(0, 25) + "..." : title,
+          headerTintColor: classifierColors.accent500,
         }}
       />
 
       {navState.isLeaf && procedureCodes ? (
-        <ProcedureList codes={procedureCodes} />
+        <ProcedureList codes={procedureCodes} classifierColors={classifierColors} />
       ) : childCategories ? (
-        <CategoryList categories={childCategories} basePath={currentPath} />
+        <CategoryList categories={childCategories} basePath={currentPath} classifierColors={classifierColors} />
       ) : (
         <View className="flex-1 items-center justify-center">
           <Text className="text-gray-500 dark:text-gray-400">Нічого не знайдено</Text>
@@ -67,9 +70,16 @@ export default function BrowseScreen() {
   );
 }
 
+interface ClassifierColors {
+  accent500: string;
+  accent600: string;
+  iconBackground: string;
+}
+
 interface CategoryListProps {
   categories: [string, CategoryNode][];
   basePath: string[];
+  classifierColors: ClassifierColors;
 }
 
 function formatBlockRange(node: CategoryNode): string | undefined {
@@ -78,7 +88,7 @@ function formatBlockRange(node: CategoryNode): string | undefined {
   return min === max ? `Блок: ${min}` : `Блоки: ${min}–${max}`;
 }
 
-function CategoryList({ categories, basePath }: CategoryListProps) {
+function CategoryList({ categories, basePath, classifierColors }: CategoryListProps) {
   const getItemLayout = useCallback(
     (_: unknown, index: number) => ({
       length: CARD_HEIGHT_WITHOUT_SUBTITLE,
@@ -106,14 +116,14 @@ function CategoryList({ categories, basePath }: CategoryListProps) {
         return (
           <Link href={href as `/(tabs)/explore/${string}`} asChild>
             <AccentCard
-              accentColor={colors.sky[500]}
+              accentColor={classifierColors.accent500}
               badge={node.code}
-              badgeColor={colors.sky[600]}
+              badgeColor={classifierColors.accent600}
               blockRange={formatBlockRange(node)}
               title={node.name_ua}
               icon="chevron-forward"
-              iconColor={colors.sky[600]}
-              iconBackground="rgba(14, 165, 233, 0.1)"
+              iconColor={classifierColors.accent600}
+              iconBackground={classifierColors.iconBackground}
               iconSize={16}
               accessibilityLabel={node.code ? `${node.code}: ${node.name_ua}` : node.name_ua}
               accessibilityHint="Відкрити категорію для перегляду підкатегорій"
@@ -128,9 +138,10 @@ function CategoryList({ categories, basePath }: CategoryListProps) {
 
 interface ProcedureListProps {
   codes: LeafCode[];
+  classifierColors: ClassifierColors;
 }
 
-function ProcedureList({ codes }: ProcedureListProps) {
+function ProcedureList({ codes, classifierColors }: ProcedureListProps) {
   const getItemLayout = useCallback(
     (_: unknown, index: number) => ({
       length: CARD_HEIGHT_WITH_SUBTITLE,
@@ -152,21 +163,29 @@ function ProcedureList({ codes }: ProcedureListProps) {
       showsVerticalScrollIndicator={false}
       removeClippedSubviews
       getItemLayout={getItemLayout}
-      renderItem={({ item }) => <ProcedureCard procedure={item} />}
+      renderItem={({ item }) => (
+        <ProcedureCard procedure={item} classifierColors={classifierColors} />
+      )}
     />
   );
 }
 
-function ProcedureCard({ procedure }: { procedure: LeafCode }) {
+function ProcedureCard({
+  procedure,
+  classifierColors,
+}: {
+  procedure: LeafCode;
+  classifierColors: ClassifierColors;
+}) {
   const { isFavorite, toggleFavorite } = useFavorites();
   const isPinned = isFavorite(procedure.code);
 
   return (
     <Link href={`/procedure/${procedure.code}` as any} asChild>
       <AccentCard
-        accentColor={colors.sky[500]}
+        accentColor={classifierColors.accent500}
         badge={procedure.code}
-        badgeColor={colors.sky[600]}
+        badgeColor={classifierColors.accent600}
         title={procedure.name_ua}
         subtitle={procedure.name_en}
         icon="bookmark"

@@ -9,6 +9,10 @@ export const colors = {
     500: "#0ea5e9",
     600: "#0284c7",
   },
+  emerald: {
+    500: "#10b981",
+    600: "#059669",
+  },
   amber: {
     500: "#f59e0b",
     600: "#d97706",
@@ -71,3 +75,21 @@ export const EXPLORE_HEADER_HEIGHT = 32;
 
 // UI feedback delays
 export const REFRESH_FEEDBACK_DELAY_MS = 300;
+
+// Classifier-specific accent colors
+import type { ClassifierType } from "./types";
+
+export function getClassifierColors(classifier: ClassifierType) {
+  if (classifier === "mkh10") {
+    return {
+      accent500: colors.emerald[500],
+      accent600: colors.emerald[600],
+      iconBackground: "rgba(16, 185, 129, 0.1)",
+    };
+  }
+  return {
+    accent500: colors.sky[500],
+    accent600: colors.sky[600],
+    iconBackground: "rgba(14, 165, 233, 0.1)",
+  };
+}
