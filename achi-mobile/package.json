@@ -7,7 +7,9 @@
     "android": "expo run:android",
     "ios": "expo run:ios",
     "deploy:ios": "eas build --platform ios --profile production --local --non-interactive && IPA=$(ls -t build-*.ipa | head -1) && eas submit --platform ios --path ./$IPA --non-interactive && rm -f $IPA",
-    "lint": "expo lint"
+    "lint": "expo lint",
+    "format": "prettier --write \"**/*.{ts,tsx,js,json}\"",
+    "format:check": "prettier --check \"**/*.{ts,tsx,js,json}\""
   },
   "dependencies": {
     "@expo/ui": "~0.2.0-beta.7",
@@ -43,6 +45,10 @@
   "devDependencies": {
     "@types/react": "~19.1.10",
     "babel-preset-expo": "^54.0.9",
+    "eslint": "^9.39.2",
+    "eslint-config-expo": "^10.0.0",
+    "eslint-config-prettier": "^10.1.8",
+    "prettier": "^3.8.1",
     "typescript": "~5.9.0"
   },
   "private": true

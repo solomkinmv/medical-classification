@@ -154,7 +154,10 @@ export function RecentSearchesProvider({
             : current.lastQuery;
         return {
           ...prev,
-          [activeClassifier]: { searches: newSearches, lastQuery: newLastQuery },
+          [activeClassifier]: {
+            searches: newSearches,
+            lastQuery: newLastQuery,
+          },
         };
       });
     },
