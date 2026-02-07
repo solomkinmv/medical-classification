@@ -104,11 +104,11 @@ CSV columns (meddata.pp.ua):
 - [x] Verify explore/search still works for ACHI
 
 ### Task 5: Add classifier switcher UI to Explore tab
-- [ ] Add a segmented control / pill switcher at the top of Explore screen: "АКМІ" | "МКХ-10"
-- [ ] Use the classifier context to switch the displayed data
-- [ ] Update header subtitle text based on active classifier (e.g., "Австралійська класифікація медичних інтервенцій" vs "Міжнародна класифікація хвороб")
-- [ ] Use a distinct accent color for МКХ-10 (e.g., emerald/green to differentiate from sky blue)
-- [ ] Verify switching between classifiers works, explore tab shows correct categories
+- [x] Add a segmented control / pill switcher at the top of Explore screen: "АКМІ" | "МКХ-10"
+- [x] Use the classifier context to switch the displayed data
+- [x] Update header subtitle text based on active classifier (e.g., "Австралійська класифікація медичних інтервенцій" vs "Міжнародна класифікація хвороб")
+- [x] Use a distinct accent color for МКХ-10 (e.g., emerald/green to differentiate from sky blue)
+- [x] Verify switching between classifiers works, explore tab shows correct categories
 
 ### Task 6: Update Search to work with active classifier
 - [ ] Search tab should search within the currently active classifier

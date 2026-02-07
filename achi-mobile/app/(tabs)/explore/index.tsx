@@ -1,23 +1,32 @@
 import { useCallback } from "react";
-import { FlatList, Text } from "react-native";
+import { FlatList, Text, View } from "react-native";
 import { Link } from "expo-router";
 import { AccentCard } from "@/components/AccentCard";
+import { ClassifierSwitcher } from "@/components/ClassifierSwitcher";
 import { useAchiData } from "@/lib/data-provider";
+import { useClassifier } from "@/lib/classifier-provider";
 import { getRootCategories } from "@/lib/navigation";
 import { useBackgroundColor } from "@/lib/useBackgroundColor";
 import {
-  colors,
   CONTENT_PADDING_HORIZONTAL,
   CONTENT_PADDING_BOTTOM,
   CARD_HEIGHT_WITHOUT_SUBTITLE,
   EXPLORE_HEADER_HEIGHT,
+  getClassifierColors,
 } from "@/lib/constants";
 import type { CategoryNode } from "@/lib/types";
 
+const SUBTITLE: Record<string, string> = {
+  achi: "Австралійська класифікація медичних інтервенцій",
+  mkh10: "Міжнародна класифікація хвороб",
+};
+
 export default function ExploreScreen() {
   const data = useAchiData();
+  const { activeClassifier } = useClassifier();
   const categories = getRootCategories(data);
   const backgroundColor = useBackgroundColor();
+  const classifierColors = getClassifierColors(activeClassifier);
 
   const getItemLayout = useCallback(
     (_: unknown, index: number) => ({
@@ -42,12 +51,22 @@ export default function ExploreScreen() {
       removeClippedSubviews
       getItemLayout={getItemLayout}
       ListHeaderComponent={
-        <Text className="text-sm text-gray-500 dark:text-gray-400 mb-4">
-          Австралійська класифікація медичних інтервенцій
-        </Text>
+        <View>
+          <ClassifierSwitcher />
+          <Text className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+            {SUBTITLE[activeClassifier]}
+          </Text>
+        </View>
       }
       renderItem={({ item: [key, node] }) => (
-        <CategoryCard categoryKey={key} node={node} />
+        <CategoryCard
+          categoryKey={key}
+          node={node}
+          accentColor={classifierColors.accent500}
+          badgeColor={classifierColors.accent600}
+          iconColor={classifierColors.accent600}
+          iconBackground={classifierColors.iconBackground}
+        />
       )}
     />
   );
@@ -56,21 +75,32 @@ export default function ExploreScreen() {
 interface CategoryCardProps {
   categoryKey: string;
   node: CategoryNode;
+  accentColor: string;
+  badgeColor: string;
+  iconColor: string;
+  iconBackground: string;
 }
 
-function CategoryCard({ categoryKey, node }: CategoryCardProps) {
+function CategoryCard({
+  categoryKey,
+  node,
+  accentColor,
+  badgeColor,
+  iconColor,
+  iconBackground,
+}: CategoryCardProps) {
   const href = "/(tabs)/explore/" + encodeURIComponent(categoryKey);
 
   return (
     <Link href={href as any} asChild>
       <AccentCard
-        accentColor={colors.sky[500]}
+        accentColor={accentColor}
         badge={node.clazz}
-        badgeColor={colors.sky[600]}
+        badgeColor={badgeColor}
         title={node.name_ua}
         icon="chevron-forward"
-        iconColor={colors.sky[600]}
-        iconBackground="rgba(14, 165, 233, 0.1)"
+        iconColor={iconColor}
+        iconBackground={iconBackground}
         iconSize={16}
         accessibilityLabel={node.clazz ? `${node.clazz}: ${node.name_ua}` : node.name_ua}
         accessibilityHint="Відкрити категорію для перегляду підкатегорій"
