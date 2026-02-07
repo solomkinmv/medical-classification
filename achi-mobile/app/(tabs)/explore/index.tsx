@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { FlatList, Text, View } from "react-native";
 import { Link } from "expo-router";
 import { AccentCard } from "@/components/AccentCard";
@@ -66,7 +67,7 @@ interface CategoryCardProps {
   iconBackground: string;
 }
 
-function CategoryCard({
+const CategoryCard = memo(function CategoryCard({
   categoryKey,
   node,
   accentColor,
@@ -94,4 +95,4 @@ function CategoryCard({
       />
     </Link>
   );
-}
+});
