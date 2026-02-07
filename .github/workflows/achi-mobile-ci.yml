@@ -1,0 +1,36 @@
+name: achi-mobile CI
+
+on:
+  push:
+    branches: [main]
+    paths: [achi-mobile/**]
+  pull_request:
+    paths: [achi-mobile/**]
+
+jobs:
+  build:
+    name: Lint, Format & Typecheck
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: achi-mobile
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: achi-mobile/package-lock.json
+
+      - run: npm ci
+
+      - name: Prettier check
+        run: npm run format:check
+
+      - name: ESLint
+        run: npm run lint
+
+      - name: TypeScript typecheck
+        run: npx tsc --noEmit
