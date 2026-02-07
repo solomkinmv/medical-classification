@@ -1,6 +1,11 @@
 # ACHI Mobile
 
-Mobile app for ACHI (Australian Classification of Health Interventions) code lookup.
+Mobile app for Ukrainian medical classification code lookup. Supports two classifiers:
+
+- **АКМІ (ACHI)** — Australian Classification of Health Interventions, Ukrainian adaptation (НК 024:2019)
+- **МКХ-10 (ICD-10)** — International Classification of Diseases, 10th Revision, Ukrainian adaptation (НК 025:2021)
+
+Users can switch between classifiers using the segmented control on the Explore tab. Each classifier has independent search, browsing, and bookmarks.
 
 ## Development
 
