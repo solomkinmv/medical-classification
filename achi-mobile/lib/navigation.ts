@@ -3,7 +3,7 @@ import type {
   CategoryNode,
   CategoryChildren,
   PathSegment,
-  ProcedureCode,
+  LeafCode,
 } from "./types";
 import { isLeafLevel, isCategoryChildren } from "./types";
 
@@ -129,11 +129,11 @@ export function getChildCategories(
 }
 
 /**
- * Get procedure codes from leaf level
+ * Get leaf codes from leaf level
  */
-export function getProcedureCodes(
+export function getLeafCodes(
   children: CategoryChildren
-): ProcedureCode[] | null {
+): LeafCode[] | null {
   if (!isLeafLevel(children)) return null;
   return children;
 }

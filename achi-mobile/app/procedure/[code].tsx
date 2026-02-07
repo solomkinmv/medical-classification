@@ -12,7 +12,7 @@ import { useBackgroundColor } from "@/lib/useBackgroundColor";
 import { useTheme } from "@/lib/useTheme";
 import { findProcedurePath } from "@/lib/navigation";
 import { colors } from "@/lib/constants";
-import type { AchiData, CategoryChildren, ProcedureCode, PathSegment } from "@/lib/types";
+import type { AchiData, CategoryChildren, LeafCode, PathSegment } from "@/lib/types";
 import { isLeafLevel } from "@/lib/types";
 
 function getLevelLabel(level: PathSegment["level"]): string {
@@ -25,6 +25,12 @@ function getLevelLabel(level: PathSegment["level"]): string {
       return "Вісь процедурної типології";
     case "block":
       return "АСК";
+    case "nosology":
+      return "Нозологія";
+    case "disease":
+      return "Захворювання";
+    default:
+      return "";
   }
 }
 
@@ -270,8 +276,8 @@ export default function ProcedureDetail() {
   );
 }
 
-function findProcedure(data: AchiData, targetCode: string): ProcedureCode | null {
-  function searchNode(children: CategoryChildren): ProcedureCode | null {
+function findProcedure(data: AchiData, targetCode: string): LeafCode | null {
+  function searchNode(children: CategoryChildren): LeafCode | null {
     if (isLeafLevel(children)) {
       return children.find((proc) => proc.code === targetCode) ?? null;
     }

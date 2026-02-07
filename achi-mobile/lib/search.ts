@@ -1,8 +1,8 @@
-import type { AchiData, CategoryNode, ProcedureCode } from "./types";
+import type { AchiData, CategoryNode, LeafCode } from "./types";
 import { isLeafLevel } from "./types";
 
 export interface SearchResult {
-  code: ProcedureCode;
+  code: LeafCode;
   path: string[];
 }
 

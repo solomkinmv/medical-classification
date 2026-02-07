@@ -13,7 +13,7 @@ import {
   CARD_HEIGHT_WITH_SUBTITLE,
   REFRESH_FEEDBACK_DELAY_MS,
 } from "@/lib/constants";
-import type { ProcedureCode } from "@/lib/types";
+import type { LeafCode } from "@/lib/types";
 
 export default function PinnedScreen() {
   const { favorites, toggleFavorite, isLoading } = useFavorites();
@@ -79,7 +79,7 @@ export default function PinnedScreen() {
 }
 
 interface PinnedCardProps {
-  procedure: ProcedureCode;
+  procedure: LeafCode;
   onToggle: () => void;
 }
 
