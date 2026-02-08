@@ -17,7 +17,6 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.solomkinmv.achi-mobile",
       "icon": "./assets/images/ios.icon",
-      "buildNumber": "1",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       },
