@@ -142,7 +142,7 @@ finishTransaction({ purchase, isConsumable: false });
 - [x] Run tests — must pass before next task
 
 ### Task 4: Create Pro upgrade screen
-- [ ] Create `app/pro.tsx` — modal screen showing Pro features and purchase button:
+- [x] Create `app/pro.tsx` — modal screen showing Pro features and purchase button:
   - Feature list with icons: unlimited bookmarks, folders, notes
   - Price from `product.displayPrice` (fallback "$2.99")
   - "Купити Pro" button → calls `purchasePro()`
@@ -150,9 +150,9 @@ finishTransaction({ purchase, isConsumable: false });
   - Loading state while purchase is processing
   - Success state → auto-dismiss
   - Already Pro state → "Ви вже маєте Pro!"
-- [ ] Add route to stack navigator in `app/_layout.tsx` (modal presentation)
-- [ ] Write tests for Pro screen rendering states (loading, default, already pro)
-- [ ] Run tests — must pass before next task
+- [x] Add route to stack navigator in `app/_layout.tsx` (modal presentation)
+- [x] Write tests for Pro screen rendering states (loading, default, already pro)
+- [x] Run tests — must pass before next task
 
 ### Task 5: Add custom folders for bookmarks (Pro feature)
 - [ ] Add `Folder` type to `lib/types.ts`:

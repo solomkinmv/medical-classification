@@ -70,6 +70,29 @@ function AppContent() {
       >
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen
+          name="pro"
+          options={{
+            presentation: Platform.OS === "ios" ? "formSheet" : "modal",
+            headerShown: true,
+            headerTransparent: Platform.OS === "ios" ? true : false,
+            headerBlurEffect: isLiquidGlassAvailable()
+              ? undefined
+              : "systemChromeMaterial",
+            headerStyle: {
+              backgroundColor: "transparent",
+            },
+            headerTintColor: t.text,
+            sheetGrabberVisible: true,
+            sheetAllowedDetents:
+              Platform.OS === "ios" ? [0.85] : undefined,
+            contentStyle: {
+              backgroundColor: isLiquidGlassAvailable()
+                ? "transparent"
+                : t.background,
+            },
+          }}
+        />
+        <Stack.Screen
           name="procedure/[code]"
           options={{
             presentation: Platform.OS === "ios" ? "formSheet" : "modal",
