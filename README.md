@@ -4,7 +4,7 @@ Apps for browsing Ukrainian medical classifications.
 
 ## Apps
 
-1. **achi-mobile** — React Native (Expo) mobile app for browsing АКМІ and МКХ-10
+1. **achi-mobile** — React Native (Expo) mobile app for browsing АКМІ and МКХ-10 — [App Store](https://apps.apple.com/ua/app/%D0%BC%D0%B5%D0%B4%D0%B8%D1%87%D0%BD%D1%96-%D0%BA%D0%BE%D0%B4%D0%B8/id6758305387)
 2. **achi** — Telegram bot: [АКМІ-selector](https://t.me/achi_selector_bot)
 3. **Green ACHI** — iOS app (legacy)
 
