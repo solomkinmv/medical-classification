@@ -217,8 +217,8 @@ finishTransaction({ purchase, isConsumable: false });
 - [x] TypeScript type check passes
 
 ### Task 8: Update app metadata
-- [ ] Bump app version in app.json (1.0.0 → 1.1.0)
-- [ ] Update README if needed
+- [x] Bump app version in app.json (1.0.0 → 1.1.0)
+- [x] Update README if needed
 
 ## Technical Details
 
