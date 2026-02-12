@@ -49,6 +49,14 @@ export type AchiLevel = "class" | "anatomical" | "procedural" | "block";
 /** MKH-10 hierarchy levels */
 export type Mkh10Level = "class" | "block" | "nosology" | "disease";
 
+/** Folder for organizing bookmarks (Pro feature) */
+export interface Folder {
+  id: string;
+  name: string;
+  classifier: ClassifierType;
+  codeRefs: string[];
+}
+
 /** Navigation path segment for breadcrumbs */
 export interface PathSegment {
   key: string;

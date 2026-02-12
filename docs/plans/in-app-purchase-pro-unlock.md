@@ -155,7 +155,7 @@ finishTransaction({ purchase, isConsumable: false });
 - [x] Run tests — must pass before next task
 
 ### Task 5: Add custom folders for bookmarks (Pro feature)
-- [ ] Add `Folder` type to `lib/types.ts`:
+- [x] Add `Folder` type to `lib/types.ts`:
   ```typescript
   interface Folder {
     id: string;
@@ -164,7 +164,7 @@ finishTransaction({ purchase, isConsumable: false });
     codeRefs: string[];
   }
   ```
-- [ ] Create `lib/folders-provider.tsx` with React Context:
+- [x] Create `lib/folders-provider.tsx` with React Context:
   - `folders: Folder[]` for active classifier
   - `createFolder(name: string): void`
   - `deleteFolder(id: string): void`
@@ -173,17 +173,17 @@ finishTransaction({ purchase, isConsumable: false });
   - `removeFromFolder(folderId: string, code: string): void`
   - `getFolderForCode(code: string): Folder | null`
   - Persist to AsyncStorage with key `${classifier}_folders`
-- [ ] Add `FoldersProvider` to root layout (inside ProProvider, around FavoritesProvider)
-- [ ] Update `app/(tabs)/pinned/index.tsx`:
+- [x] Add `FoldersProvider` to root layout (inside ProProvider, around FavoritesProvider)
+- [x] Update `app/(tabs)/pinned/index.tsx`:
   - Show folders section above bookmarks list (Pro only, gated behind `isPro`)
   - "+ Нова папка" button → text input prompt
   - Each folder: name + code count, tappable to view contents
   - Swipe-to-delete or long-press for rename/delete
-- [ ] Create `app/folder/[id].tsx` — folder detail screen showing codes in that folder
-- [ ] Add "Додати в папку" action on bookmark items (Pro only)
-- [ ] Free users: hide folder UI entirely
-- [ ] Write tests for folders-provider logic (CRUD operations, persistence)
-- [ ] Run tests — must pass before next task
+- [x] Create `app/folder/[id].tsx` — folder detail screen showing codes in that folder
+- [x] Add "Додати в папку" action on bookmark items (Pro only)
+- [x] Free users: hide folder UI entirely
+- [x] Write tests for folders-provider logic (CRUD operations, persistence)
+- [x] Run tests — must pass before next task
 
 ### Task 6: Add annotations/notes on codes (Pro feature)
 - [ ] Create `lib/notes-provider.tsx` with React Context:
