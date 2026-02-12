@@ -204,17 +204,17 @@ finishTransaction({ purchase, isConsumable: false });
 - [x] Run tests — must pass before next task
 
 ### Task 7: Verify acceptance criteria
-- [ ] Verify: free users can bookmark up to 3 codes per classifier
-- [ ] Verify: hitting bookmark limit shows upgrade prompt
-- [ ] Verify: Pro purchase flow works (StoreKit sandbox)
-- [ ] Verify: Pro unlocks unlimited bookmarks
-- [ ] Verify: Pro unlocks folder creation and management
-- [ ] Verify: Pro unlocks notes on codes
-- [ ] Verify: restore purchases works
-- [ ] Verify: existing bookmarks (>3) are preserved after update
-- [ ] Run full test suite — all tests pass
-- [ ] Run linter (`npm run lint`) — all issues fixed
-- [ ] TypeScript type check passes
+- [x] Verify: free users can bookmark up to 3 codes per classifier
+- [x] Verify: hitting bookmark limit shows upgrade prompt
+- [x] Verify: Pro purchase flow works (StoreKit sandbox)
+- [x] Verify: Pro unlocks unlimited bookmarks
+- [x] Verify: Pro unlocks folder creation and management
+- [x] Verify: Pro unlocks notes on codes
+- [x] Verify: restore purchases works
+- [x] Verify: existing bookmarks (>3) are preserved after update
+- [x] Run full test suite — all tests pass
+- [x] Run linter (`npm run lint`) — all issues fixed
+- [x] TypeScript type check passes
 
 ### Task 8: Update app metadata
 - [ ] Bump app version in app.json (1.0.0 → 1.1.0)
