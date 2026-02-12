@@ -17,6 +17,7 @@ import { EmptyState } from "@/components/EmptyState";
 import { SkeletonList } from "@/components/SkeletonList";
 import { useFavorites } from "@/lib/favorites-provider";
 import { useFolders } from "@/lib/folders-provider";
+import { useNotes } from "@/lib/notes-provider";
 import { useProStatus } from "@/lib/pro-provider";
 import { useClassifier } from "@/lib/classifier-provider";
 import { useBackgroundColor } from "@/lib/useBackgroundColor";
@@ -360,6 +361,9 @@ const PinnedCard = memo(function PinnedCard({
   onAddToFolder,
   onRemoveFromFolder,
 }: PinnedCardProps) {
+  const { hasNote } = useNotes();
+  const codeHasNote = hasNote(procedure.code);
+
   const handleLongPress = useCallback(() => {
     if (!isPro || folders.length === 0) return;
 
@@ -417,8 +421,31 @@ const PinnedCard = memo(function PinnedCard({
           iconAccessibilityLabel="Видалити закладку"
           accessibilityLabel={`${procedure.code}: ${procedure.name_ua}`}
           accessibilityHint="Відкрити деталі"
-        />
+        >
+          {codeHasNote && <NoteIndicator />}
+        </AccentCard>
       </Link>
     </Pressable>
   );
 });
+
+function NoteIndicator() {
+  return (
+    <View style={{ flexDirection: "row", alignItems: "center", marginTop: 6 }}>
+      <Ionicons
+        name="document-text-outline"
+        size={12}
+        color={colors.violet[500]}
+      />
+      <Text
+        style={{
+          fontSize: 11,
+          color: colors.violet[500],
+          marginLeft: 4,
+        }}
+      >
+        Нотатка
+      </Text>
+    </View>
+  );
+}
