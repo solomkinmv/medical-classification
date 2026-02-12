@@ -242,4 +242,10 @@ describe("FoldersProvider", () => {
       "Folder C",
     ]);
   });
+
+  it("throws error when useFolders is used outside FoldersProvider", () => {
+    expect(() => {
+      renderHook(() => useFolders());
+    }).toThrow("useFolders must be used within FoldersProvider");
+  });
 });

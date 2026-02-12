@@ -34,8 +34,8 @@ jest.mock("@/lib/useBackgroundColor", () => ({
 let mockProStatus = {
   isPro: false,
   isProLoading: false,
-  purchasePro: jest.fn(),
-  restorePurchases: jest.fn(),
+  purchasePro: jest.fn().mockResolvedValue(undefined),
+  restorePurchases: jest.fn().mockResolvedValue(undefined),
   product: null as { id: string; displayPrice: string } | null,
 };
 
@@ -48,14 +48,20 @@ jest.mock("@/components/CloseButton", () => ({
 }));
 
 beforeEach(() => {
+  jest.useFakeTimers();
   jest.clearAllMocks();
   mockProStatus = {
     isPro: false,
     isProLoading: false,
-    purchasePro: jest.fn(),
-    restorePurchases: jest.fn(),
+    purchasePro: jest.fn().mockResolvedValue(undefined),
+    restorePurchases: jest.fn().mockResolvedValue(undefined),
     product: null,
   };
+});
+
+afterEach(() => {
+  jest.runOnlyPendingTimers();
+  jest.useRealTimers();
 });
 
 describe("ProScreen", () => {
@@ -94,10 +100,10 @@ describe("ProScreen", () => {
     expect(screen.getByText("Нотатки")).toBeTruthy();
   });
 
-  it("shows fallback price when product is null", () => {
+  it("shows loading text when product is null", () => {
     render(<ProScreen />);
 
-    expect(screen.getByText("Купити Pro — $2.99")).toBeTruthy();
+    expect(screen.getByText("Завантаження...")).toBeTruthy();
   });
 
   it("shows product price when product is available", () => {
@@ -111,6 +117,10 @@ describe("ProScreen", () => {
   });
 
   it("calls purchasePro when purchase button is pressed", () => {
+    mockProStatus.product = {
+      id: "com.solomkinmv.achi-mobile.pro",
+      displayPrice: "$2.99",
+    };
     render(<ProScreen />);
 
     fireEvent.press(screen.getByLabelText("Купити Pro за $2.99"));

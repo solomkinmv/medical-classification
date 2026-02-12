@@ -190,4 +190,10 @@ describe("NotesProvider", () => {
 
     expect(result.current.hasNote("nonexistent")).toBe(false);
   });
+
+  it("throws error when useNotes is used outside NotesProvider", () => {
+    expect(() => {
+      renderHook(() => useNotes());
+    }).toThrow("useNotes must be used within NotesProvider");
+  });
 });

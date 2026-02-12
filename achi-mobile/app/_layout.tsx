@@ -89,8 +89,7 @@ function AppContent() {
             },
             headerTintColor: t.text,
             sheetGrabberVisible: true,
-            sheetAllowedDetents:
-              Platform.OS === "ios" ? [0.85] : undefined,
+            sheetAllowedDetents: Platform.OS === "ios" ? [0.85] : undefined,
             contentStyle: {
               backgroundColor: isLiquidGlassAvailable()
                 ? "transparent"

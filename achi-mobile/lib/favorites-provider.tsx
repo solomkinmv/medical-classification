@@ -5,6 +5,7 @@ import {
   useEffect,
   useCallback,
   useMemo,
+  useRef,
   type ReactNode,
 } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -25,8 +26,6 @@ interface FavoritesContextType {
   favorites: LeafCode[];
   isFavorite: (code: string) => boolean;
   toggleFavorite: (item: LeafCode) => ToggleFavoriteResult;
-  canAddFavorite: boolean;
-  favoritesRemaining: number;
   isLoading: boolean;
   isReady: boolean;
 }
@@ -41,6 +40,8 @@ export function FavoritesProvider({ children }: FavoritesProviderProps) {
   const { activeClassifier } = useClassifier();
   const { isPro } = useProStatus();
   const [cache, setCache] = useState<Record<string, LeafCode[]>>({});
+  const cacheRef = useRef(cache);
+  cacheRef.current = cache;
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -88,11 +89,6 @@ export function FavoritesProvider({ children }: FavoritesProviderProps) {
 
   const favorites = cache[activeClassifier] ?? [];
 
-  const canAddFavorite = isPro || favorites.length < BOOKMARK_LIMIT_FREE;
-  const favoritesRemaining = isPro
-    ? Infinity
-    : Math.max(0, BOOKMARK_LIMIT_FREE - favorites.length);
-
   const isFavorite = useCallback(
     (code: string) => {
       return favorites.some((f) => f.code === code);
@@ -102,7 +98,7 @@ export function FavoritesProvider({ children }: FavoritesProviderProps) {
 
   const toggleFavorite = useCallback(
     (procedure: LeafCode): ToggleFavoriteResult => {
-      const current = cache[activeClassifier] ?? [];
+      const current = cacheRef.current[activeClassifier] ?? [];
       const exists = current.some((f) => f.code === procedure.code);
 
       if (!exists && !isPro && current.length >= BOOKMARK_LIMIT_FREE) {
@@ -110,24 +106,29 @@ export function FavoritesProvider({ children }: FavoritesProviderProps) {
       }
 
       setCache((prev) => {
-        const currentInner = prev[activeClassifier] ?? [];
-        const existsInner = currentInner.some(
-          (f) => f.code === procedure.code,
-        );
-        const newFavorites = existsInner
-          ? currentInner.filter((f) => f.code !== procedure.code)
-          : [...currentInner, procedure];
+        const latest = prev[activeClassifier] ?? [];
+        const stillExists = latest.some((f) => f.code === procedure.code);
+
+        if (!stillExists && !isPro && latest.length >= BOOKMARK_LIMIT_FREE) {
+          return prev;
+        }
+
+        const newFavorites = stillExists
+          ? latest.filter((f) => f.code !== procedure.code)
+          : [...latest, procedure];
+        const next = { ...prev, [activeClassifier]: newFavorites };
+        cacheRef.current = next;
         AsyncStorage.setItem(
           getStorageKey(activeClassifier),
           JSON.stringify(newFavorites),
         ).catch((error) => {
           console.error("Failed to save favorites:", error);
         });
-        return { ...prev, [activeClassifier]: newFavorites };
+        return next;
       });
       return { limitReached: false };
     },
-    [activeClassifier, cache, isPro],
+    [activeClassifier, isPro],
   );
 
   const isReady = !isLoading;
@@ -137,20 +138,10 @@ export function FavoritesProvider({ children }: FavoritesProviderProps) {
       favorites,
       isFavorite,
       toggleFavorite,
-      canAddFavorite,
-      favoritesRemaining,
       isLoading,
       isReady,
     }),
-    [
-      favorites,
-      isFavorite,
-      toggleFavorite,
-      canAddFavorite,
-      favoritesRemaining,
-      isLoading,
-      isReady,
-    ],
+    [favorites, isFavorite, toggleFavorite, isLoading, isReady],
   );
 
   return (
