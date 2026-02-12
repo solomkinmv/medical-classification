@@ -9,16 +9,24 @@ import {
 } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useClassifier } from "./classifier-provider";
+import { useProStatus } from "./pro-provider";
+import { BOOKMARK_LIMIT_FREE } from "./constants";
 import type { ClassifierType, LeafCode } from "./types";
 
 function getStorageKey(classifier: ClassifierType): string {
   return `${classifier}_favorites`;
 }
 
+interface ToggleFavoriteResult {
+  limitReached: boolean;
+}
+
 interface FavoritesContextType {
   favorites: LeafCode[];
   isFavorite: (code: string) => boolean;
-  toggleFavorite: (item: LeafCode) => void;
+  toggleFavorite: (item: LeafCode) => ToggleFavoriteResult;
+  canAddFavorite: boolean;
+  favoritesRemaining: number;
   isLoading: boolean;
   isReady: boolean;
 }
@@ -31,6 +39,7 @@ interface FavoritesProviderProps {
 
 export function FavoritesProvider({ children }: FavoritesProviderProps) {
   const { activeClassifier } = useClassifier();
+  const { isPro } = useProStatus();
   const [cache, setCache] = useState<Record<string, LeafCode[]>>({});
   const [isLoading, setIsLoading] = useState(true);
 
@@ -79,6 +88,11 @@ export function FavoritesProvider({ children }: FavoritesProviderProps) {
 
   const favorites = cache[activeClassifier] ?? [];
 
+  const canAddFavorite = isPro || favorites.length < BOOKMARK_LIMIT_FREE;
+  const favoritesRemaining = isPro
+    ? Infinity
+    : Math.max(0, BOOKMARK_LIMIT_FREE - favorites.length);
+
   const isFavorite = useCallback(
     (code: string) => {
       return favorites.some((f) => f.code === code);
@@ -87,13 +101,22 @@ export function FavoritesProvider({ children }: FavoritesProviderProps) {
   );
 
   const toggleFavorite = useCallback(
-    (procedure: LeafCode) => {
+    (procedure: LeafCode): ToggleFavoriteResult => {
+      const current = cache[activeClassifier] ?? [];
+      const exists = current.some((f) => f.code === procedure.code);
+
+      if (!exists && !isPro && current.length >= BOOKMARK_LIMIT_FREE) {
+        return { limitReached: true };
+      }
+
       setCache((prev) => {
-        const current = prev[activeClassifier] ?? [];
-        const exists = current.some((f) => f.code === procedure.code);
-        const newFavorites = exists
-          ? current.filter((f) => f.code !== procedure.code)
-          : [...current, procedure];
+        const currentInner = prev[activeClassifier] ?? [];
+        const existsInner = currentInner.some(
+          (f) => f.code === procedure.code,
+        );
+        const newFavorites = existsInner
+          ? currentInner.filter((f) => f.code !== procedure.code)
+          : [...currentInner, procedure];
         AsyncStorage.setItem(
           getStorageKey(activeClassifier),
           JSON.stringify(newFavorites),
@@ -102,15 +125,32 @@ export function FavoritesProvider({ children }: FavoritesProviderProps) {
         });
         return { ...prev, [activeClassifier]: newFavorites };
       });
+      return { limitReached: false };
     },
-    [activeClassifier],
+    [activeClassifier, cache, isPro],
   );
 
   const isReady = !isLoading;
 
   const value = useMemo(
-    () => ({ favorites, isFavorite, toggleFavorite, isLoading, isReady }),
-    [favorites, isFavorite, toggleFavorite, isLoading, isReady],
+    () => ({
+      favorites,
+      isFavorite,
+      toggleFavorite,
+      canAddFavorite,
+      favoritesRemaining,
+      isLoading,
+      isReady,
+    }),
+    [
+      favorites,
+      isFavorite,
+      toggleFavorite,
+      canAddFavorite,
+      favoritesRemaining,
+      isLoading,
+      isReady,
+    ],
   );
 
   return (

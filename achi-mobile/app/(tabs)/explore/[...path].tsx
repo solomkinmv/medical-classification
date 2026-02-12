@@ -2,6 +2,7 @@ import { memo } from "react";
 import { View, Text, FlatList } from "react-native";
 import { useLocalSearchParams, Link, Stack } from "expo-router";
 import { AccentCard } from "@/components/AccentCard";
+import { showUpgradePrompt } from "@/components/UpgradePrompt";
 import { useClassifier } from "@/lib/classifier-provider";
 import { useFavorites } from "@/lib/favorites-provider";
 import { useBackgroundColor } from "@/lib/useBackgroundColor";
@@ -187,7 +188,10 @@ const ProcedureCard = memo(function ProcedureCard({
           isPinned ? "rgba(245, 158, 11, 0.15)" : "rgba(156, 163, 175, 0.1)"
         }
         iconSize={18}
-        onIconPress={() => toggleFavorite(procedure)}
+        onIconPress={() => {
+          const { limitReached } = toggleFavorite(procedure);
+          if (limitReached) showUpgradePrompt();
+        }}
         iconAccessibilityLabel={
           isPinned ? "Видалити закладку" : "Додати закладку"
         }

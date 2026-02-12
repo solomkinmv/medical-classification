@@ -10,6 +10,7 @@ import { CommonActions } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { AnimatedBookmarkButton } from "@/components/AnimatedBookmarkButton";
 import { CloseButton } from "@/components/CloseButton";
+import { showUpgradePrompt } from "@/components/UpgradePrompt";
 import { useClassifier } from "@/lib/classifier-provider";
 import { useFavorites } from "@/lib/favorites-provider";
 import { useBackgroundColor } from "@/lib/useBackgroundColor";
@@ -191,7 +192,10 @@ export default function ProcedureDetail() {
           headerRight: () => (
             <AnimatedBookmarkButton
               isBookmarked={isPinned}
-              onPress={() => toggleFavorite(procedure)}
+              onPress={() => {
+                const { limitReached } = toggleFavorite(procedure);
+                if (limitReached) showUpgradePrompt();
+              }}
               color={isPinned ? colors.amber[500] : colors.gray[400]}
               backgroundColor={
                 isPinned
