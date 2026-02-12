@@ -286,9 +286,6 @@ describe("ProProvider", () => {
     });
 
     expect(result.current.isPro).toBe(true);
-    expect(AsyncStorage.setItem).toHaveBeenCalledWith(
-      PRO_STORAGE_KEY,
-      "true",
-    );
+    expect(AsyncStorage.setItem).toHaveBeenCalledWith(PRO_STORAGE_KEY, "true");
   });
 });

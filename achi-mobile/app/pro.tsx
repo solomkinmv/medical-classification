@@ -301,7 +301,9 @@ export default function ProScreen() {
             <ActivityIndicator color="#ffffff" />
           ) : (
             <Text style={{ color: "#ffffff", fontWeight: "700", fontSize: 18 }}>
-              {displayPrice ? `Купити Pro — ${displayPrice}` : "Завантаження..."}
+              {displayPrice
+                ? `Купити Pro — ${displayPrice}`
+                : "Завантаження..."}
             </Text>
           )}
         </Pressable>
