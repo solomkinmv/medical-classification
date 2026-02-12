@@ -27,11 +27,13 @@ To build and install a release version on a physical iPhone (without dev server)
 ### Option 1: Build via Xcode (Recommended for first-time setup)
 
 1. Generate native iOS project (if not already done):
+
    ```bash
    npx expo prebuild --platform ios
    ```
 
 2. Open the project in Xcode:
+
    ```bash
    open ios/achimobile.xcworkspace
    ```
@@ -49,17 +51,20 @@ To build and install a release version on a physical iPhone (without dev server)
 ### Option 2: Command Line Build (After signing is configured)
 
 1. Generate native iOS project (if not already done):
+
    ```bash
    npx expo prebuild --platform ios
    ```
 
 2. Build the release version:
+
    ```bash
    cd ios
    xcodebuild -workspace achimobile.xcworkspace -scheme achimobile -configuration Release -destination 'generic/platform=iOS' -allowProvisioningUpdates
    ```
 
 3. Find your device UDID:
+
    ```bash
    xcrun xctrace list devices
    ```
@@ -74,11 +79,13 @@ To build and install a release version on a physical iPhone (without dev server)
 **Signing errors:** If you see "No Account for Team" or "No profiles found", open Xcode and configure signing manually (Option 1).
 
 **Node not found:** If Xcode can't find Node, update `ios/.xcode.env.local`:
+
 ```bash
 export NODE_BINARY=/opt/homebrew/bin/node
 ```
 
 **Clean build:** If you encounter build issues:
+
 ```bash
 cd ios
 rm -rf ~/Library/Developer/Xcode/DerivedData/achimobile-*
@@ -115,6 +122,7 @@ xcrun altool --upload-app -f <path-to-ipa> -t ios -u <apple-id> -p <app-specific
 ```
 
 Example:
+
 ```bash
 xcrun altool --upload-app -f build-1234567890.ipa -t ios -u your@email.com -p xxxx-xxxx-xxxx-xxxx
 ```

@@ -30,8 +30,5 @@ export function promptTextInput(options: {
     return;
   }
 
-  Alert.alert(
-    title,
-    "Ця функція наразі доступна лише на iOS",
-  );
+  Alert.alert(title, "Ця функція наразі доступна лише на iOS");
 }
