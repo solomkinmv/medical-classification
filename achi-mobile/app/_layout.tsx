@@ -14,6 +14,7 @@ import { isLiquidGlassAvailable } from "expo-glass-effect";
 import { ClassifierProvider, useClassifier } from "@/lib/classifier-provider";
 import { ProProvider } from "@/lib/pro-provider";
 import { FavoritesProvider, useFavorites } from "@/lib/favorites-provider";
+import { FoldersProvider } from "@/lib/folders-provider";
 import {
   RecentSearchesProvider,
   useRecentSearches,
@@ -34,9 +35,11 @@ export default function RootLayout() {
         <ClassifierProvider>
           <ProProvider>
             <FavoritesProvider>
-              <RecentSearchesProvider>
-                <AppContent />
-              </RecentSearchesProvider>
+              <FoldersProvider>
+                <RecentSearchesProvider>
+                  <AppContent />
+                </RecentSearchesProvider>
+              </FoldersProvider>
             </FavoritesProvider>
           </ProProvider>
         </ClassifierProvider>
@@ -110,6 +113,25 @@ function AppContent() {
             sheetAllowedDetents:
               Platform.OS === "ios" ? [0.65, 0.9] : undefined,
             sheetInitialDetentIndex: 0,
+            contentStyle: {
+              backgroundColor: isLiquidGlassAvailable()
+                ? "transparent"
+                : t.background,
+            },
+          }}
+        />
+        <Stack.Screen
+          name="folder/[id]"
+          options={{
+            headerShown: true,
+            headerTransparent: Platform.OS === "ios" ? true : false,
+            headerBlurEffect: isLiquidGlassAvailable()
+              ? undefined
+              : "systemChromeMaterial",
+            headerStyle: {
+              backgroundColor: "transparent",
+            },
+            headerTintColor: t.text,
             contentStyle: {
               backgroundColor: isLiquidGlassAvailable()
                 ? "transparent"
