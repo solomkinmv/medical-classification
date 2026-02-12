@@ -99,8 +99,8 @@ finishTransaction({ purchase, isConsumable: false });
 - [x] Run tests — must pass before next task
 
 ### Task 2: Install and configure expo-iap
-- [ ] Run `npx expo install expo-iap expo-build-properties`
-- [ ] Add plugins to app.json:
+- [x] Run `npx expo install expo-iap expo-build-properties`
+- [x] Add plugins to app.json:
   ```json
   "plugins": [
     "expo-router",
@@ -109,8 +109,8 @@ finishTransaction({ purchase, isConsumable: false });
     ["expo-build-properties", { "android": { "kotlinVersion": "2.2.0" } }]
   ]
   ```
-- [ ] Define product ID constant in `lib/constants.ts`: `PRO_PRODUCT_ID = 'com.solomkinmv.achi-mobile.pro'`
-- [ ] Create `lib/pro-provider.tsx` with React Context:
+- [x] Define product ID constant in `lib/constants.ts`: `PRO_PRODUCT_ID = 'com.solomkinmv.achi-mobile.pro'`
+- [x] Create `lib/pro-provider.tsx` with React Context:
   - `isPro: boolean` — persisted in AsyncStorage as cache
   - `isProLoading: boolean`
   - `purchasePro()` — triggers `requestPurchase` via expo-iap
@@ -120,10 +120,10 @@ finishTransaction({ purchase, isConsumable: false });
   - `onPurchaseError`: handle with `isUserCancelledError` (silent) vs show `getUserFriendlyErrorMessage`
   - `product: Product | null` — fetched product info for displaying price
   - On `connected`: call `fetchProducts({ skus: [PRO_PRODUCT_ID], type: 'in-app' })`
-- [ ] Export `useProStatus()` hook that returns `{ isPro, isProLoading, purchasePro, restorePurchases, product }`
-- [ ] Add `ProProvider` to root layout in `app/_layout.tsx` (wrap around FavoritesProvider)
-- [ ] Write tests for ProProvider (mock expo-iap module)
-- [ ] Run tests — must pass before next task
+- [x] Export `useProStatus()` hook that returns `{ isPro, isProLoading, purchasePro, restorePurchases, product }`
+- [x] Add `ProProvider` to root layout in `app/_layout.tsx` (wrap around FavoritesProvider)
+- [x] Write tests for ProProvider (mock expo-iap module)
+- [x] Run tests — must pass before next task
 
 ### Task 3: Add bookmark limit for free users (3 per classifier)
 - [ ] Add `BOOKMARK_LIMIT_FREE = 3` constant to `lib/constants.ts`
