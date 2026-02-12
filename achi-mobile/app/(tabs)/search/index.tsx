@@ -9,6 +9,7 @@ import { RecentSearches } from "@/components/RecentSearches";
 import { showUpgradePrompt } from "@/components/UpgradePrompt";
 import { useClassifier } from "@/lib/classifier-provider";
 import { useFavorites } from "@/lib/favorites-provider";
+import { useNotes } from "@/lib/notes-provider";
 import { useRecentSearches } from "@/lib/recent-searches-provider";
 import { useBackgroundColor } from "@/lib/useBackgroundColor";
 import { useTheme } from "@/lib/useTheme";
@@ -232,9 +233,11 @@ const SearchResultCard = memo(function SearchResultCard({
   result: SearchResult;
 }) {
   const { isFavorite, toggleFavorite } = useFavorites();
+  const { hasNote } = useNotes();
   const { activeClassifier } = useClassifier();
   const router = useRouter();
   const isPinned = isFavorite(result.code.code);
+  const codeHasNote = hasNote(result.code.code);
   const classifierColors = getClassifierColors(activeClassifier);
 
   return (
@@ -261,6 +264,19 @@ const SearchResultCard = memo(function SearchResultCard({
       }
       accessibilityLabel={`${result.code.code}: ${result.code.name_ua}`}
       accessibilityHint="Відкрити деталі"
-    />
+    >
+      {codeHasNote && (
+        <View style={{ flexDirection: "row", alignItems: "center", marginTop: 6 }}>
+          <Text
+            style={{
+              fontSize: 11,
+              color: colors.violet[500],
+            }}
+          >
+            Нотатка
+          </Text>
+        </View>
+      )}
+    </AccentCard>
   );
 });

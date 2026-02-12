@@ -186,22 +186,22 @@ finishTransaction({ purchase, isConsumable: false });
 - [x] Run tests — must pass before next task
 
 ### Task 6: Add annotations/notes on codes (Pro feature)
-- [ ] Create `lib/notes-provider.tsx` with React Context:
+- [x] Create `lib/notes-provider.tsx` with React Context:
   - `getNote(code: string): string | null`
   - `setNote(code: string, text: string): void`
   - `deleteNote(code: string): void`
   - `hasNote(code: string): boolean`
   - Persist to AsyncStorage with key `${classifier}_notes` as `Record<string, string>`
-- [ ] Add `NotesProvider` to root layout (inside FoldersProvider)
-- [ ] Update procedure detail modal (`app/procedure/[code].tsx`):
+- [x] Add `NotesProvider` to root layout (inside FoldersProvider)
+- [x] Update procedure detail modal (`app/procedure/[code].tsx`):
   - Below procedure details, show notes section (Pro only)
   - If no note: "Додати нотатку" button
   - If note exists: display note text with edit/delete buttons
   - Inline text input for editing
-- [ ] Show note indicator on AccentCard in pinned/search results if note exists for that code
-- [ ] Free users: hide notes UI, or show "Pro" badge as teaser
-- [ ] Write tests for notes-provider logic (get, set, delete, persistence)
-- [ ] Run tests — must pass before next task
+- [x] Show note indicator on AccentCard in pinned/search results if note exists for that code
+- [x] Free users: hide notes UI, or show "Pro" badge as teaser
+- [x] Write tests for notes-provider logic (get, set, delete, persistence)
+- [x] Run tests — must pass before next task
 
 ### Task 7: Verify acceptance criteria
 - [ ] Verify: free users can bookmark up to 3 codes per classifier

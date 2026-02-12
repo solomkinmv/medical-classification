@@ -1,5 +1,12 @@
-import { useMemo } from "react";
-import { View, Text, ScrollView, Pressable, Platform } from "react-native";
+import { useMemo, useState } from "react";
+import {
+  View,
+  Text,
+  ScrollView,
+  Pressable,
+  Platform,
+  TextInput,
+} from "react-native";
 import {
   useLocalSearchParams,
   Stack,
@@ -13,6 +20,8 @@ import { CloseButton } from "@/components/CloseButton";
 import { showUpgradePrompt } from "@/components/UpgradePrompt";
 import { useClassifier } from "@/lib/classifier-provider";
 import { useFavorites } from "@/lib/favorites-provider";
+import { useNotes } from "@/lib/notes-provider";
+import { useProStatus } from "@/lib/pro-provider";
 import { useBackgroundColor } from "@/lib/useBackgroundColor";
 import { useTheme } from "@/lib/useTheme";
 import { findProcedurePath } from "@/lib/navigation";
@@ -55,6 +64,8 @@ export default function ProcedureDetail() {
   const accentColor = classifierColors.accent500;
   const accentColorDark = classifierColors.accent600;
   const { isFavorite, toggleFavorite } = useFavorites();
+  const { getNote, setNote, deleteNote } = useNotes();
+  const { isPro } = useProStatus();
   const router = useRouter();
   const navigation = useNavigationContainerRef();
   const insets = useSafeAreaInsets();
@@ -75,6 +86,9 @@ export default function ProcedureDetail() {
   );
 
   const isPinned = procedure ? isFavorite(procedure.code) : false;
+  const existingNote = procedure ? getNote(procedure.code) : null;
+  const [isEditing, setIsEditing] = useState(false);
+  const [noteText, setNoteText] = useState("");
 
   if (!code) {
     return (
@@ -313,6 +327,198 @@ export default function ProcedureDetail() {
             {procedure.name_en}
           </Text>
         ) : null}
+
+        {/* Notes section */}
+        {isPro ? (
+          <View style={{ marginTop: 24 }}>
+            <Text
+              style={{
+                fontSize: 12,
+                fontWeight: "600",
+                color: t.textSecondary,
+                textTransform: "uppercase",
+                letterSpacing: 0.5,
+                marginBottom: 12,
+              }}
+            >
+              Нотатки
+            </Text>
+            {isEditing ? (
+              <View>
+                <TextInput
+                  value={noteText}
+                  onChangeText={setNoteText}
+                  placeholder="Введіть нотатку..."
+                  placeholderTextColor={t.textMuted}
+                  multiline
+                  autoFocus
+                  style={{
+                    fontSize: 15,
+                    color: t.text,
+                    borderWidth: 1,
+                    borderColor: accentColor,
+                    borderRadius: 10,
+                    padding: 12,
+                    minHeight: 80,
+                    textAlignVertical: "top",
+                  }}
+                />
+                <View
+                  style={{
+                    flexDirection: "row",
+                    justifyContent: "flex-end",
+                    marginTop: 8,
+                    gap: 12,
+                  }}
+                >
+                  <Pressable
+                    onPress={() => {
+                      setIsEditing(false);
+                      setNoteText("");
+                    }}
+                  >
+                    <Text
+                      style={{
+                        color: t.textSecondary,
+                        fontSize: 15,
+                        fontWeight: "500",
+                      }}
+                    >
+                      Скасувати
+                    </Text>
+                  </Pressable>
+                  <Pressable
+                    onPress={() => {
+                      if (noteText.trim()) {
+                        setNote(procedure.code, noteText.trim());
+                      } else {
+                        deleteNote(procedure.code);
+                      }
+                      setIsEditing(false);
+                      setNoteText("");
+                    }}
+                  >
+                    <Text
+                      style={{
+                        color: accentColor,
+                        fontSize: 15,
+                        fontWeight: "600",
+                      }}
+                    >
+                      Зберегти
+                    </Text>
+                  </Pressable>
+                </View>
+              </View>
+            ) : existingNote ? (
+              <View>
+                <Text
+                  style={{
+                    fontSize: 15,
+                    color: t.text,
+                    lineHeight: 22,
+                    marginBottom: 8,
+                  }}
+                >
+                  {existingNote}
+                </Text>
+                <View
+                  style={{
+                    flexDirection: "row",
+                    gap: 16,
+                  }}
+                >
+                  <Pressable
+                    onPress={() => {
+                      setNoteText(existingNote);
+                      setIsEditing(true);
+                    }}
+                  >
+                    <Text
+                      style={{
+                        color: accentColor,
+                        fontSize: 14,
+                        fontWeight: "500",
+                      }}
+                    >
+                      Редагувати
+                    </Text>
+                  </Pressable>
+                  <Pressable onPress={() => deleteNote(procedure.code)}>
+                    <Text
+                      style={{
+                        color: colors.gray[400],
+                        fontSize: 14,
+                        fontWeight: "500",
+                      }}
+                    >
+                      Видалити
+                    </Text>
+                  </Pressable>
+                </View>
+              </View>
+            ) : (
+              <Pressable
+                onPress={() => {
+                  setNoteText("");
+                  setIsEditing(true);
+                }}
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                }}
+              >
+                <Text
+                  style={{
+                    color: accentColor,
+                    fontSize: 15,
+                    fontWeight: "500",
+                  }}
+                >
+                  Додати нотатку
+                </Text>
+              </Pressable>
+            )}
+          </View>
+        ) : (
+          <View style={{ marginTop: 24 }}>
+            <Pressable
+              onPress={() => router.push("/pro" as never)}
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+              }}
+            >
+              <View
+                style={{
+                  backgroundColor: "rgba(139, 92, 246, 0.1)",
+                  paddingHorizontal: 6,
+                  paddingVertical: 2,
+                  borderRadius: 4,
+                  marginRight: 6,
+                }}
+              >
+                <Text
+                  style={{
+                    fontSize: 11,
+                    fontWeight: "700",
+                    color: colors.violet[500],
+                  }}
+                >
+                  PRO
+                </Text>
+              </View>
+              <Text
+                style={{
+                  color: t.textMuted,
+                  fontSize: 14,
+                }}
+              >
+                Додайте нотатки до кодів
+              </Text>
+            </Pressable>
+          </View>
+        )}
       </ScrollView>
     </>
   );

@@ -15,6 +15,7 @@ import { ClassifierProvider, useClassifier } from "@/lib/classifier-provider";
 import { ProProvider } from "@/lib/pro-provider";
 import { FavoritesProvider, useFavorites } from "@/lib/favorites-provider";
 import { FoldersProvider } from "@/lib/folders-provider";
+import { NotesProvider } from "@/lib/notes-provider";
 import {
   RecentSearchesProvider,
   useRecentSearches,
@@ -36,9 +37,11 @@ export default function RootLayout() {
           <ProProvider>
             <FavoritesProvider>
               <FoldersProvider>
-                <RecentSearchesProvider>
-                  <AppContent />
-                </RecentSearchesProvider>
+                <NotesProvider>
+                  <RecentSearchesProvider>
+                    <AppContent />
+                  </RecentSearchesProvider>
+                </NotesProvider>
               </FoldersProvider>
             </FavoritesProvider>
           </ProProvider>
