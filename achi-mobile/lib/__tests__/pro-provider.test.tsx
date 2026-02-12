@@ -58,6 +58,7 @@ jest.mock("expo-iap", () => ({
 jest.mock("@react-native-async-storage/async-storage", () => ({
   getItem: jest.fn().mockResolvedValue(null),
   setItem: jest.fn().mockResolvedValue(undefined),
+  removeItem: jest.fn().mockResolvedValue(undefined),
 }));
 
 jest.spyOn(Alert, "alert");
@@ -110,9 +111,7 @@ describe("ProProvider", () => {
   });
 
   it("returns product when products are fetched", () => {
-    mockProducts = [
-      { id: PRO_PRODUCT_ID, displayPrice: "$2.99" },
-    ];
+    mockProducts = [{ id: PRO_PRODUCT_ID, displayPrice: "$2.99" }];
 
     const { result } = renderHook(() => useProStatus(), { wrapper });
 
@@ -123,6 +122,7 @@ describe("ProProvider", () => {
   });
 
   it("calls requestPurchase when purchasePro is called", () => {
+    mockConnected = true;
     const { result } = renderHook(() => useProStatus(), { wrapper });
 
     act(() => {
@@ -204,6 +204,7 @@ describe("ProProvider", () => {
   });
 
   it("syncs Pro status from availablePurchases", async () => {
+    mockConnected = true;
     mockAvailablePurchases = [
       {
         id: "test-id",
@@ -229,5 +230,65 @@ describe("ProProvider", () => {
     expect(() => {
       renderHook(() => useProStatus());
     }).toThrow("useProStatus must be used within ProProvider");
+  });
+
+  it("fetches products when connected to store", () => {
+    mockConnected = true;
+    renderHook(() => useProStatus(), { wrapper });
+
+    expect(mockFetchProducts).toHaveBeenCalledWith({
+      skus: [PRO_PRODUCT_ID],
+      type: "in-app",
+    });
+  });
+
+  it("calls getAvailablePurchases when connected to store", () => {
+    mockConnected = true;
+    renderHook(() => useProStatus(), { wrapper });
+
+    expect(mockGetAvailablePurchases).toHaveBeenCalled();
+  });
+
+  it("shows fallback message when purchase error has no message", () => {
+    renderHook(() => useProStatus(), { wrapper });
+
+    act(() => {
+      capturedOptions.onPurchaseError?.({
+        code: ErrorCode.NetworkError,
+        message: undefined as unknown as string,
+      });
+    });
+
+    expect(Alert.alert).toHaveBeenCalledWith(
+      "Помилка покупки",
+      "Невідома помилка",
+    );
+  });
+
+  it("sets isPro even when finishTransaction fails", async () => {
+    mockFinishTransaction.mockRejectedValueOnce(new Error("Network error"));
+
+    const { result } = renderHook(() => useProStatus(), { wrapper });
+
+    const mockPurchase: MockPurchase = {
+      id: "test-id",
+      productId: PRO_PRODUCT_ID,
+      platform: "ios",
+      purchaseState: "purchased",
+      isAutoRenewing: false,
+      quantity: 1,
+      store: "apple",
+      transactionDate: Date.now(),
+    };
+
+    await act(async () => {
+      await capturedOptions.onPurchaseSuccess?.(mockPurchase);
+    });
+
+    expect(result.current.isPro).toBe(true);
+    expect(AsyncStorage.setItem).toHaveBeenCalledWith(
+      PRO_STORAGE_KEY,
+      "true",
+    );
   });
 });

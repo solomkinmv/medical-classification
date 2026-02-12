@@ -1,6 +1,7 @@
 import { useMemo, useRef, useCallback, useEffect, memo } from "react";
 import { Text, FlatList, ScrollView, View } from "react-native";
 import { useRouter, useFocusEffect } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
 import { AccentCard } from "@/components/AccentCard";
 import { ClassifierSwitcher } from "@/components/ClassifierSwitcher";
 import { EmptyState } from "@/components/EmptyState";
@@ -266,11 +267,19 @@ const SearchResultCard = memo(function SearchResultCard({
       accessibilityHint="Відкрити деталі"
     >
       {codeHasNote && (
-        <View style={{ flexDirection: "row", alignItems: "center", marginTop: 6 }}>
+        <View
+          style={{ flexDirection: "row", alignItems: "center", marginTop: 6 }}
+        >
+          <Ionicons
+            name="document-text-outline"
+            size={12}
+            color={colors.violet[500]}
+          />
           <Text
             style={{
               fontSize: 11,
               color: colors.violet[500],
+              marginLeft: 4,
             }}
           >
             Нотатка

@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   View,
   Text,
   Pressable,
   ScrollView,
   ActivityIndicator,
+  Alert,
   Platform,
 } from "react-native";
 import { Stack, useRouter } from "expo-router";
@@ -39,8 +40,14 @@ const FEATURES: {
 ];
 
 export default function ProScreen() {
-  const { isPro, isProLoading, purchasePro, restorePurchases, product } =
-    useProStatus();
+  const {
+    isPro,
+    isProLoading,
+    purchasePro,
+    restorePurchases,
+    product,
+    purchaseErrorCount,
+  } = useProStatus();
   const [isPurchasing, setIsPurchasing] = useState(false);
   const [isRestoring, setIsRestoring] = useState(false);
   const router = useRouter();
@@ -48,18 +55,59 @@ export default function ProScreen() {
   const { colors: t } = useTheme();
   const backgroundColor = useBackgroundColor();
 
-  const displayPrice = product?.displayPrice ?? "$2.99";
+  const displayPrice = product?.displayPrice ?? null;
+  const prevIsPro = useRef(isPro);
+  const isMounted = useRef(true);
+
+  useEffect(() => {
+    isMounted.current = true;
+    return () => {
+      isMounted.current = false;
+    };
+  }, []);
+
+  // Clear purchasing state when a purchase error occurs (including cancellation)
+  useEffect(() => {
+    if (purchaseErrorCount > 0) {
+      setIsPurchasing(false);
+    }
+  }, [purchaseErrorCount]);
+
+  // Auto-dismiss and clear loading when Pro is activated
+  useEffect(() => {
+    if (isPro && !prevIsPro.current) {
+      setIsPurchasing(false);
+      setIsRestoring(false);
+      router.back();
+    }
+    prevIsPro.current = isPro;
+  }, [isPro, router]);
 
   const handlePurchase = () => {
     setIsPurchasing(true);
-    purchasePro();
-    setTimeout(() => setIsPurchasing(false), 5000);
+    purchasePro().catch(() => {
+      if (isMounted.current) setIsPurchasing(false);
+    });
   };
 
   const handleRestore = () => {
     setIsRestoring(true);
-    restorePurchases();
-    setTimeout(() => setIsRestoring(false), 5000);
+    restorePurchases()
+      .then(() => {
+        setTimeout(() => {
+          if (!isMounted.current) return;
+          setIsRestoring(false);
+          if (!prevIsPro.current) {
+            Alert.alert(
+              "Покупки не знайдено",
+              "Не знайдено попередніх покупок Pro",
+            );
+          }
+        }, 500);
+      })
+      .catch(() => {
+        if (isMounted.current) setIsRestoring(false);
+      });
   };
 
   if (isProLoading) {
@@ -122,9 +170,7 @@ export default function ProScreen() {
             accessibilityRole="button"
             accessibilityLabel="Закрити"
           >
-            <Text
-              style={{ color: "#ffffff", fontWeight: "600", fontSize: 16 }}
-            >
+            <Text style={{ color: "#ffffff", fontWeight: "600", fontSize: 16 }}>
               Закрити
             </Text>
           </Pressable>
@@ -235,26 +281,27 @@ export default function ProScreen() {
 
         <Pressable
           onPress={handlePurchase}
-          disabled={isPurchasing}
+          disabled={isPurchasing || !product}
           style={{
             paddingVertical: 16,
             borderRadius: 14,
-            backgroundColor: isPurchasing
-              ? colors.violet[600]
-              : colors.violet[500],
+            backgroundColor:
+              isPurchasing || !product
+                ? colors.violet[600]
+                : colors.violet[500],
             alignItems: "center",
-            opacity: isPurchasing ? 0.7 : 1,
+            opacity: isPurchasing || !product ? 0.7 : 1,
           }}
           accessibilityRole="button"
-          accessibilityLabel={`Купити Pro за ${displayPrice}`}
+          accessibilityLabel={
+            displayPrice ? `Купити Pro за ${displayPrice}` : "Завантаження ціни"
+          }
         >
           {isPurchasing ? (
             <ActivityIndicator color="#ffffff" />
           ) : (
-            <Text
-              style={{ color: "#ffffff", fontWeight: "700", fontSize: 18 }}
-            >
-              Купити Pro — {displayPrice}
+            <Text style={{ color: "#ffffff", fontWeight: "700", fontSize: 18 }}>
+              {displayPrice ? `Купити Pro — ${displayPrice}` : "Завантаження..."}
             </Text>
           )}
         </Pressable>

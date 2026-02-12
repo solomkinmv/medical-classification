@@ -10,6 +10,7 @@ import {
 } from "react-native";
 import { Link, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import { promptTextInput } from "@/lib/prompt-text-input";
 import { AccentCard } from "@/components/AccentCard";
 import { Card } from "@/components/Card";
 import { ClassifierSwitcher } from "@/components/ClassifierSwitcher";
@@ -29,6 +30,15 @@ import {
   REFRESH_FEEDBACK_DELAY_MS,
 } from "@/lib/constants";
 import type { LeafCode, Folder } from "@/lib/types";
+
+function pluralizeCodes(count: number): string {
+  const lastTwo = count % 100;
+  const lastOne = count % 10;
+  if (lastTwo >= 11 && lastTwo <= 19) return "кодів";
+  if (lastOne === 1) return "код";
+  if (lastOne >= 2 && lastOne <= 4) return "коди";
+  return "кодів";
+}
 
 export default function PinnedScreen() {
   const { favorites, toggleFavorite, isLoading } = useFavorites();
@@ -53,22 +63,12 @@ export default function PinnedScreen() {
   }, []);
 
   const handleCreateFolder = useCallback(() => {
-    Alert.prompt(
-      "Нова папка",
-      "Введіть назву папки",
-      [
-        { text: "Скасувати", style: "cancel" },
-        {
-          text: "Створити",
-          onPress: (name: string | undefined) => {
-            if (name?.trim()) {
-              createFolder(name.trim());
-            }
-          },
-        },
-      ],
-      "plain-text",
-    );
+    promptTextInput({
+      title: "Нова папка",
+      message: "Введіть назву папки",
+      submitText: "Створити",
+      onSubmit: (name) => createFolder(name),
+    });
   }, [createFolder]);
 
   const handleFolderLongPress = useCallback(
@@ -78,23 +78,13 @@ export default function PinnedScreen() {
         {
           text: "Перейменувати",
           onPress: () => {
-            Alert.prompt(
-              "Перейменувати папку",
-              "Введіть нову назву",
-              [
-                { text: "Скасувати", style: "cancel" },
-                {
-                  text: "Зберегти",
-                  onPress: (name: string | undefined) => {
-                    if (name?.trim()) {
-                      renameFolder(folder.id, name.trim());
-                    }
-                  },
-                },
-              ],
-              "plain-text",
-              folder.name,
-            );
+            promptTextInput({
+              title: "Перейменувати папку",
+              message: "Введіть нову назву",
+              defaultValue: folder.name,
+              submitText: "Зберегти",
+              onSubmit: (name) => renameFolder(folder.id, name),
+            });
           },
         },
         {
@@ -186,6 +176,7 @@ export default function PinnedScreen() {
           {isPro && (
             <FoldersSection
               folders={folders}
+              favorites={favorites}
               onCreateFolder={handleCreateFolder}
               onFolderLongPress={handleFolderLongPress}
               onFolderPress={(folder) =>
@@ -209,9 +200,7 @@ export default function PinnedScreen() {
           toggleFavorite={toggleFavorite}
           isPro={isPro}
           folders={folders}
-          onAddToFolder={(folderId: string) =>
-            addToFolder(folderId, item.code)
-          }
+          onAddToFolder={(folderId: string) => addToFolder(folderId, item.code)}
           onRemoveFromFolder={(folderId: string) =>
             removeFromFolder(folderId, item.code)
           }
@@ -223,6 +212,7 @@ export default function PinnedScreen() {
 
 interface FoldersSectionProps {
   folders: Folder[];
+  favorites: LeafCode[];
   onCreateFolder: () => void;
   onFolderLongPress: (folder: Folder) => void;
   onFolderPress: (folder: Folder) => void;
@@ -231,6 +221,7 @@ interface FoldersSectionProps {
 
 function FoldersSection({
   folders,
+  favorites,
   onCreateFolder,
   onFolderLongPress,
   onFolderPress,
@@ -279,21 +270,28 @@ function FoldersSection({
           </Text>
         </Pressable>
       </View>
-      {folders.map((folder) => (
-        <FolderCard
-          key={folder.id}
-          folder={folder}
-          onPress={() => onFolderPress(folder)}
-          onLongPress={() => onFolderLongPress(folder)}
-          themeColors={themeColors}
-        />
-      ))}
+      {folders.map((folder) => {
+        const resolvedCount = folder.codeRefs.filter((code) =>
+          favorites.some((f) => f.code === code),
+        ).length;
+        return (
+          <FolderCard
+            key={folder.id}
+            folder={folder}
+            resolvedCount={resolvedCount}
+            onPress={() => onFolderPress(folder)}
+            onLongPress={() => onFolderLongPress(folder)}
+            themeColors={themeColors}
+          />
+        );
+      })}
     </View>
   );
 }
 
 interface FolderCardProps {
   folder: Folder;
+  resolvedCount: number;
   onPress: () => void;
   onLongPress: () => void;
   themeColors: { text: string; textSecondary: string };
@@ -301,11 +299,12 @@ interface FolderCardProps {
 
 const FolderCard = memo(function FolderCard({
   folder,
+  resolvedCount,
   onPress,
   onLongPress,
   themeColors,
 }: FolderCardProps) {
-  const count = folder.codeRefs.length;
+  const count = resolvedCount;
   return (
     <Pressable onPress={onPress} onLongPress={onLongPress} className="mb-3">
       <Card>
@@ -328,9 +327,7 @@ const FolderCard = memo(function FolderCard({
               className="text-xs mt-0.5"
               style={{ color: themeColors.textSecondary }}
             >
-              {count === 0
-                ? "Порожня"
-                : `${count} ${count === 1 ? "код" : count < 5 ? "коди" : "кодів"}`}
+              {count === 0 ? "Порожня" : `${count} ${pluralizeCodes(count)}`}
             </Text>
           </View>
           <Ionicons

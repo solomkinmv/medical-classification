@@ -99,7 +99,7 @@ export function FoldersProvider({ children }: FoldersProviderProps) {
     (name: string): Folder => {
       const folder: Folder = {
         id: randomUUID(),
-        name,
+        name: name.trim(),
         classifier: activeClassifier,
         codeRefs: [],
       };
@@ -128,10 +128,12 @@ export function FoldersProvider({ children }: FoldersProviderProps) {
 
   const renameFolder = useCallback(
     (id: string, name: string) => {
+      const trimmed = name.trim();
+      if (!trimmed) return;
       setCache((prev) => {
         const current = prev[activeClassifier] ?? [];
         const updated = current.map((f) =>
-          f.id === id ? { ...f, name } : f,
+          f.id === id ? { ...f, name: trimmed } : f,
         );
         persist(activeClassifier, updated);
         return { ...prev, [activeClassifier]: updated };
@@ -144,11 +146,11 @@ export function FoldersProvider({ children }: FoldersProviderProps) {
     (folderId: string, code: string) => {
       setCache((prev) => {
         const current = prev[activeClassifier] ?? [];
-        const updated = current.map((f) => {
-          if (f.id !== folderId) return f;
-          if (f.codeRefs.includes(code)) return f;
-          return { ...f, codeRefs: [...f.codeRefs, code] };
-        });
+        const folder = current.find((f) => f.id === folderId);
+        if (!folder || folder.codeRefs.includes(code)) return prev;
+        const updated = current.map((f) =>
+          f.id === folderId ? { ...f, codeRefs: [...f.codeRefs, code] } : f,
+        );
         persist(activeClassifier, updated);
         return { ...prev, [activeClassifier]: updated };
       });
@@ -160,10 +162,13 @@ export function FoldersProvider({ children }: FoldersProviderProps) {
     (folderId: string, code: string) => {
       setCache((prev) => {
         const current = prev[activeClassifier] ?? [];
-        const updated = current.map((f) => {
-          if (f.id !== folderId) return f;
-          return { ...f, codeRefs: f.codeRefs.filter((c) => c !== code) };
-        });
+        const folder = current.find((f) => f.id === folderId);
+        if (!folder || !folder.codeRefs.includes(code)) return prev;
+        const updated = current.map((f) =>
+          f.id === folderId
+            ? { ...f, codeRefs: f.codeRefs.filter((c) => c !== code) }
+            : f,
+        );
         persist(activeClassifier, updated);
         return { ...prev, [activeClassifier]: updated };
       });

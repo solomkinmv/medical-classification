@@ -5,6 +5,7 @@ import {
   useEffect,
   useCallback,
   useMemo,
+  useRef,
   type ReactNode,
 } from "react";
 import { Alert } from "react-native";
@@ -15,9 +16,10 @@ import { PRO_PRODUCT_ID, PRO_STORAGE_KEY } from "./constants";
 interface ProContextType {
   isPro: boolean;
   isProLoading: boolean;
-  purchasePro: () => void;
-  restorePurchases: () => void;
+  purchasePro: () => Promise<void>;
+  restorePurchases: () => Promise<void>;
   product: Product | null;
+  purchaseErrorCount: number;
 }
 
 const ProContext = createContext<ProContextType | null>(null);
@@ -29,6 +31,8 @@ interface ProProviderProps {
 export function ProProvider({ children }: ProProviderProps) {
   const [isPro, setIsPro] = useState(false);
   const [isProLoading, setIsProLoading] = useState(true);
+  const [purchaseErrorCount, setPurchaseErrorCount] = useState(0);
+  const purchaseCompletedAt = useRef<number>(0);
 
   const {
     connected,
@@ -40,11 +44,17 @@ export function ProProvider({ children }: ProProviderProps) {
     availablePurchases,
   } = useIAP({
     onPurchaseSuccess: async (purchase: Purchase) => {
-      await finishTransaction({ purchase, isConsumable: false });
+      purchaseCompletedAt.current = Date.now();
       setIsPro(true);
       AsyncStorage.setItem(PRO_STORAGE_KEY, "true").catch(console.error);
+      try {
+        await finishTransaction({ purchase, isConsumable: false });
+      } catch (error) {
+        console.error("Failed to finish transaction:", error);
+      }
     },
     onPurchaseError: (error) => {
+      setPurchaseErrorCount((c) => c + 1);
       if (error.code !== ErrorCode.UserCancelled) {
         Alert.alert("Помилка покупки", error.message ?? "Невідома помилка");
       }
@@ -75,46 +85,77 @@ export function ProProvider({ children }: ProProviderProps) {
   }, [connected, fetchProducts]);
 
   // Verify purchase status when connected
+  const [hasFetchedPurchases, setHasFetchedPurchases] = useState(false);
+
   useEffect(() => {
     if (connected) {
-      getAvailablePurchases().catch(console.error);
+      getAvailablePurchases()
+        .then(() => setHasFetchedPurchases(true))
+        .catch(console.error);
     }
   }, [connected, getAvailablePurchases]);
 
-  // Sync Pro status from available purchases
   useEffect(() => {
+    if (!hasFetchedPurchases) return;
+
     const owned = availablePurchases.some(
       (p) => p.productId === PRO_PRODUCT_ID,
     );
     if (owned && !isPro) {
       setIsPro(true);
       AsyncStorage.setItem(PRO_STORAGE_KEY, "true").catch(console.error);
+    } else if (!owned && isPro && !isProLoading) {
+      const secondsSincePurchase =
+        (Date.now() - purchaseCompletedAt.current) / 1000;
+      if (secondsSincePurchase < 10) {
+        return;
+      }
+      setIsPro(false);
+      AsyncStorage.removeItem(PRO_STORAGE_KEY).catch(console.error);
     }
-  }, [availablePurchases, isPro]);
+  }, [availablePurchases, isPro, isProLoading, hasFetchedPurchases]);
 
-  const purchasePro = useCallback(() => {
-    requestPurchase({
+  const purchasePro = useCallback(async () => {
+    if (!connected) {
+      Alert.alert("Помилка", "Не вдалося з'єднатися з магазином");
+      return;
+    }
+    await requestPurchase({
       request: {
         apple: { sku: PRO_PRODUCT_ID },
         google: { skus: [PRO_PRODUCT_ID] },
       },
       type: "in-app",
-    }).catch(console.error);
-  }, [requestPurchase]);
+    });
+  }, [connected, requestPurchase]);
 
-  const restorePurchasesCallback = useCallback(() => {
-    getAvailablePurchases().catch(console.error);
+  const restorePurchasesCallback = useCallback(async () => {
+    try {
+      await getAvailablePurchases();
+      setHasFetchedPurchases(true);
+    } catch (error) {
+      Alert.alert("Помилка", "Не вдалося відновити покупки");
+      throw error;
+    }
   }, [getAvailablePurchases]);
 
-  const value = useMemo(
+  const value = useMemo<ProContextType>(
     () => ({
       isPro,
       isProLoading,
       purchasePro,
       restorePurchases: restorePurchasesCallback,
       product,
+      purchaseErrorCount,
     }),
-    [isPro, isProLoading, purchasePro, restorePurchasesCallback, product],
+    [
+      isPro,
+      isProLoading,
+      purchasePro,
+      restorePurchasesCallback,
+      product,
+      purchaseErrorCount,
+    ],
   );
 
   return <ProContext.Provider value={value}>{children}</ProContext.Provider>;

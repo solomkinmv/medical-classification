@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   View,
   Text,
@@ -89,6 +89,11 @@ export default function ProcedureDetail() {
   const existingNote = procedure ? getNote(procedure.code) : null;
   const [isEditing, setIsEditing] = useState(false);
   const [noteText, setNoteText] = useState("");
+
+  useEffect(() => {
+    setIsEditing(false);
+    setNoteText("");
+  }, [code]);
 
   if (!code) {
     return (

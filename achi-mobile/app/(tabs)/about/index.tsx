@@ -202,7 +202,7 @@ export default function AboutScreen() {
 
       <View className="mt-8 items-center">
         <Text className="text-gray-400 dark:text-gray-500 text-sm">
-          Версія 1.0.0
+          Версія 1.1.0
         </Text>
       </View>
     </ScrollView>

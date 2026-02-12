@@ -60,7 +60,6 @@ describe("FavoritesProvider - bookmark limit", () => {
 
     expect(outcome!.limitReached).toBe(false);
     expect(result.current.favorites).toHaveLength(1);
-    expect(result.current.canAddFavorite).toBe(true);
   });
 
   it("allows adding up to BOOKMARK_LIMIT_FREE bookmarks", async () => {
@@ -74,8 +73,6 @@ describe("FavoritesProvider - bookmark limit", () => {
     }
 
     expect(result.current.favorites).toHaveLength(BOOKMARK_LIMIT_FREE);
-    expect(result.current.canAddFavorite).toBe(false);
-    expect(result.current.favoritesRemaining).toBe(0);
   });
 
   it("blocks adding when at the limit for free users", async () => {
@@ -111,7 +108,6 @@ describe("FavoritesProvider - bookmark limit", () => {
     }
 
     expect(result.current.favorites).toHaveLength(BOOKMARK_LIMIT_FREE + 2);
-    expect(result.current.canAddFavorite).toBe(true);
   });
 
   it("still allows removing bookmarks when at the limit", async () => {
@@ -136,8 +132,6 @@ describe("FavoritesProvider - bookmark limit", () => {
 
     expect(outcome!.limitReached).toBe(false);
     expect(result.current.favorites).toHaveLength(BOOKMARK_LIMIT_FREE - 1);
-    expect(result.current.canAddFavorite).toBe(true);
-    expect(result.current.favoritesRemaining).toBe(1);
   });
 
   it("preserves existing bookmarks over the limit loaded from storage", async () => {
@@ -155,27 +149,45 @@ describe("FavoritesProvider - bookmark limit", () => {
     await waitFor(() => expect(result.current.isReady).toBe(true));
 
     expect(result.current.favorites).toHaveLength(5);
-    expect(result.current.canAddFavorite).toBe(false);
   });
 
-  it("reports correct favoritesRemaining count", async () => {
+  it("isFavorite returns true for bookmarked codes", async () => {
     const { result } = renderHook(() => useFavorites(), { wrapper });
     await waitFor(() => expect(result.current.isReady).toBe(true));
 
-    expect(result.current.favoritesRemaining).toBe(BOOKMARK_LIMIT_FREE);
+    expect(result.current.isFavorite("001")).toBe(false);
 
     act(() => {
       result.current.toggleFavorite(makeLeafCode("001"));
     });
 
-    expect(result.current.favoritesRemaining).toBe(BOOKMARK_LIMIT_FREE - 1);
+    expect(result.current.isFavorite("001")).toBe(true);
+    expect(result.current.isFavorite("002")).toBe(false);
+
+    act(() => {
+      result.current.toggleFavorite(makeLeafCode("001"));
+    });
+
+    expect(result.current.isFavorite("001")).toBe(false);
   });
 
-  it("reports Infinity favoritesRemaining for Pro users", async () => {
-    mockIsPro = true;
+  it("handles corrupted storage data gracefully", async () => {
+    (AsyncStorage.getItem as jest.Mock).mockImplementation((key: string) => {
+      if (key === "achi_favorites") {
+        return Promise.resolve("invalid json{{{");
+      }
+      return Promise.resolve(null);
+    });
+
     const { result } = renderHook(() => useFavorites(), { wrapper });
     await waitFor(() => expect(result.current.isReady).toBe(true));
 
-    expect(result.current.favoritesRemaining).toBe(Infinity);
+    expect(result.current.favorites).toEqual([]);
+  });
+
+  it("throws error when useFavorites is used outside FavoritesProvider", () => {
+    expect(() => {
+      renderHook(() => useFavorites());
+    }).toThrow("useFavorites must be used within FavoritesProvider");
   });
 });

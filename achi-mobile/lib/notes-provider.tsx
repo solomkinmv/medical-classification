@@ -51,7 +51,9 @@ export function NotesProvider({ children }: NotesProviderProps) {
             if (!raw) return {};
             try {
               const parsed = JSON.parse(raw);
-              return typeof parsed === "object" && parsed !== null
+              return typeof parsed === "object" &&
+                parsed !== null &&
+                !Array.isArray(parsed)
                 ? parsed
                 : {};
             } catch {
@@ -104,9 +106,19 @@ export function NotesProvider({ children }: NotesProviderProps) {
 
   const setNote = useCallback(
     (code: string, text: string) => {
+      const trimmed = text.trim();
+      if (!trimmed) {
+        setCache((prev) => {
+          const current = prev[activeClassifier] ?? {};
+          const { [code]: _, ...updated } = current;
+          persist(activeClassifier, updated);
+          return { ...prev, [activeClassifier]: updated };
+        });
+        return;
+      }
       setCache((prev) => {
         const current = prev[activeClassifier] ?? {};
-        const updated = { ...current, [code]: text };
+        const updated = { ...current, [code]: trimmed };
         persist(activeClassifier, updated);
         return { ...prev, [activeClassifier]: updated };
       });
@@ -128,7 +140,7 @@ export function NotesProvider({ children }: NotesProviderProps) {
 
   const hasNote = useCallback(
     (code: string): boolean => {
-      return code in notes;
+      return Object.hasOwn(notes, code);
     },
     [notes],
   );
