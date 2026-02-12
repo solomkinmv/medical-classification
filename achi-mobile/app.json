@@ -55,7 +55,12 @@
       "output": "static",
       "favicon": "./assets/images/favicon.png"
     },
-    "plugins": ["expo-router", "expo-localization"],
+    "plugins": [
+      "expo-router",
+      "expo-localization",
+      "expo-iap",
+      ["expo-build-properties", { "android": { "kotlinVersion": "2.2.0" } }]
+    ],
     "experiments": {
       "typedRoutes": true
     },

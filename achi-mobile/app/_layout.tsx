@@ -12,6 +12,7 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { StatusBar } from "expo-status-bar";
 import { isLiquidGlassAvailable } from "expo-glass-effect";
 import { ClassifierProvider, useClassifier } from "@/lib/classifier-provider";
+import { ProProvider } from "@/lib/pro-provider";
 import { FavoritesProvider, useFavorites } from "@/lib/favorites-provider";
 import {
   RecentSearchesProvider,
@@ -31,11 +32,13 @@ export default function RootLayout() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <ThemeProvider value={isDark ? DarkTheme : DefaultTheme}>
         <ClassifierProvider>
-          <FavoritesProvider>
-            <RecentSearchesProvider>
-              <AppContent />
-            </RecentSearchesProvider>
-          </FavoritesProvider>
+          <ProProvider>
+            <FavoritesProvider>
+              <RecentSearchesProvider>
+                <AppContent />
+              </RecentSearchesProvider>
+            </FavoritesProvider>
+          </ProProvider>
         </ClassifierProvider>
       </ThemeProvider>
     </GestureHandlerRootView>
