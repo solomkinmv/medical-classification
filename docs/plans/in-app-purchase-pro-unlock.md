@@ -126,20 +126,20 @@ finishTransaction({ purchase, isConsumable: false });
 - [x] Run tests — must pass before next task
 
 ### Task 3: Add bookmark limit for free users (3 per classifier)
-- [ ] Add `BOOKMARK_LIMIT_FREE = 3` constant to `lib/constants.ts`
-- [ ] Modify `lib/favorites-provider.tsx`:
+- [x] Add `BOOKMARK_LIMIT_FREE = 3` constant to `lib/constants.ts`
+- [x] Modify `lib/favorites-provider.tsx`:
   - Import `useProStatus` from pro-provider
   - Add `canAddFavorite: boolean` to context (true if Pro OR count < 3)
   - Add `favoritesRemaining: number` to context
   - Modify `toggleFavorite`: when adding and limit reached, don't add — instead set a `limitReached` flag
-- [ ] Create `components/UpgradePrompt.tsx` — an Alert-based prompt shown when limit hit:
+- [x] Create `components/UpgradePrompt.tsx` — an Alert-based prompt shown when limit hit:
   - Title: "Обмеження безкоштовної версії"
   - Message: "Безкоштовна версія дозволяє зберігати до 3 закладок. Оновіть до Pro для необмежених закладок, папок та нотаток."
   - Buttons: "Оновити до Pro" (navigates to /pro) and "Скасувати"
-- [ ] Wire upgrade prompt: when `toggleFavorite` is called at limit, show prompt
-- [ ] Ensure existing bookmarks (>3) from before update are preserved and visible (just can't add more)
-- [ ] Write tests for bookmark limit logic (under limit, at limit, Pro bypasses limit, removing still works)
-- [ ] Run tests — must pass before next task
+- [x] Wire upgrade prompt: when `toggleFavorite` is called at limit, show prompt
+- [x] Ensure existing bookmarks (>3) from before update are preserved and visible (just can't add more)
+- [x] Write tests for bookmark limit logic (under limit, at limit, Pro bypasses limit, removing still works)
+- [x] Run tests — must pass before next task
 
 ### Task 4: Create Pro upgrade screen
 - [ ] Create `app/pro.tsx` — modal screen showing Pro features and purchase button:

@@ -87,7 +87,7 @@ export default function PinnedScreen() {
 
 interface PinnedCardProps {
   procedure: LeafCode;
-  toggleFavorite: (item: LeafCode) => void;
+  toggleFavorite: (item: LeafCode) => { limitReached: boolean };
 }
 
 const PinnedCard = memo(function PinnedCard({

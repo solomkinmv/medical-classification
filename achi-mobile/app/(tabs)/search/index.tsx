@@ -6,6 +6,7 @@ import { ClassifierSwitcher } from "@/components/ClassifierSwitcher";
 import { EmptyState } from "@/components/EmptyState";
 import { SkeletonList } from "@/components/SkeletonList";
 import { RecentSearches } from "@/components/RecentSearches";
+import { showUpgradePrompt } from "@/components/UpgradePrompt";
 import { useClassifier } from "@/lib/classifier-provider";
 import { useFavorites } from "@/lib/favorites-provider";
 import { useRecentSearches } from "@/lib/recent-searches-provider";
@@ -251,7 +252,10 @@ const SearchResultCard = memo(function SearchResultCard({
         isPinned ? "rgba(245, 158, 11, 0.15)" : "rgba(156, 163, 175, 0.1)"
       }
       iconSize={18}
-      onIconPress={() => toggleFavorite(result.code)}
+      onIconPress={() => {
+        const { limitReached } = toggleFavorite(result.code);
+        if (limitReached) showUpgradePrompt();
+      }}
       iconAccessibilityLabel={
         isPinned ? "Видалити закладку" : "Додати закладку"
       }
