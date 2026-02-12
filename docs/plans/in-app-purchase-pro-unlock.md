@@ -92,11 +92,11 @@ finishTransaction({ purchase, isConsumable: false });
 ## Implementation Steps
 
 ### Task 1: Set up test infrastructure
-- [ ] Install jest, @testing-library/react-native, and related dev dependencies
-- [ ] Configure jest for Expo/React Native
-- [ ] Add `test` script to package.json
-- [ ] Create a trivial test to verify setup works
-- [ ] Run tests — must pass before next task
+- [x] Install jest, @testing-library/react-native, and related dev dependencies
+- [x] Configure jest for Expo/React Native
+- [x] Add `test` script to package.json
+- [x] Create a trivial test to verify setup works
+- [x] Run tests — must pass before next task
 
 ### Task 2: Install and configure expo-iap
 - [ ] Run `npx expo install expo-iap expo-build-properties`

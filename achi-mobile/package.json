@@ -9,7 +9,14 @@
     "deploy:ios": "eas build --platform ios --profile production --local --non-interactive && IPA=$(ls -t build-*.ipa | head -1) && eas submit --platform ios --path ./$IPA --non-interactive && rm -f $IPA",
     "lint": "expo lint",
     "format": "prettier --write \"**/*.{ts,tsx,js,json}\"",
-    "format:check": "prettier --check \"**/*.{ts,tsx,js,json}\""
+    "format:check": "prettier --check \"**/*.{ts,tsx,js,json}\"",
+    "test": "jest"
+  },
+  "jest": {
+    "preset": "jest-expo",
+    "transformIgnorePatterns": [
+      "node_modules/(?!((jest-)?react-native|@react-native(-community)?)|expo(nent)?|@expo(nent)?/.*|@expo-google-fonts/.*|react-navigation|@react-navigation/.*|@sentry/react-native|native-base|react-native-svg|nativewind)"
+    ]
   },
   "dependencies": {
     "@expo/ui": "~0.2.0-beta.7",
@@ -43,11 +50,15 @@
     "tailwindcss": "^3.4.0"
   },
   "devDependencies": {
+    "@testing-library/react-native": "^13.3.3",
+    "@types/jest": "^29.5.14",
     "@types/react": "~19.1.10",
     "babel-preset-expo": "^54.0.9",
     "eslint": "^9.39.2",
     "eslint-config-expo": "^10.0.0",
     "eslint-config-prettier": "^10.1.8",
+    "jest": "^29.7.0",
+    "jest-expo": "^54.0.17",
     "prettier": "^3.8.1",
     "typescript": "~5.9.0"
   },
