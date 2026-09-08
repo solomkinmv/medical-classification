@@ -1,19 +1,21 @@
-import { Pressable, type ColorValue } from "react-native";
-import { Host, Image, Button } from "@expo/ui/swift-ui";
+import { type ColorValue } from "react-native";
+import { HeaderButton } from "@react-navigation/elements";
+import { Ionicons } from "@expo/vector-icons";
 
 interface CloseButtonProps {
+  testID?: string;
   onPress: () => void;
   color: ColorValue;
 }
 
-export function CloseButton({ onPress, color }: CloseButtonProps) {
+export function CloseButton({ onPress, color, testID }: CloseButtonProps) {
   return (
-    <Pressable onPress={onPress} hitSlop={20}>
-      <Host matchContents>
-        <Button variant="glass" onPress={onPress}>
-          <Image systemName="xmark" size={20} color={color as string} />
-        </Button>
-      </Host>
-    </Pressable>
+    <HeaderButton
+      testID={testID}
+      onPress={onPress}
+      accessibilityLabel="Закрити"
+    >
+      <Ionicons name="close" size={24} color={color} />
+    </HeaderButton>
   );
 }

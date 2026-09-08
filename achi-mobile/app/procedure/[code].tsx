@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   View,
   Text,
@@ -6,6 +6,7 @@ import {
   Pressable,
   Platform,
   TextInput,
+  Keyboard,
 } from "react-native";
 import {
   useLocalSearchParams,
@@ -15,8 +16,7 @@ import {
 } from "expo-router";
 import { CommonActions } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { AnimatedBookmarkButton } from "@/components/AnimatedBookmarkButton";
-import { CloseButton } from "@/components/CloseButton";
+import { headerActionOptions } from "@/components/navigation-header";
 import { showUpgradePrompt } from "@/components/UpgradePrompt";
 import { useClassifier } from "@/lib/classifier-provider";
 import { useFavorites } from "@/lib/favorites-provider";
@@ -24,6 +24,7 @@ import { useNotes } from "@/lib/notes-provider";
 import { useProStatus } from "@/lib/pro-provider";
 import { useBackgroundColor } from "@/lib/useBackgroundColor";
 import { useTheme } from "@/lib/useTheme";
+import { useHaptics } from "@/lib/useHaptics";
 import { findProcedurePath } from "@/lib/navigation";
 import { colors, getClassifierColors } from "@/lib/constants";
 import type {
@@ -89,6 +90,23 @@ export default function ProcedureDetail() {
   const existingNote = procedure ? getNote(procedure.code) : null;
   const [isEditing, setIsEditing] = useState(false);
   const [noteText, setNoteText] = useState("");
+  const scrollRef = useRef<ScrollView>(null);
+  const { trigger } = useHaptics();
+  const toggleBookmark = () => {
+    if (!procedure) return;
+    trigger(isPinned ? "light" : "medium");
+    const { limitReached } = toggleFavorite(procedure);
+    if (limitReached) showUpgradePrompt();
+  };
+
+  useEffect(() => {
+    if (!isEditing) return;
+    // Native insets protect the caret; also reveal the actions below the editor.
+    const subscription = Keyboard.addListener("keyboardDidShow", () => {
+      scrollRef.current?.scrollToEnd({ animated: true });
+    });
+    return () => subscription.remove();
+  }, [isEditing]);
 
   useEffect(() => {
     setIsEditing(false);
@@ -174,38 +192,34 @@ export default function ProcedureDetail() {
       <Stack.Screen
         options={{
           title: procedure.code,
-          headerLeft:
-            Platform.OS === "ios"
-              ? () => (
-                  <CloseButton
-                    onPress={() => router.back()}
-                    color={t.textSecondary}
-                  />
-                )
-              : undefined,
-          headerRight: () => (
-            <AnimatedBookmarkButton
-              isBookmarked={isPinned}
-              onPress={() => {
-                const { limitReached } = toggleFavorite(procedure);
-                if (limitReached) showUpgradePrompt();
-              }}
-              color={isPinned ? colors.amber[500] : colors.gray[400]}
-              backgroundColor={
-                isPinned
-                  ? "rgba(245, 158, 11, 0.15)"
-                  : "rgba(156, 163, 175, 0.1)"
-              }
-              size={18}
-              accessibilityLabel={
-                isPinned ? "Видалити закладку" : "Додати закладку"
-              }
-            />
-          ),
+          ...(Platform.OS === "ios"
+            ? headerActionOptions("left", {
+                id: "procedure.close",
+                label: "Закрити",
+                symbol: "xmark",
+                fallbackIcon: "close",
+                color: t.textSecondary,
+                onPress: () => {
+                  Keyboard.dismiss();
+                  if (router.canGoBack()) router.back();
+                  else router.replace("/");
+                },
+              })
+            : {}),
+          ...headerActionOptions("right", {
+            id: "procedure.bookmark",
+            label: isPinned ? "Видалити закладку" : "Додати закладку",
+            symbol: isPinned ? "bookmark.fill" : "bookmark",
+            fallbackIcon: isPinned ? "bookmark" : "bookmark-outline",
+            color: isPinned ? colors.amber[500] : t.textSecondary,
+            onPress: toggleBookmark,
+          }),
         }}
       />
 
       <ScrollView
+        ref={scrollRef}
+        testID="procedure.content"
         className="flex-1"
         style={{ backgroundColor }}
         contentContainerStyle={{
@@ -214,6 +228,12 @@ export default function ProcedureDetail() {
           paddingBottom: insets.bottom + 32,
         }}
         contentInsetAdjustmentBehavior="automatic"
+        automaticallyAdjustKeyboardInsets
+        keyboardShouldPersistTaps="handled"
+        keyboardDismissMode={Platform.OS === "ios" ? "interactive" : "on-drag"}
+        onContentSizeChange={() => {
+          if (isEditing) scrollRef.current?.scrollToEnd({ animated: true });
+        }}
         showsVerticalScrollIndicator={false}
       >
         {/* Hierarchy path */}
@@ -327,11 +347,14 @@ export default function ProcedureDetail() {
             {isEditing ? (
               <View>
                 <TextInput
+                  testID="procedure.note.input"
+                  accessibilityLabel="Нотатка до коду"
                   value={noteText}
                   onChangeText={setNoteText}
                   placeholder="Введіть нотатку..."
                   placeholderTextColor={t.textMuted}
                   multiline
+                  scrollEnabled
                   autoFocus
                   style={{
                     fontSize: 15,
@@ -341,6 +364,7 @@ export default function ProcedureDetail() {
                     borderRadius: 10,
                     padding: 12,
                     minHeight: 80,
+                    maxHeight: 160,
                     textAlignVertical: "top",
                   }}
                 />
@@ -353,6 +377,8 @@ export default function ProcedureDetail() {
                   }}
                 >
                   <Pressable
+                    testID="procedure.note.cancel"
+                    accessibilityRole="button"
                     onPress={() => {
                       setIsEditing(false);
                       setNoteText("");
@@ -369,6 +395,8 @@ export default function ProcedureDetail() {
                     </Text>
                   </Pressable>
                   <Pressable
+                    testID="procedure.note.save"
+                    accessibilityRole="button"
                     onPress={() => {
                       if (noteText.trim()) {
                         setNote(procedure.code, noteText.trim());
@@ -410,6 +438,8 @@ export default function ProcedureDetail() {
                   }}
                 >
                   <Pressable
+                    testID="procedure.note.edit"
+                    accessibilityRole="button"
                     onPress={() => {
                       setNoteText(existingNote);
                       setIsEditing(true);
@@ -425,7 +455,11 @@ export default function ProcedureDetail() {
                       Редагувати
                     </Text>
                   </Pressable>
-                  <Pressable onPress={() => deleteNote(procedure.code)}>
+                  <Pressable
+                    testID="procedure.note.delete"
+                    accessibilityRole="button"
+                    onPress={() => deleteNote(procedure.code)}
+                  >
                     <Text
                       style={{
                         color: colors.gray[400],
@@ -440,6 +474,8 @@ export default function ProcedureDetail() {
               </View>
             ) : (
               <Pressable
+                testID="procedure.note.add"
+                accessibilityRole="button"
                 onPress={() => {
                   setNoteText("");
                   setIsEditing(true);
@@ -464,6 +500,8 @@ export default function ProcedureDetail() {
         ) : (
           <View style={{ marginTop: 24 }}>
             <Pressable
+              testID="procedure.note.upgrade"
+              accessibilityRole="button"
               onPress={() => router.push("/pro" as never)}
               style={{
                 flexDirection: "row",

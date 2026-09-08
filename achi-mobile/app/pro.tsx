@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useEffect, useRef } from "react";
 import {
   View,
   Text,
@@ -11,7 +11,7 @@ import {
 import { Stack, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { CloseButton } from "@/components/CloseButton";
+import { headerActionOptions } from "@/components/navigation-header";
 import { useProStatus } from "@/lib/pro-provider";
 import { useTheme } from "@/lib/useTheme";
 import { useBackgroundColor } from "@/lib/useBackgroundColor";
@@ -39,6 +39,14 @@ const FEATURES: {
   },
 ];
 
+function useCloseProScreen() {
+  const router = useRouter();
+  return () => {
+    if (router.canGoBack()) router.back();
+    else router.replace("/");
+  };
+}
+
 export default function ProScreen() {
   const {
     isPro,
@@ -46,17 +54,18 @@ export default function ProScreen() {
     purchasePro,
     restorePurchases,
     product,
-    purchaseErrorCount,
+    productStatus,
+    purchaseStatus,
+    retryStore,
   } = useProStatus();
-  const [isPurchasing, setIsPurchasing] = useState(false);
-  const [isRestoring, setIsRestoring] = useState(false);
-  const router = useRouter();
+  const isPurchasing = purchaseStatus === "purchasing";
+  const isRestoring = purchaseStatus === "restoring";
+  const close = useCloseProScreen();
   const insets = useSafeAreaInsets();
   const { colors: t } = useTheme();
   const backgroundColor = useBackgroundColor();
 
   const displayPrice = product?.displayPrice ?? null;
-  const prevIsPro = useRef(isPro);
   const isMounted = useRef(true);
 
   useEffect(() => {
@@ -66,48 +75,14 @@ export default function ProScreen() {
     };
   }, []);
 
-  // Clear purchasing state when a purchase error occurs (including cancellation)
-  useEffect(() => {
-    if (purchaseErrorCount > 0) {
-      setIsPurchasing(false);
-    }
-  }, [purchaseErrorCount]);
-
-  // Auto-dismiss and clear loading when Pro is activated
-  useEffect(() => {
-    if (isPro && !prevIsPro.current) {
-      setIsPurchasing(false);
-      setIsRestoring(false);
-      router.back();
-    }
-    prevIsPro.current = isPro;
-  }, [isPro, router]);
-
   const handlePurchase = () => {
-    setIsPurchasing(true);
-    purchasePro().catch(() => {
-      if (isMounted.current) setIsPurchasing(false);
-    });
+    void purchasePro();
   };
-
-  const handleRestore = () => {
-    setIsRestoring(true);
-    restorePurchases()
-      .then(() => {
-        setTimeout(() => {
-          if (!isMounted.current) return;
-          setIsRestoring(false);
-          if (!prevIsPro.current) {
-            Alert.alert(
-              "Покупки не знайдено",
-              "Не знайдено попередніх покупок Pro",
-            );
-          }
-        }, 500);
-      })
-      .catch(() => {
-        if (isMounted.current) setIsRestoring(false);
-      });
+  const handleRestore = async () => {
+    const result = await restorePurchases();
+    if (isMounted.current && result === "not-owned") {
+      Alert.alert("Покупки не знайдено", "Не знайдено попередніх покупок Pro");
+    }
   };
 
   if (isProLoading) {
@@ -128,9 +103,18 @@ export default function ProScreen() {
     return (
       <>
         <ProScreenHeader />
-        <View
-          className="flex-1 items-center justify-center px-8"
+        <ScrollView
+          testID="pro.success"
+          contentInsetAdjustmentBehavior="automatic"
           style={{ backgroundColor }}
+          contentContainerStyle={{
+            flexGrow: 1,
+            alignItems: "center",
+            justifyContent: "center",
+            paddingHorizontal: 24,
+            paddingTop: 24,
+            paddingBottom: insets.bottom + 32,
+          }}
         >
           <Ionicons
             name="checkmark-circle"
@@ -146,7 +130,7 @@ export default function ProScreen() {
               textAlign: "center",
             }}
           >
-            Ви вже маєте Pro!
+            Pro активовано!
           </Text>
           <Text
             style={{
@@ -156,10 +140,40 @@ export default function ProScreen() {
               textAlign: "center",
             }}
           >
-            Всі функції розблоковано
+            Вам доступні всі можливості Pro
           </Text>
+          <View style={{ width: "100%", marginTop: 28 }}>
+            {FEATURES.map((feature) => (
+              <View
+                key={feature.icon}
+                style={{ flexDirection: "row", marginBottom: 20, gap: 14 }}
+              >
+                <Ionicons
+                  name={feature.icon}
+                  size={24}
+                  color={colors.emerald[500]}
+                />
+                <View style={{ flex: 1 }}>
+                  <Text
+                    style={{ color: t.text, fontSize: 17, fontWeight: "600" }}
+                  >
+                    {feature.title}
+                  </Text>
+                  <Text
+                    style={{
+                      color: t.textSecondary,
+                      fontSize: 15,
+                      marginTop: 4,
+                    }}
+                  >
+                    {feature.description}
+                  </Text>
+                </View>
+              </View>
+            ))}
+          </View>
           <Pressable
-            onPress={() => router.back()}
+            onPress={close}
             style={{
               marginTop: 32,
               paddingVertical: 14,
@@ -168,13 +182,14 @@ export default function ProScreen() {
               backgroundColor: colors.violet[500],
             }}
             accessibilityRole="button"
+            testID="pro.done"
             accessibilityLabel="Закрити"
           >
             <Text style={{ color: "#ffffff", fontWeight: "600", fontSize: 16 }}>
               Закрити
             </Text>
           </Pressable>
-        </View>
+        </ScrollView>
       </>
     );
   }
@@ -187,9 +202,10 @@ export default function ProScreen() {
         style={{ backgroundColor }}
         contentContainerStyle={{
           paddingHorizontal: 24,
-          paddingTop: 24,
+          paddingTop: Platform.OS === "ios" ? 24 : 16,
           paddingBottom: insets.bottom + 32,
         }}
+        contentInsetAdjustmentBehavior="automatic"
         showsVerticalScrollIndicator={false}
       >
         <View className="items-center mb-8">
@@ -279,22 +295,58 @@ export default function ProScreen() {
           ))}
         </View>
 
+        <Text
+          testID="pro.status"
+          accessibilityLiveRegion="polite"
+          style={{
+            color: t.textSecondary,
+            textAlign: "center",
+            marginBottom: 12,
+          }}
+        >
+          {purchaseStatus === "pending"
+            ? "Очікуємо підтвердження магазину. Можна закрити цей екран і повернутися пізніше або відновити покупки."
+            : productStatus === "unavailable"
+              ? "Не вдалося завантажити ціну. Перевірте з’єднання та спробуйте ще раз."
+              : ""}
+        </Text>
+        {productStatus === "unavailable" && (
+          <Pressable
+            testID="pro.retry"
+            accessibilityRole="button"
+            onPress={() => {
+              void retryStore();
+            }}
+            disabled={isPurchasing || isRestoring}
+            style={{ padding: 16 }}
+          >
+            <Text style={{ color: t.text, textAlign: "center" }}>
+              Спробувати ще раз
+            </Text>
+          </Pressable>
+        )}
         <Pressable
           onPress={handlePurchase}
-          disabled={isPurchasing || !product}
+          testID="pro.purchase"
+          disabled={
+            purchaseStatus !== "idle" || productStatus !== "ready" || !product
+          }
           style={{
             paddingVertical: 16,
             borderRadius: 14,
-            backgroundColor:
-              isPurchasing || !product
-                ? colors.violet[600]
-                : colors.violet[500],
+            backgroundColor: isPurchasing
+              ? colors.violet[600]
+              : colors.violet[500],
             alignItems: "center",
-            opacity: isPurchasing || !product ? 0.7 : 1,
+            opacity: isPurchasing ? 0.7 : 1,
           }}
           accessibilityRole="button"
           accessibilityLabel={
-            displayPrice ? `Купити Pro за ${displayPrice}` : "Завантаження ціни"
+            displayPrice
+              ? `Купити Pro за ${displayPrice}`
+              : productStatus === "loading"
+                ? "Завантаження ціни"
+                : "Магазин недоступний"
           }
         >
           {isPurchasing ? (
@@ -303,14 +355,17 @@ export default function ProScreen() {
             <Text style={{ color: "#ffffff", fontWeight: "700", fontSize: 18 }}>
               {displayPrice
                 ? `Купити Pro — ${displayPrice}`
-                : "Завантаження..."}
+                : productStatus === "loading"
+                  ? "Завантаження..."
+                  : "Магазин недоступний"}
             </Text>
           )}
         </Pressable>
 
         <Pressable
           onPress={handleRestore}
-          disabled={isRestoring}
+          testID="pro.restore"
+          disabled={isRestoring || isPurchasing}
           style={{
             paddingVertical: 14,
             alignItems: "center",
@@ -340,22 +395,23 @@ export default function ProScreen() {
 }
 
 function ProScreenHeader() {
-  const router = useRouter();
+  const close = useCloseProScreen();
   const { colors: t } = useTheme();
 
   return (
     <Stack.Screen
       options={{
         title: "Pro",
-        headerLeft:
-          Platform.OS === "ios"
-            ? () => (
-                <CloseButton
-                  onPress={() => router.back()}
-                  color={t.textSecondary}
-                />
-              )
-            : undefined,
+        ...(Platform.OS === "ios"
+          ? headerActionOptions("left", {
+              id: "pro.close",
+              label: "Закрити",
+              symbol: "xmark",
+              fallbackIcon: "close",
+              color: t.textSecondary,
+              onPress: close,
+            })
+          : {}),
       }}
     />
   );
