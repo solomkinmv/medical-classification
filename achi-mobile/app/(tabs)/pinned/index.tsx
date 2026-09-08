@@ -44,6 +44,7 @@ export default function PinnedScreen() {
   const { favorites, toggleFavorite, isLoading } = useFavorites();
   const {
     folders,
+    isReady: foldersReady,
     createFolder,
     deleteFolder,
     renameFolder,
@@ -101,6 +102,18 @@ export default function PinnedScreen() {
     return <SkeletonList count={5} hasSubtitle={true} />;
   }
 
+  if (!foldersReady) {
+    return (
+      <Text
+        testID="pinned.folders-unavailable"
+        style={{ color: t.textSecondary, padding: 24 }}
+      >
+        Папки ще недоступні. Якщо завантаження не завершиться, відкрийте додаток
+        знову.
+      </Text>
+    );
+  }
+
   const hasFolders = isPro && folders.length > 0;
   const isEmpty = favorites.length === 0 && !hasFolders;
 
@@ -117,6 +130,8 @@ export default function PinnedScreen() {
         <ClassifierSwitcher />
         {isPro && (
           <Pressable
+            testID="pinned.folder.create"
+            accessibilityRole="button"
             onPress={handleCreateFolder}
             style={{
               flexDirection: "row",
@@ -249,6 +264,8 @@ function FoldersSection({
           Папки
         </Text>
         <Pressable
+          testID="pinned.folder.create"
+          accessibilityRole="button"
           onPress={onCreateFolder}
           hitSlop={8}
           style={{ flexDirection: "row", alignItems: "center" }}
@@ -306,7 +323,13 @@ const FolderCard = memo(function FolderCard({
 }: FolderCardProps) {
   const count = resolvedCount;
   return (
-    <Pressable onPress={onPress} onLongPress={onLongPress} className="mb-3">
+    <Pressable
+      testID={`pinned.folder.${folder.id}`}
+      accessibilityRole="button"
+      onPress={onPress}
+      onLongPress={onLongPress}
+      className="mb-3"
+    >
       <Card>
         <View className="flex-row items-center p-4">
           <View
@@ -364,42 +387,26 @@ const PinnedCard = memo(function PinnedCard({
   const handleLongPress = useCallback(() => {
     if (!isPro || folders.length === 0) return;
 
-    const currentFolder = folders.find((f) =>
-      f.codeRefs.includes(procedure.code),
-    );
-
-    const buttons: {
-      text: string;
-      onPress?: () => void;
-      style?: "cancel" | "destructive";
-    }[] = [{ text: "Скасувати", style: "cancel" }];
-
-    if (currentFolder) {
-      buttons.push({
-        text: `Видалити з "${currentFolder.name}"`,
-        style: "destructive",
-        onPress: () => onRemoveFromFolder(currentFolder.id),
-      });
-    }
-
-    for (const folder of folders) {
-      if (folder.id === currentFolder?.id) continue;
-      buttons.push({
-        text: folder.name,
-        onPress: () => {
-          if (currentFolder) {
-            onRemoveFromFolder(currentFolder.id);
-          }
-          onAddToFolder(folder.id);
-        },
-      });
-    }
+    const buttons = [
+      { text: "Скасувати", style: "cancel" as const },
+      ...folders.map((folder) => {
+        const contains = folder.codeRefs.includes(procedure.code);
+        return {
+          text: contains
+            ? `Видалити з "${folder.name}"`
+            : `Додати в "${folder.name}"`,
+          onPress: () =>
+            contains ? onRemoveFromFolder(folder.id) : onAddToFolder(folder.id),
+        };
+      }),
+    ];
 
     Alert.alert("Додати в папку", undefined, buttons);
   }, [isPro, folders, procedure.code, onAddToFolder, onRemoveFromFolder]);
 
   return (
     <Pressable
+      testID={`pinned.code.${procedure.code}`}
       onLongPress={isPro && folders.length > 0 ? handleLongPress : undefined}
     >
       <Link href={`/procedure/${procedure.code}` as any} asChild>

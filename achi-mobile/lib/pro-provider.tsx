@@ -78,6 +78,7 @@ export function ProProvider({ children }: { children: ReactNode }) {
   const connected = useRef(false);
   const activity = useRef<PurchaseStatus>("idle");
   const owned = useRef(false);
+  const deferredByStore = useRef(false);
   const revision = useRef(0);
   const queryId = useRef(0);
   const loadingStore = useRef(false);
@@ -140,6 +141,7 @@ export function ProProvider({ children }: { children: ReactNode }) {
     async (purchase: Purchase) => {
       if (!mounted.current || purchase.productId !== PRO_PRODUCT_ID) return;
       if (purchase.purchaseState === "pending") {
+        deferredByStore.current = true;
         setActivity("pending");
         return;
       }
@@ -188,6 +190,7 @@ export function ProProvider({ children }: { children: ReactNode }) {
         error.code === ErrorCode.DeferredPayment ||
         error.code === ErrorCode.Pending
       ) {
+        deferredByStore.current = true;
         setActivity("pending");
         return;
       }
@@ -279,6 +282,7 @@ export function ProProvider({ children }: { children: ReactNode }) {
   const purchasePro = useCallback(async () => {
     if (activity.current !== "idle" || owned.current) return;
     if (!connected.current || !product || productStatus !== "ready") return;
+    deferredByStore.current = false;
     setActivity("purchasing");
     purchaseTimer.current = setTimeout(() => {
       if (activity.current === "purchasing") setActivity("pending");
@@ -303,11 +307,23 @@ export function ProProvider({ children }: { children: ReactNode }) {
     if (activity.current === "purchasing" || activity.current === "restoring")
       return "error";
     const previous = activity.current;
+    let retainPending = previous === "pending";
     setActivity("restoring");
     try {
       if (!connected.current) throw new Error("store-disconnected");
       if (Platform.OS === "ios") await storeRead(syncIOS());
-      return (await reconcile()) ? "owned" : "not-owned";
+      const entitled = await reconcile();
+      if (!entitled && retainPending && !deferredByStore.current) {
+        // Only recover a local timeout after an explicit, successful store check.
+        const pending =
+          Platform.OS === "ios"
+            ? await storeRead(getPendingTransactionsIOS())
+            : await storeRead(getAvailablePurchases());
+        retainPending =
+          deferredByStore.current ||
+          pending.some((p) => p.productId === PRO_PRODUCT_ID);
+      }
+      return entitled ? "owned" : "not-owned";
     } catch (error) {
       logStoreError("restore", error);
       if (mounted.current)
@@ -317,9 +333,7 @@ export function ProProvider({ children }: { children: ReactNode }) {
         );
       return "error";
     } finally {
-      setActivity(
-        previous === "pending" && !owned.current ? "pending" : "idle",
-      );
+      setActivity(retainPending && !owned.current ? "pending" : "idle");
     }
   }, [reconcile, setActivity]);
 
