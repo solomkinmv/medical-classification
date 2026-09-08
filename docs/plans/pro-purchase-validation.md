@@ -140,3 +140,10 @@ Status: Implementation tested automatically; not yet certified release-ready.
 - Used AXe to select MKH-10, scroll the Explore list in dark mode, switch to About, and return. Verified the large title collapses to a compact title and a progressive blur remains beneath it, without the horizontal hard cutoff visible in the user's iOS 27 screenshot. The fade persisted after tab switching.
 - Screenshots and UI snapshots are outside Git in `/tmp/medical-ios26-header-evidence/`. Main comparison: `ios26-dark-comparison.png`; after tab switching: `ios26-dark-returned.png`; initial large title: `ios26-dark-top.png`. Runtime and bundle SDK both verified as 26.5.
 - This establishes a visual difference between the iOS 26 simulator and the iOS 27 phone, not the exact cause: OS behavior versus navigation-library interaction on iOS 27 remains unconfirmed. No application styling or phone installation changed in this comparison. Simulator left running for inspection.
+
+## PR Review Corrections
+
+- Notes and folders reject mutations until their stored collections have hydrated. Read failures do not become writable empty collections. The UI keeps editing/creation unavailable and suggests reopening the app if loading does not complete.
+- Restore can recover locally timed-out purchase attempts only after successful entitlement and unfinished-transaction checks. Store-confirmed deferred payments, matching unfinished transactions, and failed checks remain pending.
+- Saved's folder menu now adds/removes only the selected membership, consistent with multi-folder selection in folder details. Create Folder, folder rows, and saved-code management expose stable automation identifiers.
+- Regression coverage includes delayed/failed hydration, timeout recovery and its safety guards, notes readiness, folder membership isolation, and folder automation identifiers. No native dependency or native source changed in this correction; physical-device and real-store acceptance remain separate gates.

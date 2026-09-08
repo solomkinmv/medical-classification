@@ -167,8 +167,10 @@ these settings by hand inside the generated `ios/` folder. A normal CLI launch
 is not proof that a local StoreKit session was activated.
 
 The paywall exposes `pro.purchase`, `pro.restore`, `pro.retry`, `pro.close`, and
-`pro.status` automation IDs. Failed store reads offer retry; pending transactions
-remain pending until the store resolves them. Closing the paywall does not cancel
+`pro.status` automation IDs. Failed store reads offer retry; store-confirmed pending transactions
+remain pending until the store resolves them. A locally timed-out request can be
+retried after Restore completes successfully and finds no matching unfinished
+transaction. A failed store check never clears pending state. Closing the paywall does not cancel
 a transaction. Cached Pro access survives store/network errors; successful fresh
 entitlement checks can remove access after revocation without deleting user data.
 

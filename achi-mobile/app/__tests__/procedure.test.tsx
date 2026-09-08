@@ -12,6 +12,7 @@ const mockBack = jest.fn();
 const mockReplace = jest.fn();
 const mockCanGoBack = jest.fn(() => true);
 const mockHeader = jest.fn();
+let mockNotesReady = true;
 let mockNote: string | null = null;
 let mockIsPro = true;
 let mockPinned = false;
@@ -74,6 +75,7 @@ jest.mock("@/lib/favorites-provider", () => ({
 }));
 jest.mock("@/lib/notes-provider", () => ({
   useNotes: () => ({
+    isReady: mockNotesReady,
     getNote: () => mockNote,
     setNote: mockSetNote,
     deleteNote: mockDeleteNote,
@@ -91,6 +93,7 @@ jest.mock("@/components/UpgradePrompt", () => ({
 
 beforeEach(() => {
   jest.clearAllMocks();
+  mockNotesReady = true;
   mockNote = null;
   mockIsPro = true;
   mockPinned = false;
@@ -250,4 +253,11 @@ test("Close dismisses the keyboard before leaving an unsaved note", () => {
   );
   expect(mockSetNote).not.toHaveBeenCalled();
   expect(mockDeleteNote).not.toHaveBeenCalled();
+});
+
+test("note editing is unavailable until hydration completes", () => {
+  mockNotesReady = false;
+  render(<ProcedureDetail />);
+  expect(screen.queryByTestId("procedure.note.add")).toBeNull();
+  expect(screen.getByTestId("procedure.notes-unavailable")).toBeTruthy();
 });

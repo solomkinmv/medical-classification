@@ -67,9 +67,6 @@ export function NotesProvider({ children }: NotesProviderProps) {
         }
       } catch (error) {
         console.error("Failed to load notes:", error);
-        if (isMounted) {
-          setCache({ achi: {}, mkh10: {} });
-        }
       } finally {
         if (isMounted) {
           setIsLoading(false);
@@ -109,6 +106,7 @@ export function NotesProvider({ children }: NotesProviderProps) {
       const trimmed = text.trim();
       if (!trimmed) {
         setCache((prev) => {
+          if (!prev[activeClassifier]) return prev;
           const current = prev[activeClassifier] ?? {};
           const { [code]: _, ...updated } = current;
           persist(activeClassifier, updated);
@@ -117,6 +115,7 @@ export function NotesProvider({ children }: NotesProviderProps) {
         return;
       }
       setCache((prev) => {
+        if (!prev[activeClassifier]) return prev;
         const current = prev[activeClassifier] ?? {};
         const updated = { ...current, [code]: trimmed };
         persist(activeClassifier, updated);
@@ -129,6 +128,7 @@ export function NotesProvider({ children }: NotesProviderProps) {
   const deleteNote = useCallback(
     (code: string) => {
       setCache((prev) => {
+        if (!prev[activeClassifier]) return prev;
         const current = prev[activeClassifier] ?? {};
         const { [code]: _, ...updated } = current;
         persist(activeClassifier, updated);
@@ -145,7 +145,7 @@ export function NotesProvider({ children }: NotesProviderProps) {
     [notes],
   );
 
-  const isReady = !isLoading;
+  const isReady = !isLoading && cache[activeClassifier] !== undefined;
 
   const value = useMemo(
     () => ({

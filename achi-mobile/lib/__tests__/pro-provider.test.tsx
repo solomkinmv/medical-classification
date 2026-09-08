@@ -296,3 +296,57 @@ test("late verification after unmount does not grant or finish", async () => {
   expect(iap.finishTransaction).not.toHaveBeenCalled();
   expect(AsyncStorage.setItem).not.toHaveBeenCalled();
 });
+
+test("a local timeout recovers after an empty authoritative restore", async () => {
+  const { result } = await setup();
+  jest.useFakeTimers();
+  await act(async () => {
+    await result.current.purchasePro();
+  });
+  act(() => jest.advanceTimersByTime(15000));
+  await act(async () => {
+    expect(await result.current.restorePurchases()).toBe("not-owned");
+  });
+  expect(result.current.purchaseStatus).toBe("idle");
+  await act(async () => {
+    await result.current.purchasePro();
+  });
+  expect(iap.requestPurchase).toHaveBeenCalledTimes(2);
+});
+
+test("confirmed deferred purchases remain pending after an empty restore", async () => {
+  const { result } = await setup();
+  await emit({ ...purchase, purchaseState: "pending" });
+  await act(async () => {
+    await result.current.restorePurchases();
+  });
+  expect(result.current.purchaseStatus).toBe("pending");
+});
+
+test("failed pending verification cannot release a timed-out purchase", async () => {
+  const { result } = await setup();
+  jest.useFakeTimers();
+  await act(async () => {
+    await result.current.purchasePro();
+  });
+  act(() => jest.advanceTimersByTime(15000));
+  mock(iap.getPendingTransactionsIOS).mockRejectedValue(new Error("offline"));
+  await act(async () => {
+    expect(await result.current.restorePurchases()).toBe("error");
+  });
+  expect(result.current.purchaseStatus).toBe("pending");
+});
+
+test("a matching unfinished transaction prevents timeout recovery", async () => {
+  const { result } = await setup();
+  jest.useFakeTimers();
+  await act(async () => {
+    await result.current.purchasePro();
+  });
+  act(() => jest.advanceTimersByTime(15000));
+  mock(iap.getPendingTransactionsIOS).mockResolvedValue([purchase]);
+  await act(async () => {
+    await result.current.restorePurchases();
+  });
+  expect(result.current.purchaseStatus).toBe("pending");
+});

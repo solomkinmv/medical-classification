@@ -65,7 +65,7 @@ export default function ProcedureDetail() {
   const accentColor = classifierColors.accent500;
   const accentColorDark = classifierColors.accent600;
   const { isFavorite, toggleFavorite } = useFavorites();
-  const { getNote, setNote, deleteNote } = useNotes();
+  const { getNote, setNote, deleteNote, isReady: notesReady } = useNotes();
   const { isPro } = useProStatus();
   const router = useRouter();
   const navigation = useNavigationContainerRef();
@@ -330,7 +330,15 @@ export default function ProcedureDetail() {
         ) : null}
 
         {/* Notes section */}
-        {isPro ? (
+        {isPro && !notesReady ? (
+          <Text
+            testID="procedure.notes-unavailable"
+            style={{ color: t.textSecondary, marginTop: 24 }}
+          >
+            Нотатки ще недоступні. Якщо завантаження не завершиться, відкрийте
+            додаток знову.
+          </Text>
+        ) : isPro ? (
           <View style={{ marginTop: 24 }}>
             <Text
               style={{

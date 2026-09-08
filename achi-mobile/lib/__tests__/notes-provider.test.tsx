@@ -197,3 +197,37 @@ describe("NotesProvider", () => {
     }).toThrow("useNotes must be used within NotesProvider");
   });
 });
+
+test("blocks writes before hydration and preserves stored notes", async () => {
+  let resolve!: (value: string) => void;
+  const pending = new Promise<string>((r) => {
+    resolve = r;
+  });
+  (AsyncStorage.getItem as jest.Mock).mockImplementation((key: string) =>
+    key === "achi_notes" ? pending : Promise.resolve(null),
+  );
+  const { result } = renderHook(useNotes, { wrapper });
+  act(() => {
+    result.current.setNote("NEW", "new");
+    result.current.deleteNote("OLD");
+  });
+  expect(AsyncStorage.setItem).not.toHaveBeenCalled();
+  await act(async () => {
+    resolve(JSON.stringify({ OLD: "saved" }));
+  });
+  expect(result.current.getNote("OLD")).toBe("saved");
+  expect(result.current.isReady).toBe(true);
+});
+
+test("failed hydration does not enable destructive writes", async () => {
+  jest.spyOn(console, "error").mockImplementation(() => {});
+  (AsyncStorage.getItem as jest.Mock).mockRejectedValue(new Error("storage"));
+  const { result } = renderHook(useNotes, { wrapper });
+  await act(async () => {});
+  act(() => {
+    result.current.setNote("NEW", "new");
+  });
+  expect(result.current.isReady).toBe(false);
+  expect(AsyncStorage.setItem).not.toHaveBeenCalled();
+  jest.restoreAllMocks();
+});

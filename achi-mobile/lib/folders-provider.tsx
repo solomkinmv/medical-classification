@@ -65,9 +65,6 @@ export function FoldersProvider({ children }: FoldersProviderProps) {
         }
       } catch (error) {
         console.error("Failed to load folders:", error);
-        if (isMounted) {
-          setCache({ achi: [], mkh10: [] });
-        }
       } finally {
         if (isMounted) {
           setIsLoading(false);
@@ -104,6 +101,7 @@ export function FoldersProvider({ children }: FoldersProviderProps) {
         codeRefs: [],
       };
       setCache((prev) => {
+        if (!prev[activeClassifier]) return prev;
         const current = prev[activeClassifier] ?? [];
         const updated = [...current, folder];
         persist(activeClassifier, updated);
@@ -117,6 +115,7 @@ export function FoldersProvider({ children }: FoldersProviderProps) {
   const deleteFolder = useCallback(
     (id: string) => {
       setCache((prev) => {
+        if (!prev[activeClassifier]) return prev;
         const current = prev[activeClassifier] ?? [];
         const updated = current.filter((f) => f.id !== id);
         persist(activeClassifier, updated);
@@ -131,6 +130,7 @@ export function FoldersProvider({ children }: FoldersProviderProps) {
       const trimmed = name.trim();
       if (!trimmed) return;
       setCache((prev) => {
+        if (!prev[activeClassifier]) return prev;
         const current = prev[activeClassifier] ?? [];
         const updated = current.map((f) =>
           f.id === id ? { ...f, name: trimmed } : f,
@@ -145,6 +145,7 @@ export function FoldersProvider({ children }: FoldersProviderProps) {
   const addToFolder = useCallback(
     (folderId: string, code: string) => {
       setCache((prev) => {
+        if (!prev[activeClassifier]) return prev;
         const current = prev[activeClassifier] ?? [];
         const folder = current.find((f) => f.id === folderId);
         if (!folder || folder.codeRefs.includes(code)) return prev;
@@ -161,6 +162,7 @@ export function FoldersProvider({ children }: FoldersProviderProps) {
   const removeFromFolder = useCallback(
     (folderId: string, code: string) => {
       setCache((prev) => {
+        if (!prev[activeClassifier]) return prev;
         const current = prev[activeClassifier] ?? [];
         const folder = current.find((f) => f.id === folderId);
         if (!folder || !folder.codeRefs.includes(code)) return prev;
@@ -183,7 +185,7 @@ export function FoldersProvider({ children }: FoldersProviderProps) {
     [folders],
   );
 
-  const isReady = !isLoading;
+  const isReady = !isLoading && cache[activeClassifier] !== undefined;
 
   const value = useMemo(
     () => ({

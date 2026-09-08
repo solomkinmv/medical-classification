@@ -249,3 +249,46 @@ describe("FoldersProvider", () => {
     }).toThrow("useFolders must be used within FoldersProvider");
   });
 });
+
+test("blocks folder mutations before hydration", async () => {
+  let resolve!: (value: string) => void;
+  const pending = new Promise<string>((r) => {
+    resolve = r;
+  });
+  (AsyncStorage.getItem as jest.Mock).mockImplementation((key: string) =>
+    key === "achi_folders" ? pending : Promise.resolve(null),
+  );
+  const { result } = renderHook(useFolders, { wrapper });
+  act(() => {
+    result.current.createFolder("new");
+    result.current.deleteFolder("old");
+    result.current.renameFolder("old", "renamed");
+    result.current.addToFolder("old", "A");
+    result.current.removeFromFolder("old", "B");
+  });
+  expect(AsyncStorage.setItem).not.toHaveBeenCalled();
+  await act(async () => {
+    resolve(
+      JSON.stringify([
+        { id: "old", name: "saved", classifier: "achi", codeRefs: ["B"] },
+      ]),
+    );
+  });
+  expect(result.current.folders[0]).toMatchObject({
+    name: "saved",
+    codeRefs: ["B"],
+  });
+});
+
+test("failed folder hydration keeps mutations disabled", async () => {
+  jest.spyOn(console, "error").mockImplementation(() => {});
+  (AsyncStorage.getItem as jest.Mock).mockRejectedValue(new Error("storage"));
+  const { result } = renderHook(useFolders, { wrapper });
+  await act(async () => {});
+  act(() => {
+    result.current.createFolder("new");
+  });
+  expect(result.current.isReady).toBe(false);
+  expect(AsyncStorage.setItem).not.toHaveBeenCalled();
+  jest.restoreAllMocks();
+});
