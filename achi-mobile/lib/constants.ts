@@ -72,7 +72,7 @@ export const ACCENT_BAR_HEIGHT_WITHOUT_SUBTITLE = 48;
 export const REFRESH_FEEDBACK_DELAY_MS = 300;
 
 // In-App Purchase
-export const PRO_PRODUCT_ID = "com.solomkinmv.achi-mobile.pro";
+export const PRO_PRODUCT_ID = "com.solomkinmv.achi_mobile.pro";
 export const PRO_STORAGE_KEY = "iap_pro_purchased";
 export const BOOKMARK_LIMIT_FREE = 3;
 

@@ -1,0 +1,35 @@
+{
+  "identifier": "F7A1B2C3-D4E5-6789-ABCD-EF0123456789",
+  "nonRenewingSubscriptions": [],
+  "products": [
+    {
+      "displayPrice": "2.99",
+      "familyShareable": false,
+      "internalID": "1",
+      "localizations": [
+        {
+          "description": "Розблокуйте всі можливості",
+          "displayName": "Медичні Коди Pro",
+          "locale": "uk"
+        },
+        {
+          "description": "Unlock all features",
+          "displayName": "Medical Codes Pro",
+          "locale": "en_US"
+        }
+      ],
+      "productID": "com.solomkinmv.achi_mobile.pro",
+      "referenceName": "Pro Unlock",
+      "type": "NonConsumable"
+    }
+  ],
+  "settings": {
+    "_storefront": "USA",
+    "_locale": "en_US"
+  },
+  "subscriptionGroups": [],
+  "version": {
+    "major": 3,
+    "minor": 0
+  }
+}

@@ -8,7 +8,7 @@ import {
   useMemo,
 } from "react";
 import { Stack } from "expo-router";
-import { isLiquidGlassAvailable } from "expo-glass-effect";
+import { nativeHeaderOptions } from "@/components/navigation-header";
 import type { SearchBarCommands } from "react-native-screens";
 import { SEARCH_DEBOUNCE_MS } from "@/lib/constants";
 import { useTheme } from "@/lib/useTheme";
@@ -86,8 +86,6 @@ export default function SearchLayout() {
     };
   }, []);
 
-  const headerBg = isLiquidGlassAvailable() ? "transparent" : t.background;
-
   const contextValue = useMemo(
     () => ({ query, debouncedQuery, isSearching, setQueryFromExternal }),
     [query, debouncedQuery, isSearching, setQueryFromExternal],
@@ -97,7 +95,7 @@ export default function SearchLayout() {
     <SearchContext.Provider value={contextValue}>
       <Stack
         screenOptions={{
-          headerLargeTitleShadowVisible: false,
+          ...nativeHeaderOptions(t.background),
         }}
       >
         <Stack.Screen
@@ -105,7 +103,6 @@ export default function SearchLayout() {
           options={{
             title: "Пошук",
             headerLargeTitle: true,
-            headerStyle: { backgroundColor: headerBg },
             headerTintColor: t.text,
             headerSearchBarOptions: {
               ref: searchBarRef,

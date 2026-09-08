@@ -1,0 +1,23 @@
+diff --git a/node_modules/react-native-screens/ios/RNSBarButtonItem.mm b/node_modules/react-native-screens/ios/RNSBarButtonItem.mm
+index 8a0d617..2c0c0f2 100644
+--- a/node_modules/react-native-screens/ios/RNSBarButtonItem.mm
++++ b/node_modules/react-native-screens/ios/RNSBarButtonItem.mm
+@@ -20,7 +20,8 @@
+     return self;
+   }
+ 
+-  self.title = dict[@"label"];
++  self.title = dict[@"label"] ?: dict[@"title"];
++  self.accessibilityIdentifier = dict[@"identifier"];
+ 
+   NSDictionary *imageSourceObj = dict[@"imageSource"];
+   if (imageSourceObj) {
+@@ -37,7 +38,7 @@
+     self.image = [UIImage systemImageNamed:sfSymbolName];
+   }
+ 
+-  NSDictionary *labelStyle = dict[@"labelStyle"];
++  NSDictionary *labelStyle = dict[@"labelStyle"] ?: dict[@"titleStyle"];
+   if (labelStyle) {
+     [self setLabelStyleFromConfig:labelStyle];
+   }

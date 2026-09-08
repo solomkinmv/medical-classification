@@ -21,6 +21,7 @@ import {
   useRecentSearches,
 } from "@/lib/recent-searches-provider";
 import { theme } from "@/lib/constants";
+import { nativeHeaderOptions } from "@/components/navigation-header";
 
 export { ErrorBoundary } from "expo-router";
 
@@ -80,13 +81,7 @@ function AppContent() {
           options={{
             presentation: Platform.OS === "ios" ? "formSheet" : "modal",
             headerShown: true,
-            headerTransparent: Platform.OS === "ios" ? true : false,
-            headerBlurEffect: isLiquidGlassAvailable()
-              ? undefined
-              : "systemChromeMaterial",
-            headerStyle: {
-              backgroundColor: "transparent",
-            },
+            ...nativeHeaderOptions(t.background),
             headerTintColor: t.text,
             sheetGrabberVisible: true,
             sheetAllowedDetents: Platform.OS === "ios" ? [0.85] : undefined,
@@ -102,13 +97,7 @@ function AppContent() {
           options={{
             presentation: Platform.OS === "ios" ? "formSheet" : "modal",
             headerShown: true,
-            headerTransparent: Platform.OS === "ios" ? true : false,
-            headerBlurEffect: isLiquidGlassAvailable()
-              ? undefined
-              : "systemChromeMaterial",
-            headerStyle: {
-              backgroundColor: "transparent",
-            },
+            ...nativeHeaderOptions(t.background),
             headerTintColor: t.text,
             headerLargeTitle: false,
             sheetGrabberVisible: true,
@@ -126,13 +115,7 @@ function AppContent() {
           name="folder/[id]"
           options={{
             headerShown: true,
-            headerTransparent: Platform.OS === "ios" ? true : false,
-            headerBlurEffect: isLiquidGlassAvailable()
-              ? undefined
-              : "systemChromeMaterial",
-            headerStyle: {
-              backgroundColor: "transparent",
-            },
+            ...nativeHeaderOptions(t.background),
             headerTintColor: t.text,
             contentStyle: {
               backgroundColor: isLiquidGlassAvailable()
