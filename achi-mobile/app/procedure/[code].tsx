@@ -136,79 +136,54 @@ export default function ProcedureDetail() {
   }
 
   const navigateToBreadcrumb = (index: number) => {
-    // Get path up to clicked segment, filtering out underscore categories
     const targetPath = path.slice(0, index + 1).filter((p) => p.key !== "_");
-    const fullPathWithoutUnderscore = path.filter((p) => p.key !== "_");
-
-    // If clicking on the last (current) category, just close the modal
-    if (targetPath.length === fullPathWithoutUnderscore.length) {
-      router.dismiss();
-      return;
-    }
-
-    if (targetPath.length === 0) {
-      router.dismiss();
-      router.push("/(tabs)/explore" as any);
-      return;
-    }
-
-    const segmentPath =
-      "/(tabs)/explore/" +
-      targetPath.map((p) => encodeURIComponent(p.key)).join("/");
+    const destination = {
+      pathname: "/(tabs)/explore/[...path]" as const,
+      params: { path: targetPath.map((segment) => segment.key) },
+    };
 
     try {
       if (!navigation.isReady()) {
-        router.dismiss();
-        router.push(segmentPath as any);
+        router.dismissTo(destination);
         return;
       }
 
-      router.dismiss();
+      const exploreRoutes = [
+        { name: "index" as const },
+        ...targetPath.map((segment, segmentIndex) => ({
+          name: "[...path]" as const,
+          params: {
+            path: targetPath
+              .slice(0, segmentIndex + 1)
+              .map((parent) => parent.key),
+          },
+        })),
+      ];
 
-      requestAnimationFrame(() => {
-        // Build routes without underscore segments
-        const pathWithoutUnderscore = path.filter((p) => p.key !== "_");
-        const targetIndex = pathWithoutUnderscore.findIndex(
-          (p) => p.key === path[index]?.key,
-        );
-        const routePath = pathWithoutUnderscore.slice(0, targetIndex + 1);
-
-        const exploreRoutes = [
-          { name: "index" as const },
-          ...routePath.map((_, i) => ({
-            name: "[...path]" as const,
-            params: {
-              path: routePath.slice(0, i + 1).map((p) => p.key),
-            },
-          })),
-        ];
-
-        navigation.dispatch(
-          CommonActions.reset({
-            index: 0,
-            routes: [
-              {
-                name: "(tabs)",
-                state: {
-                  index: 0,
-                  routes: [
-                    {
-                      name: "explore",
-                      state: {
-                        index: exploreRoutes.length - 1,
-                        routes: exploreRoutes,
-                      },
+      navigation.dispatch(
+        CommonActions.reset({
+          index: 0,
+          routes: [
+            {
+              name: "(tabs)",
+              state: {
+                index: 0,
+                routes: [
+                  {
+                    name: "explore",
+                    state: {
+                      index: exploreRoutes.length - 1,
+                      routes: exploreRoutes,
                     },
-                  ],
-                },
+                  },
+                ],
               },
-            ],
-          }),
-        );
-      });
+            },
+          ],
+        }),
+      );
     } catch {
-      router.dismiss();
-      router.push(segmentPath as any);
+      router.dismissTo(destination);
     }
   };
 
@@ -281,7 +256,8 @@ export default function ProcedureDetail() {
               .filter(({ segment }) => segment.key !== "_")
               .map(({ segment, originalIndex }) => (
                 <Pressable
-                  key={segment.key}
+                  key={originalIndex}
+                  testID={`procedure-breadcrumb-${originalIndex}`}
                   onPress={() => navigateToBreadcrumb(originalIndex)}
                   accessibilityRole="button"
                   accessibilityLabel={`Перейти до ${segment.name_ua}`}
