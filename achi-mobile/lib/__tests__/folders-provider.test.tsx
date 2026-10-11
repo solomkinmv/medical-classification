@@ -169,22 +169,27 @@ describe("FoldersProvider", () => {
     expect(result.current.folders[0].codeRefs).toEqual(["67890"]);
   });
 
-  it("getFolderForCode returns the folder containing the code", async () => {
+  it("manages folders of another classifier by id", async () => {
     const { result } = renderHook(() => useFolders(), { wrapper });
     await waitFor(() => expect(result.current.isReady).toBe(true));
 
     let folderId = "";
     act(() => {
-      const folder = result.current.createFolder("My Folder");
-      folderId = folder.id;
+      folderId = result.current.createFolder("Діагнози", "mkh10").id;
     });
-
     act(() => {
-      result.current.addToFolder(folderId, "12345");
+      result.current.addToFolder(folderId, "K80.00");
+      result.current.renameFolder(folderId, "Жовчний");
     });
 
-    expect(result.current.getFolderForCode("12345")?.id).toBe(folderId);
-    expect(result.current.getFolderForCode("99999")).toBeNull();
+    expect(result.current.folders).toEqual([]);
+    expect(result.current.getFolders("mkh10")).toEqual([
+      expect.objectContaining({ name: "Жовчний", codeRefs: ["K80.00"] }),
+    ]);
+    expect(AsyncStorage.setItem).toHaveBeenLastCalledWith(
+      "mkh10_folders",
+      expect.any(String),
+    );
   });
 
   it("loads folders from AsyncStorage on mount", async () => {

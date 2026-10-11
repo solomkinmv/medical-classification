@@ -30,7 +30,7 @@ const FEATURES: {
   {
     icon: "folder",
     title: "Папки",
-    description: "Організуйте закладки у власні колекції",
+    description: "Збирайте коди в папки й копіюйте список для звіту",
   },
   {
     icon: "document-text",

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   View,
   Text,
@@ -7,6 +7,7 @@ import {
   Platform,
   TextInput,
   Keyboard,
+  Alert,
 } from "react-native";
 import {
   useLocalSearchParams,
@@ -18,6 +19,8 @@ import { CommonActions } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { headerActionOptions } from "@/components/navigation-header";
 import { showUpgradePrompt } from "@/components/UpgradePrompt";
+import { CodeActions } from "@/components/CodeActions";
+import { FolderPicker } from "@/components/FolderPicker";
 import { useClassifier } from "@/lib/classifier-provider";
 import { useFavorites } from "@/lib/favorites-provider";
 import { useNotes } from "@/lib/notes-provider";
@@ -25,16 +28,10 @@ import { useProStatus } from "@/lib/pro-provider";
 import { useBackgroundColor } from "@/lib/useBackgroundColor";
 import { useTheme } from "@/lib/useTheme";
 import { useHaptics } from "@/lib/useHaptics";
-import { findProcedurePath } from "@/lib/navigation";
+import { useCodeActions } from "@/lib/useCodeActions";
+import { CLASSIFIER_EDITIONS, findCode } from "@/lib/code-index";
 import { colors, getClassifierColors } from "@/lib/constants";
-import type {
-  AchiData,
-  CategoryChildren,
-  ClassifierType,
-  LeafCode,
-  PathSegment,
-} from "@/lib/types";
-import { isLeafLevel } from "@/lib/types";
+import type { ClassifierType, PathSegment } from "@/lib/types";
 
 function getLevelLabel(
   level: PathSegment["level"],
@@ -60,11 +57,18 @@ function getLevelLabel(
 
 export default function ProcedureDetail() {
   const { code } = useLocalSearchParams<{ code: string }>();
-  const { activeClassifier, activeData: data } = useClassifier();
-  const classifierColors = getClassifierColors(activeClassifier);
-  const accentColor = classifierColors.accent500;
+  const { activeClassifier, setActiveClassifier } = useClassifier();
+  const { isFavorite, toggleFavorite, getSavedCode } = useFavorites();
+  const entry = code ? findCode(code) : null;
+  // A bookmarked code missing from the current data keeps its saved name
+  const procedure = entry?.leaf ?? (code ? getSavedCode(code) : null);
+  const isRemoved = !entry && procedure !== null;
+  const classifier = entry?.classifier ?? activeClassifier;
+  const path = entry?.path ?? [];
+  const classifierColors = getClassifierColors(classifier);
+  const accentColor = isRemoved ? colors.gray[500] : classifierColors.accent500;
   const accentColorDark = classifierColors.accent600;
-  const { isFavorite, toggleFavorite } = useFavorites();
+  const { copyCode } = useCodeActions();
   const { getNote, setNote, deleteNote, isReady: notesReady } = useNotes();
   const { isPro } = useProStatus();
   const router = useRouter();
@@ -72,19 +76,6 @@ export default function ProcedureDetail() {
   const insets = useSafeAreaInsets();
   const { colors: t } = useTheme();
   const backgroundColor = useBackgroundColor();
-
-  const procedure = useMemo(
-    () => (code ? findProcedure(data, code) : null),
-    [data, code],
-  );
-
-  const path = useMemo(
-    () =>
-      procedure
-        ? (findProcedurePath(data, procedure.code, activeClassifier) ?? [])
-        : [],
-    [data, procedure, activeClassifier],
-  );
 
   const isPinned = procedure ? isFavorite(procedure.code) : false;
   const existingNote = procedure ? getNote(procedure.code) : null;
@@ -95,7 +86,7 @@ export default function ProcedureDetail() {
   const toggleBookmark = () => {
     if (!procedure) return;
     trigger(isPinned ? "light" : "medium");
-    const { limitReached } = toggleFavorite(procedure);
+    const { limitReached } = toggleFavorite(procedure, classifier);
     if (limitReached) showUpgradePrompt();
   };
 
@@ -141,6 +132,9 @@ export default function ProcedureDetail() {
       pathname: "/(tabs)/explore/[...path]" as const,
       params: { path: targetPath.map((segment) => segment.key) },
     };
+
+    // Explore shows the active classifier's tree
+    setActiveClassifier(classifier);
 
     try {
       if (!navigation.isReady()) {
@@ -236,9 +230,76 @@ export default function ProcedureDetail() {
         }}
         showsVerticalScrollIndicator={false}
       >
+        {isRemoved && (
+          <View
+            testID="procedure.removed"
+            style={{
+              backgroundColor: "rgba(245, 158, 11, 0.12)",
+              borderRadius: 10,
+              padding: 12,
+              marginBottom: 16,
+            }}
+          >
+            <Text style={{ color: t.text, fontSize: 14, lineHeight: 20 }}>
+              Цього коду немає в поточній редакції{" "}
+              {CLASSIFIER_EDITIONS[classifier]}. Показано назву, яку ви зберегли
+              раніше.
+            </Text>
+          </View>
+        )}
+
+        {/* Code badge copies the code */}
+        <View className="mb-4">
+          <Pressable
+            testID="procedure.code"
+            onPress={() => copyCode(procedure)}
+            accessibilityRole="button"
+            accessibilityLabel={`Код ${procedure.code}`}
+            accessibilityHint="Копіює код"
+            className="self-start px-4 py-2 rounded-lg"
+            style={{ backgroundColor: accentColor }}
+          >
+            <Text
+              style={{
+                color: "#ffffff",
+                fontWeight: "bold",
+                fontSize: 20,
+                letterSpacing: 0.5,
+                fontVariant: ["tabular-nums"],
+              }}
+            >
+              {procedure.code}
+            </Text>
+          </Pressable>
+        </View>
+
+        <Text
+          selectable
+          style={{
+            fontSize: 24,
+            fontWeight: "600",
+            color: t.text,
+            marginBottom: 12,
+            lineHeight: 32,
+          }}
+        >
+          {procedure.name_ua}
+        </Text>
+
+        {procedure.name_en ? (
+          <Text
+            selectable
+            style={{ fontSize: 16, color: t.textSecondary, lineHeight: 24 }}
+          >
+            {procedure.name_en}
+          </Text>
+        ) : null}
+
+        <CodeActions code={procedure} accentColor={accentColor} />
+
         {/* Hierarchy path */}
         {path.length > 0 && (
-          <View className="mb-6">
+          <View style={{ marginTop: 28 }}>
             <Text
               style={{
                 fontSize: 12,
@@ -272,7 +333,7 @@ export default function ProcedureDetail() {
                   >
                     {segment.level === "class"
                       ? segment.code
-                      : `${getLevelLabel(segment.level, activeClassifier)}${segment.code ? ` (${segment.code})` : ""}`}
+                      : `${getLevelLabel(segment.level, classifier)}${segment.code ? ` (${segment.code})` : ""}`}
                   </Text>
                   <Text
                     style={{
@@ -288,46 +349,9 @@ export default function ProcedureDetail() {
           </View>
         )}
 
-        {/* Procedure code badge */}
-        <View className="mb-4">
-          <View
-            className="self-start px-4 py-2 rounded-lg"
-            style={{ backgroundColor: accentColor }}
-          >
-            <Text
-              style={{
-                color: "#ffffff",
-                fontWeight: "bold",
-                fontSize: 18,
-                letterSpacing: 0.5,
-              }}
-            >
-              {procedure.code}
-            </Text>
-          </View>
-        </View>
-
-        {/* Ukrainian name */}
-        <Text
-          style={{
-            fontSize: 24,
-            fontWeight: "600",
-            color: t.text,
-            marginBottom: 12,
-            lineHeight: 32,
-          }}
-        >
-          {procedure.name_ua}
-        </Text>
-
-        {/* English name */}
-        {procedure.name_en ? (
-          <Text
-            style={{ fontSize: 16, color: t.textSecondary, lineHeight: 24 }}
-          >
-            {procedure.name_en}
-          </Text>
-        ) : null}
+        {isPro && !isRemoved && (
+          <FolderPicker code={procedure.code} classifier={classifier} />
+        )}
 
         {/* Notes section */}
         {isPro && !notesReady ? (
@@ -387,6 +411,7 @@ export default function ProcedureDetail() {
                   <Pressable
                     testID="procedure.note.cancel"
                     accessibilityRole="button"
+                    hitSlop={12}
                     onPress={() => {
                       setIsEditing(false);
                       setNoteText("");
@@ -405,11 +430,12 @@ export default function ProcedureDetail() {
                   <Pressable
                     testID="procedure.note.save"
                     accessibilityRole="button"
+                    hitSlop={12}
                     onPress={() => {
                       if (noteText.trim()) {
-                        setNote(procedure.code, noteText.trim());
+                        setNote(procedure.code, noteText.trim(), classifier);
                       } else {
-                        deleteNote(procedure.code);
+                        deleteNote(procedure.code, classifier);
                       }
                       setIsEditing(false);
                       setNoteText("");
@@ -448,6 +474,7 @@ export default function ProcedureDetail() {
                   <Pressable
                     testID="procedure.note.edit"
                     accessibilityRole="button"
+                    hitSlop={12}
                     onPress={() => {
                       setNoteText(existingNote);
                       setIsEditing(true);
@@ -466,7 +493,17 @@ export default function ProcedureDetail() {
                   <Pressable
                     testID="procedure.note.delete"
                     accessibilityRole="button"
-                    onPress={() => deleteNote(procedure.code)}
+                    hitSlop={12}
+                    onPress={() =>
+                      Alert.alert("Видалити нотатку?", undefined, [
+                        { text: "Скасувати", style: "cancel" },
+                        {
+                          text: "Видалити",
+                          style: "destructive",
+                          onPress: () => deleteNote(procedure.code, classifier),
+                        },
+                      ])
+                    }
                   >
                     <Text
                       style={{
@@ -537,33 +574,22 @@ export default function ProcedureDetail() {
               </View>
               <Text
                 style={{
-                  color: t.textMuted,
-                  fontSize: 14,
+                  color: t.textSecondary,
+                  fontSize: 15,
                 }}
               >
-                Додайте нотатки до кодів
+                Нотатки та папки для кодів
               </Text>
             </Pressable>
           </View>
         )}
+        <Text
+          testID="procedure.edition"
+          style={{ color: t.textMuted, fontSize: 12, marginTop: 32 }}
+        >
+          {`Джерело: ${CLASSIFIER_EDITIONS[classifier]} (${classifier === "achi" ? "АКМІ" : "МКХ-10"}) · працює офлайн`}
+        </Text>
       </ScrollView>
     </>
   );
-}
-
-function findProcedure(data: AchiData, targetCode: string): LeafCode | null {
-  function searchNode(children: CategoryChildren): LeafCode | null {
-    if (isLeafLevel(children)) {
-      return children.find((proc) => proc.code === targetCode) ?? null;
-    }
-
-    for (const node of Object.values(children)) {
-      const result = searchNode(node.children);
-      if (result) return result;
-    }
-
-    return null;
-  }
-
-  return searchNode(data.children);
 }

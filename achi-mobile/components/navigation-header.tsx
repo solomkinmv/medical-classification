@@ -1,4 +1,4 @@
-import { Platform } from "react-native";
+import { Platform, View } from "react-native";
 import { HeaderButton } from "@react-navigation/elements";
 import type {
   NativeStackNavigationOptions,
@@ -41,33 +41,39 @@ interface HeaderAction {
 // Keep the SDK 54 unstable API in one adapter until Stack.Toolbar is available.
 export function headerActionOptions(
   side: "left" | "right",
-  action: HeaderAction,
+  action: HeaderAction | HeaderAction[],
 ): NativeStackNavigationOptions {
+  const actions = Array.isArray(action) ? action : [action];
+
   if (Platform.OS === "ios") {
-    const items = () => [
-      {
+    const items = () =>
+      actions.map((item) => ({
         type: "button" as const,
-        identifier: action.id,
-        label: action.label,
-        accessibilityLabel: action.label,
-        icon: { type: "sfSymbol" as const, name: action.symbol },
-        tintColor: action.color,
-        onPress: action.onPress,
-      },
-    ];
+        identifier: item.id,
+        label: item.label,
+        accessibilityLabel: item.label,
+        icon: { type: "sfSymbol" as const, name: item.symbol },
+        tintColor: item.color,
+        onPress: item.onPress,
+      }));
     return side === "left"
       ? { unstable_headerLeftItems: items }
       : { unstable_headerRightItems: items };
   }
 
-  const button = () => (
-    <HeaderButton
-      testID={action.id}
-      accessibilityLabel={action.label}
-      onPress={action.onPress}
-    >
-      <Ionicons name={action.fallbackIcon} size={24} color={action.color} />
-    </HeaderButton>
+  const buttons = () => (
+    <View style={{ flexDirection: "row" }}>
+      {actions.map((item) => (
+        <HeaderButton
+          key={item.id}
+          testID={item.id}
+          accessibilityLabel={item.label}
+          onPress={item.onPress}
+        >
+          <Ionicons name={item.fallbackIcon} size={24} color={item.color} />
+        </HeaderButton>
+      ))}
+    </View>
   );
-  return side === "left" ? { headerLeft: button } : { headerRight: button };
+  return side === "left" ? { headerLeft: buttons } : { headerRight: buttons };
 }

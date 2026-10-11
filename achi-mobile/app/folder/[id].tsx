@@ -1,4 +1,4 @@
-import { useMemo, useState, memo } from "react";
+import { useMemo, useState } from "react";
 import {
   View,
   Text,
@@ -6,52 +6,49 @@ import {
   Pressable,
   ActivityIndicator,
 } from "react-native";
-import { useLocalSearchParams, useRouter, Stack, Link } from "expo-router";
+import { useLocalSearchParams, useRouter, Stack } from "expo-router";
 import { headerActionOptions } from "@/components/navigation-header";
 import { Ionicons } from "@expo/vector-icons";
-import { AccentCard } from "@/components/AccentCard";
+import { CodeCard } from "@/components/CodeCard";
 import { showUpgradePrompt } from "@/components/UpgradePrompt";
 import { useFolders } from "@/lib/folders-provider";
 import { useFavorites } from "@/lib/favorites-provider";
-import { useClassifier } from "@/lib/classifier-provider";
 import { useProStatus } from "@/lib/pro-provider";
+import { useFolderActions, useFolderCodes } from "@/lib/useFolderActions";
 import { useTheme } from "@/lib/useTheme";
+import { CLASSIFIERS, findCode, getCodeContext } from "@/lib/code-index";
 import {
   colors,
   CONTENT_PADDING_HORIZONTAL,
   CONTENT_PADDING_BOTTOM,
   getClassifierColors,
 } from "@/lib/constants";
-import type { LeafCode } from "@/lib/types";
 
 export default function FolderDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const {
-    folders,
+    getFolders,
     addToFolder,
     removeFromFolder,
     isReady: foldersReady,
   } = useFolders();
-  const { favorites, toggleFavorite, isReady: favoritesReady } = useFavorites();
+  const { favorites, isReady: favoritesReady } = useFavorites();
   const { isPro } = useProStatus();
   const router = useRouter();
   const [selecting, setSelecting] = useState(false);
-  const { activeClassifier } = useClassifier();
   const { colors: t } = useTheme();
+  const { showMenu, copyList } = useFolderActions();
+  const getFolderCodes = useFolderCodes();
   const backgroundColor = t.background;
-  const classifierColors = getClassifierColors(activeClassifier);
 
   const folder = useMemo(
-    () => folders.find((f) => f.id === id) ?? null,
-    [folders, id],
+    () => CLASSIFIERS.flatMap(getFolders).find((f) => f.id === id) ?? null,
+    [getFolders, id],
   );
-
-  const codes = useMemo(() => {
-    if (!folder) return [];
-    return folder.codeRefs
-      .map((code) => favorites.find((f) => f.code === code))
-      .filter((item): item is LeafCode => item != null);
-  }, [folder, favorites]);
+  const codes = useMemo(
+    () => (folder ? getFolderCodes(folder) : []),
+    [folder, getFolderCodes],
+  );
 
   const headerOptions = {
     headerBackButtonDisplayMode: "minimal" as const,
@@ -88,6 +85,8 @@ export default function FolderDetail() {
     );
   }
 
+  const classifierColors = getClassifierColors(folder.classifier);
+
   const startSelecting = () => {
     if (!isPro) return showUpgradePrompt();
     setSelecting(true);
@@ -105,14 +104,36 @@ export default function FolderDetail() {
         options={{
           ...headerOptions,
           title: folder.name,
-          ...headerActionOptions("right", {
-            id: selecting ? "folder.done" : "folder.add",
-            label: selecting ? "Готово" : "Додати коди",
-            symbol: selecting ? "checkmark" : "plus",
-            fallbackIcon: selecting ? "checkmark" : "add",
-            color: t.text,
-            onPress: selecting ? () => setSelecting(false) : startSelecting,
-          }),
+          ...headerActionOptions(
+            "right",
+            selecting
+              ? {
+                  id: "folder.done",
+                  label: "Готово",
+                  symbol: "checkmark",
+                  fallbackIcon: "checkmark",
+                  color: t.text,
+                  onPress: () => setSelecting(false),
+                }
+              : [
+                  {
+                    id: "folder.add",
+                    label: "Додати коди",
+                    symbol: "plus",
+                    fallbackIcon: "add",
+                    color: t.text,
+                    onPress: startSelecting,
+                  },
+                  {
+                    id: "folder.menu",
+                    label: "Дії з папкою",
+                    symbol: "ellipsis",
+                    fallbackIcon: "ellipsis-horizontal",
+                    color: t.text,
+                    onPress: () => showMenu(folder, () => router.back()),
+                  },
+                ],
+          ),
         }}
       />
       <FlatList
@@ -129,13 +150,44 @@ export default function FolderDetail() {
         contentInsetAdjustmentBehavior="automatic"
         showsVerticalScrollIndicator={false}
         ListHeaderComponent={
-          selecting && favorites.length > 0 ? (
-            <Text
-              style={{ color: t.textSecondary, fontSize: 15, marginBottom: 20 }}
+          selecting ? (
+            favorites.length > 0 ? (
+              <Text
+                style={{
+                  color: t.textSecondary,
+                  fontSize: 15,
+                  marginBottom: 20,
+                }}
+              >
+                Оберіть закладки для цієї папки. Будь-який інший код можна
+                додати з його картки, розділ «Папки».
+              </Text>
+            ) : null
+          ) : codes.length > 0 ? (
+            <Pressable
+              testID="folder.copy"
+              accessibilityRole="button"
+              accessibilityHint="Копіює коди з назвами, по одному в рядку"
+              onPress={() => copyList(folder)}
+              style={({ pressed }) => ({
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 8,
+                minHeight: 48,
+                borderRadius: 12,
+                backgroundColor: classifierColors.accent500,
+                marginBottom: 16,
+                opacity: pressed ? 0.8 : 1,
+              })}
             >
-              Оберіть збережені коди для цієї папки. Зміни зберігаються
-              автоматично.
-            </Text>
+              <Ionicons name="copy-outline" size={18} color="#ffffff" />
+              <Text
+                style={{ color: "#ffffff", fontSize: 16, fontWeight: "600" }}
+              >
+                Копіювати список для звіту
+              </Text>
+            </Pressable>
           ) : null
         }
         ListEmptyComponent={
@@ -173,7 +225,7 @@ export default function FolderDetail() {
                 marginTop: 20,
               }}
             >
-              {selecting ? "Ще немає збережених кодів" : "Папка порожня"}
+              {selecting ? "Ще немає закладок" : "Папка порожня"}
             </Text>
             <Text
               style={{
@@ -184,16 +236,14 @@ export default function FolderDetail() {
               }}
             >
               {selecting
-                ? "Спочатку збережіть потрібні коди за допомогою кнопки закладки, а потім додайте їх до папки."
-                : "Додайте сюди потрібні коди зі збережених."}
+                ? "Знайдіть потрібний код і додайте його до папки в розділі «Папки» на картці коду."
+                : "Додайте коди із закладок або відкрийте будь-який код і оберіть цю папку в розділі «Папки»."}
             </Text>
             <Pressable
               testID={selecting ? "folder.explore" : "folder.add-empty"}
               accessibilityRole="button"
               onPress={
-                selecting
-                  ? () => router.push("/(tabs)/explore")
-                  : startSelecting
+                selecting ? () => router.push("/(tabs)/search") : startSelecting
               }
               style={{
                 marginTop: 24,
@@ -206,103 +256,69 @@ export default function FolderDetail() {
               <Text
                 style={{ color: "#ffffff", fontSize: 16, fontWeight: "600" }}
               >
-                {selecting ? "Знайти коди" : "Додати коди"}
+                {selecting ? "Знайти коди" : "Додати із закладок"}
               </Text>
             </Pressable>
           </View>
         }
-        renderItem={({ item }) =>
-          selecting ? (
-            <Pressable
-              testID={`folder.code.${item.code}`}
-              accessibilityRole="checkbox"
-              accessibilityLabel={`${item.code}: ${item.name_ua}`}
-              accessibilityState={{
-                checked: folder.codeRefs.includes(item.code),
-              }}
-              onPress={() => toggleMembership(item.code)}
-              style={{
-                flexDirection: "row",
-                alignItems: "center",
-                gap: 14,
-                backgroundColor: t.card,
-                padding: 16,
-                borderRadius: 14,
-                marginBottom: 12,
-              }}
-            >
-              <Ionicons
-                name={
-                  folder.codeRefs.includes(item.code)
-                    ? "checkmark-circle"
-                    : "ellipse-outline"
+        renderItem={({ item }) => {
+          if (selecting) {
+            const checked = folder.codeRefs.includes(item.code);
+            return (
+              <Pressable
+                testID={`folder.code.${item.code}`}
+                accessibilityRole="checkbox"
+                accessibilityLabel={`${item.code}: ${item.name_ua}`}
+                accessibilityState={{ checked }}
+                onPress={() => toggleMembership(item.code)}
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  gap: 14,
+                  backgroundColor: t.card,
+                  padding: 16,
+                  borderRadius: 14,
+                  marginBottom: 12,
+                }}
+              >
+                <Ionicons
+                  name={checked ? "checkmark-circle" : "ellipse-outline"}
+                  size={26}
+                  color={colors.violet[500]}
+                />
+                <View style={{ flex: 1 }}>
+                  <Text
+                    style={{
+                      color: classifierColors.accent600,
+                      fontSize: 14,
+                      fontWeight: "600",
+                    }}
+                  >
+                    {item.code}
+                  </Text>
+                  <Text style={{ color: t.text, fontSize: 16, marginTop: 4 }}>
+                    {item.name_ua}
+                  </Text>
+                </View>
+              </Pressable>
+            );
+          }
+          const entry = findCode(item.code);
+          return (
+            <View testID={`folder.item.${item.code}`}>
+              <CodeCard
+                code={item}
+                classifier={folder.classifier}
+                context={
+                  entry ? getCodeContext(entry.leaf, entry.path) : undefined
                 }
-                size={26}
-                color={colors.violet[500]}
+                onRemove={() => removeFromFolder(folder.id, item.code)}
+                removeLabel="Прибрати з папки"
               />
-              <View style={{ flex: 1 }}>
-                <Text
-                  style={{
-                    color: classifierColors.accent600,
-                    fontSize: 14,
-                    fontWeight: "600",
-                  }}
-                >
-                  {item.code}
-                </Text>
-                <Text style={{ color: t.text, fontSize: 16, marginTop: 4 }}>
-                  {item.name_ua}
-                </Text>
-              </View>
-            </Pressable>
-          ) : (
-            <FolderCodeCard
-              item={item}
-              accentColor={classifierColors.accent500}
-              badgeColor={classifierColors.accent600}
-              toggleFavorite={toggleFavorite}
-            />
-          )
-        }
+            </View>
+          );
+        }}
       />
     </>
   );
 }
-
-interface FolderCodeCardProps {
-  item: LeafCode;
-  accentColor: string;
-  badgeColor: string;
-  toggleFavorite: (item: LeafCode) => { limitReached: boolean };
-}
-
-const FolderCodeCard = memo(function FolderCodeCard({
-  item,
-  accentColor,
-  badgeColor,
-  toggleFavorite,
-}: FolderCodeCardProps) {
-  return (
-    <Link href={`/procedure/${item.code}` as any} asChild>
-      <AccentCard
-        accentColor={accentColor}
-        badge={item.code}
-        badgeColor={badgeColor}
-        title={item.name_ua}
-        subtitle={item.name_en}
-        icon="bookmark"
-        iconColor={colors.amber[500]}
-        iconBackground="rgba(245, 158, 11, 0.15)"
-        iconSize={18}
-        onIconPress={() => {
-          const { limitReached } = toggleFavorite(item);
-          if (limitReached) showUpgradePrompt();
-        }}
-        isBookmarked={true}
-        iconAccessibilityLabel="Видалити закладку"
-        accessibilityLabel={`${item.code}: ${item.name_ua}`}
-        accessibilityHint="Відкрити деталі"
-      />
-    </Link>
-  );
-});

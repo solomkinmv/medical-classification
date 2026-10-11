@@ -12,6 +12,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useClassifier } from "./classifier-provider";
 import { useProStatus } from "./pro-provider";
 import { BOOKMARK_LIMIT_FREE } from "./constants";
+import { findCode } from "./code-index";
 import type { ClassifierType, LeafCode } from "./types";
 
 function getStorageKey(classifier: ClassifierType): string {
@@ -23,9 +24,17 @@ interface ToggleFavoriteResult {
 }
 
 interface FavoritesContextType {
+  /** Bookmarks of the active classifier with names from the current data */
   favorites: LeafCode[];
   isFavorite: (code: string) => boolean;
-  toggleFavorite: (item: LeafCode) => ToggleFavoriteResult;
+  /** Bookmarked code that is missing from the current classifier data */
+  isRemoved: (code: string) => boolean;
+  /** Saved snapshot of a bookmark, for codes missing from the current data */
+  getSavedCode: (code: string) => LeafCode | null;
+  toggleFavorite: (
+    item: LeafCode,
+    classifier?: ClassifierType,
+  ) => ToggleFavoriteResult;
   isLoading: boolean;
   isReady: boolean;
 }
@@ -87,18 +96,40 @@ export function FavoritesProvider({ children }: FavoritesProviderProps) {
     };
   }, []);
 
-  const favorites = cache[activeClassifier] ?? [];
+  const stored = cache[activeClassifier];
+  const favorites = useMemo(
+    () => (stored ?? []).map((f) => findCode(f.code)?.leaf ?? f),
+    [stored],
+  );
 
   const isFavorite = useCallback(
+    (code: string) =>
+      Object.values(cache).some((list) => list.some((f) => f.code === code)),
+    [cache],
+  );
+
+  const getSavedCode = useCallback(
     (code: string) => {
-      return favorites.some((f) => f.code === code);
+      for (const list of Object.values(cache)) {
+        const found = list.find((f) => f.code === code);
+        if (found) return found;
+      }
+      return null;
     },
-    [favorites],
+    [cache],
+  );
+
+  const isRemoved = useCallback(
+    (code: string) => getSavedCode(code) !== null && findCode(code) === null,
+    [getSavedCode],
   );
 
   const toggleFavorite = useCallback(
-    (procedure: LeafCode): ToggleFavoriteResult => {
-      const current = cacheRef.current[activeClassifier] ?? [];
+    (
+      procedure: LeafCode,
+      classifier: ClassifierType = activeClassifier,
+    ): ToggleFavoriteResult => {
+      const current = cacheRef.current[classifier] ?? [];
       const exists = current.some((f) => f.code === procedure.code);
 
       if (!exists && !isPro && current.length >= BOOKMARK_LIMIT_FREE) {
@@ -106,7 +137,7 @@ export function FavoritesProvider({ children }: FavoritesProviderProps) {
       }
 
       setCache((prev) => {
-        const latest = prev[activeClassifier] ?? [];
+        const latest = prev[classifier] ?? [];
         const stillExists = latest.some((f) => f.code === procedure.code);
 
         if (!stillExists && !isPro && latest.length >= BOOKMARK_LIMIT_FREE) {
@@ -116,10 +147,10 @@ export function FavoritesProvider({ children }: FavoritesProviderProps) {
         const newFavorites = stillExists
           ? latest.filter((f) => f.code !== procedure.code)
           : [...latest, procedure];
-        const next = { ...prev, [activeClassifier]: newFavorites };
+        const next = { ...prev, [classifier]: newFavorites };
         cacheRef.current = next;
         AsyncStorage.setItem(
-          getStorageKey(activeClassifier),
+          getStorageKey(classifier),
           JSON.stringify(newFavorites),
         ).catch((error) => {
           console.error("Failed to save favorites:", error);
@@ -137,11 +168,21 @@ export function FavoritesProvider({ children }: FavoritesProviderProps) {
     () => ({
       favorites,
       isFavorite,
+      isRemoved,
+      getSavedCode,
       toggleFavorite,
       isLoading,
       isReady,
     }),
-    [favorites, isFavorite, toggleFavorite, isLoading, isReady],
+    [
+      favorites,
+      isFavorite,
+      isRemoved,
+      getSavedCode,
+      toggleFavorite,
+      isLoading,
+      isReady,
+    ],
   );
 
   return (

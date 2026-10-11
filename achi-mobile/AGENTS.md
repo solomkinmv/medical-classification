@@ -32,7 +32,7 @@ Use serve-sim for all simulator UI work, including viewing, interacting and taki
 ## Pro in-app purchase
 
 - Pro is a one-time, non-consumable purchase with the ID `com.solomkinmv.achi_mobile.pro` (`PRO_PRODUCT_ID` in `lib/constants.ts`). It is implemented with `expo-iap` in `lib/pro-provider.tsx` (`useProStatus`); the paywall is `app/pro.tsx`.
-- Free users can keep at most `BOOKMARK_LIMIT_FREE` (3) bookmarks per classifier, enforced in `lib/favorites-provider.tsx`. Custom folders and notes are Pro features.
+- Free users can keep at most `BOOKMARK_LIMIT_FREE` (20) bookmarks per classifier, enforced in `lib/favorites-provider.tsx`. Custom folders and notes are Pro features. Folders hold any code of their classifier, independent of bookmarks.
 - For local StoreKit testing, build and run the `MedichniKodi` scheme from Xcode with `Products.storekit`. Editing that file does not change App Store Connect pricing. Do not maintain StoreKit settings by hand in the generated `ios/`. README section "Pro purchase testing" covers the local and sandbox flows. `docs/plans/pro-purchase-validation.md` records validation status and remaining release blockers.
 
 ## Release (iOS)
@@ -47,4 +47,4 @@ Use serve-sim for all simulator UI work, including viewing, interacting and taki
 - Prettier: double quotes, semicolons, trailing commas, 2 spaces, 80 columns (`.prettierrc`).
 - TypeScript is `strict`. Imports use the `@/` alias to the app root.
 - Style with NativeWind `className`, using the Tailwind config in `tailwind.config.js` and `global.css`.
-- Favorites are namespaced per classifier. Each classifier (АКМІ, МКХ-10) has its own search, browsing, bookmarks and accent colors.
+- Bookmarks, folders and notes are stored per classifier (АКМІ, МКХ-10); browsing follows the active classifier. Search covers both classifiers. Codes never overlap between them, so `lib/code-index.ts` (`findCode`) resolves any code to its classifier, current name and path. Pass the code's classifier to provider writes instead of assuming the active one.

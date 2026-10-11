@@ -1,5 +1,11 @@
 import { memo } from "react";
-import { View, Text, Pressable } from "react-native";
+import {
+  View,
+  Text,
+  Pressable,
+  type AccessibilityActionEvent,
+  type AccessibilityActionInfo,
+} from "react-native";
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -9,10 +15,6 @@ import { Ionicons } from "@expo/vector-icons";
 import { Card } from "./Card";
 import { AnimatedBookmarkButton } from "./AnimatedBookmarkButton";
 import { useHaptics } from "@/lib/useHaptics";
-import {
-  ACCENT_BAR_HEIGHT_WITH_SUBTITLE,
-  ACCENT_BAR_HEIGHT_WITHOUT_SUBTITLE,
-} from "@/lib/constants";
 import type { ReactNode } from "react";
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
@@ -33,9 +35,14 @@ interface AccentCardProps {
   iconAccessibilityLabel?: string;
   isBookmarked?: boolean;
   children?: ReactNode;
+  /** 0 shows the whole title */
+  titleNumberOfLines?: number;
   onPress?: () => void;
+  onLongPress?: () => void;
   accessibilityLabel?: string;
   accessibilityHint?: string;
+  accessibilityActions?: AccessibilityActionInfo[];
+  onAccessibilityAction?: (event: AccessibilityActionEvent) => void;
 }
 
 export const AccentCard = memo(function AccentCard({
@@ -54,9 +61,13 @@ export const AccentCard = memo(function AccentCard({
   iconAccessibilityLabel,
   isBookmarked,
   children,
+  titleNumberOfLines = 2,
   onPress,
+  onLongPress,
   accessibilityLabel,
   accessibilityHint,
+  accessibilityActions,
+  onAccessibilityAction,
 }: AccentCardProps) {
   const scale = useSharedValue(1);
   const { trigger } = useHaptics();
@@ -84,11 +95,14 @@ export const AccentCard = memo(function AccentCard({
         className="mb-3"
         style={animatedStyle}
         onPress={handlePress}
+        onLongPress={onLongPress}
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
         accessibilityLabel={accessibilityLabel}
         accessibilityRole="button"
         accessibilityHint={accessibilityHint}
+        accessibilityActions={accessibilityActions}
+        onAccessibilityAction={onAccessibilityAction}
       >
         <AccentCardContent
           accentColor={accentColor}
@@ -105,6 +119,7 @@ export const AccentCard = memo(function AccentCard({
           onIconPress={onIconPress}
           iconAccessibilityLabel={iconAccessibilityLabel}
           isBookmarked={isBookmarked}
+          titleNumberOfLines={titleNumberOfLines}
         >
           {children}
         </AccentCardContent>
@@ -133,6 +148,7 @@ export const AccentCard = memo(function AccentCard({
         onIconPress={onIconPress}
         iconAccessibilityLabel={iconAccessibilityLabel}
         isBookmarked={isBookmarked}
+        titleNumberOfLines={titleNumberOfLines}
       >
         {children}
       </AccentCardContent>
@@ -155,6 +171,7 @@ interface AccentCardContentProps {
   onIconPress?: () => void;
   iconAccessibilityLabel?: string;
   isBookmarked?: boolean;
+  titleNumberOfLines: number;
   children?: ReactNode;
 }
 
@@ -173,6 +190,7 @@ function AccentCardContent({
   onIconPress,
   iconAccessibilityLabel,
   isBookmarked,
+  titleNumberOfLines,
   children,
 }: AccentCardContentProps) {
   return (
@@ -180,13 +198,8 @@ function AccentCardContent({
       <View className="flex-row items-start p-4">
         {/* Vertical accent bar */}
         <View
-          className="w-1 rounded-full mr-4"
-          style={{
-            height: subtitle
-              ? ACCENT_BAR_HEIGHT_WITH_SUBTITLE
-              : ACCENT_BAR_HEIGHT_WITHOUT_SUBTITLE,
-            backgroundColor: accentColor,
-          }}
+          className="w-1 self-stretch rounded-full mr-4"
+          style={{ backgroundColor: accentColor }}
         />
 
         {/* Content */}
@@ -201,7 +214,7 @@ function AccentCardContent({
           )}
           <Text
             className="text-base text-gray-900 dark:text-gray-100 font-semibold leading-5"
-            numberOfLines={2}
+            numberOfLines={titleNumberOfLines}
           >
             {title}
           </Text>

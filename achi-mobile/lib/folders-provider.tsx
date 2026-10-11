@@ -10,6 +10,7 @@ import {
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { randomUUID } from "expo-crypto";
 import { useClassifier } from "./classifier-provider";
+import { CLASSIFIERS } from "./code-index";
 import type { ClassifierType, Folder } from "./types";
 
 function getStorageKey(classifier: ClassifierType): string {
@@ -18,12 +19,12 @@ function getStorageKey(classifier: ClassifierType): string {
 
 interface FoldersContextType {
   folders: Folder[];
-  createFolder: (name: string) => Folder;
+  getFolders: (classifier: ClassifierType) => Folder[];
+  createFolder: (name: string, classifier?: ClassifierType) => Folder;
   deleteFolder: (id: string) => void;
   renameFolder: (id: string, name: string) => void;
   addToFolder: (folderId: string, code: string) => void;
   removeFromFolder: (folderId: string, code: string) => void;
-  getFolderForCode: (code: string) => Folder | null;
   isReady: boolean;
 }
 
@@ -92,97 +93,90 @@ export function FoldersProvider({ children }: FoldersProviderProps) {
     [],
   );
 
+  const getFolders = useCallback(
+    (classifier: ClassifierType) => cache[classifier] ?? [],
+    [cache],
+  );
+
   const createFolder = useCallback(
-    (name: string): Folder => {
+    (name: string, classifier: ClassifierType = activeClassifier): Folder => {
       const folder: Folder = {
         id: randomUUID(),
         name: name.trim(),
-        classifier: activeClassifier,
+        classifier,
         codeRefs: [],
       };
       setCache((prev) => {
-        if (!prev[activeClassifier]) return prev;
-        const current = prev[activeClassifier] ?? [];
+        const current = prev[classifier];
+        if (!current) return prev;
         const updated = [...current, folder];
-        persist(activeClassifier, updated);
-        return { ...prev, [activeClassifier]: updated };
+        persist(classifier, updated);
+        return { ...prev, [classifier]: updated };
       });
       return folder;
     },
     [activeClassifier, persist],
   );
 
-  const deleteFolder = useCallback(
-    (id: string) => {
+  /** Apply a change to the bucket that holds the folder; null keeps it as is */
+  const updateFolders = useCallback(
+    (folderId: string, change: (current: Folder[]) => Folder[] | null) => {
       setCache((prev) => {
-        if (!prev[activeClassifier]) return prev;
-        const current = prev[activeClassifier] ?? [];
-        const updated = current.filter((f) => f.id !== id);
-        persist(activeClassifier, updated);
-        return { ...prev, [activeClassifier]: updated };
+        for (const classifier of CLASSIFIERS) {
+          const current = prev[classifier];
+          if (!current?.some((f) => f.id === folderId)) continue;
+          const updated = change(current);
+          if (!updated) return prev;
+          persist(classifier, updated);
+          return { ...prev, [classifier]: updated };
+        }
+        return prev;
       });
     },
-    [activeClassifier, persist],
+    [persist],
+  );
+
+  const deleteFolder = useCallback(
+    (id: string) =>
+      updateFolders(id, (current) => current.filter((f) => f.id !== id)),
+    [updateFolders],
   );
 
   const renameFolder = useCallback(
     (id: string, name: string) => {
       const trimmed = name.trim();
       if (!trimmed) return;
-      setCache((prev) => {
-        if (!prev[activeClassifier]) return prev;
-        const current = prev[activeClassifier] ?? [];
-        const updated = current.map((f) =>
-          f.id === id ? { ...f, name: trimmed } : f,
-        );
-        persist(activeClassifier, updated);
-        return { ...prev, [activeClassifier]: updated };
-      });
+      updateFolders(id, (current) =>
+        current.map((f) => (f.id === id ? { ...f, name: trimmed } : f)),
+      );
     },
-    [activeClassifier, persist],
+    [updateFolders],
   );
 
   const addToFolder = useCallback(
-    (folderId: string, code: string) => {
-      setCache((prev) => {
-        if (!prev[activeClassifier]) return prev;
-        const current = prev[activeClassifier] ?? [];
-        const folder = current.find((f) => f.id === folderId);
-        if (!folder || folder.codeRefs.includes(code)) return prev;
-        const updated = current.map((f) =>
-          f.id === folderId ? { ...f, codeRefs: [...f.codeRefs, code] } : f,
-        );
-        persist(activeClassifier, updated);
-        return { ...prev, [activeClassifier]: updated };
-      });
-    },
-    [activeClassifier, persist],
+    (folderId: string, code: string) =>
+      updateFolders(folderId, (current) =>
+        current.some((f) => f.id === folderId && f.codeRefs.includes(code))
+          ? null
+          : current.map((f) =>
+              f.id === folderId ? { ...f, codeRefs: [...f.codeRefs, code] } : f,
+            ),
+      ),
+    [updateFolders],
   );
 
   const removeFromFolder = useCallback(
-    (folderId: string, code: string) => {
-      setCache((prev) => {
-        if (!prev[activeClassifier]) return prev;
-        const current = prev[activeClassifier] ?? [];
-        const folder = current.find((f) => f.id === folderId);
-        if (!folder || !folder.codeRefs.includes(code)) return prev;
-        const updated = current.map((f) =>
-          f.id === folderId
-            ? { ...f, codeRefs: f.codeRefs.filter((c) => c !== code) }
-            : f,
-        );
-        persist(activeClassifier, updated);
-        return { ...prev, [activeClassifier]: updated };
-      });
-    },
-    [activeClassifier, persist],
-  );
-
-  const getFolderForCode = useCallback(
-    (code: string): Folder | null => {
-      return folders.find((f) => f.codeRefs.includes(code)) ?? null;
-    },
-    [folders],
+    (folderId: string, code: string) =>
+      updateFolders(folderId, (current) =>
+        current.some((f) => f.id === folderId && f.codeRefs.includes(code))
+          ? current.map((f) =>
+              f.id === folderId
+                ? { ...f, codeRefs: f.codeRefs.filter((c) => c !== code) }
+                : f,
+            )
+          : null,
+      ),
+    [updateFolders],
   );
 
   const isReady = !isLoading && cache[activeClassifier] !== undefined;
@@ -190,22 +184,22 @@ export function FoldersProvider({ children }: FoldersProviderProps) {
   const value = useMemo(
     () => ({
       folders,
+      getFolders,
       createFolder,
       deleteFolder,
       renameFolder,
       addToFolder,
       removeFromFolder,
-      getFolderForCode,
       isReady,
     }),
     [
       folders,
+      getFolders,
       createFolder,
       deleteFolder,
       renameFolder,
       addToFolder,
       removeFromFolder,
-      getFolderForCode,
       isReady,
     ],
   );
