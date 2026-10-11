@@ -1,7 +1,7 @@
 {
   "name": "achi-mobile",
   "main": "expo-router/entry",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "scripts": {
     "start": "expo start",
     "start:sim": "EXPO_ENABLE_SIM_PREVIEW=true expo start",
