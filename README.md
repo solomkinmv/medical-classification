@@ -37,7 +37,7 @@ python3 mkh10_parser.py
 ```
 
 - Input: `mkh10-data/nk-025-2021.csv`
-- Output: `achi-mobile/data/mkh10.json`
+- Output: `mkh10/data/mkh10.json`; copy it to `achi-mobile/data/mkh10.json` for the app
 
 ## Repository Structure
 
