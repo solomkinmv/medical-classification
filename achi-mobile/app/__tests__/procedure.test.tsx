@@ -70,8 +70,7 @@ jest.mock("@/lib/classifier-provider", () => ({
 jest.mock("@/lib/folders-provider", () => ({
   useFolders: () => ({
     isReady: true,
-    getFolders: (classifier: string) =>
-      mockFolders.filter((f) => f.classifier === classifier),
+    allFolders: mockFolders,
     addToFolder: mockAddToFolder,
     removeFromFolder: mockRemoveFromFolder,
     createFolder: jest.fn(),
@@ -312,7 +311,7 @@ test("copies only the code", async () => {
   expect(Clipboard.setStringAsync).toHaveBeenCalledWith("D68.1");
 });
 
-test("adds the code to a folder of its classifier", () => {
+test("adds the code to any folder", () => {
   render(<ProcedureDetail />);
   fireEvent.press(screen.getByTestId("procedure.folder.f1"));
   expect(mockAddToFolder).toHaveBeenCalledWith("f1", "D68.1");

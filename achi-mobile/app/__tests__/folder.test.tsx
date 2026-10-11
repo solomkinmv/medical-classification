@@ -50,8 +50,7 @@ jest.mock("@react-navigation/elements", () => ({
 }));
 jest.mock("@/lib/folders-provider", () => ({
   useFolders: () => ({
-    getFolders: (classifier: string) =>
-      classifier === "achi" ? mockFolders : [],
+    allFolders: mockFolders,
     isReady: mockReady,
     addToFolder: mockAdd,
     removeFromFolder: mockRemove,
@@ -60,6 +59,8 @@ jest.mock("@/lib/folders-provider", () => ({
 jest.mock("@/lib/favorites-provider", () => ({
   useFavorites: () => ({
     favorites: mockFavorites,
+    getFavorites: (classifier: string) =>
+      classifier === "achi" ? mockFavorites : [],
     isReady: true,
     toggleFavorite: mockToggleFavorite,
     isFavorite: () => true,

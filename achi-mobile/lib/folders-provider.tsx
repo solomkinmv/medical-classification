@@ -20,6 +20,8 @@ function getStorageKey(classifier: ClassifierType): string {
 interface FoldersContextType {
   folders: Folder[];
   getFolders: (classifier: ClassifierType) => Folder[];
+  /** Folders of both classifiers; a folder can hold codes of either */
+  allFolders: Folder[];
   createFolder: (name: string, classifier?: ClassifierType) => Folder;
   deleteFolder: (id: string) => void;
   renameFolder: (id: string, name: string) => void;
@@ -95,6 +97,10 @@ export function FoldersProvider({ children }: FoldersProviderProps) {
 
   const getFolders = useCallback(
     (classifier: ClassifierType) => cache[classifier] ?? [],
+    [cache],
+  );
+  const allFolders = useMemo(
+    () => CLASSIFIERS.flatMap((classifier) => cache[classifier] ?? []),
     [cache],
   );
 
@@ -185,6 +191,7 @@ export function FoldersProvider({ children }: FoldersProviderProps) {
     () => ({
       folders,
       getFolders,
+      allFolders,
       createFolder,
       deleteFolder,
       renameFolder,
@@ -195,6 +202,7 @@ export function FoldersProvider({ children }: FoldersProviderProps) {
     [
       folders,
       getFolders,
+      allFolders,
       createFolder,
       deleteFolder,
       renameFolder,

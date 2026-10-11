@@ -14,11 +14,15 @@ interface FolderPickerProps {
 
 /** Folder membership of one code, shown on its detail screen */
 export function FolderPicker({ code, classifier }: FolderPickerProps) {
-  const { getFolders, createFolder, addToFolder, removeFromFolder, isReady } =
-    useFolders();
+  const {
+    allFolders: folders,
+    createFolder,
+    addToFolder,
+    removeFromFolder,
+    isReady,
+  } = useFolders();
   const { selection } = useHaptics();
   const { colors: t } = useTheme();
-  const folders = getFolders(classifier);
 
   if (!isReady) return null;
 

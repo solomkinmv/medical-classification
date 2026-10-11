@@ -19,9 +19,6 @@ jest.mock("@/components/AccentCard", () => ({ AccentCard: () => null }));
 jest.mock("@/components/Card", () => ({
   Card: ({ children }: any) => children,
 }));
-jest.mock("@/components/ClassifierSwitcher", () => ({
-  ClassifierSwitcher: () => null,
-}));
 jest.mock("@/components/EmptyState", () => ({ EmptyState: () => null }));
 jest.mock("@/components/SkeletonList", () => ({ SkeletonList: () => null }));
 jest.mock("@/lib/prompt-text-input", () => ({
@@ -29,7 +26,8 @@ jest.mock("@/lib/prompt-text-input", () => ({
 }));
 jest.mock("@/lib/favorites-provider", () => ({
   useFavorites: () => ({
-    favorites: [{ code: "code", name_ua: "Code" }],
+    getFavorites: (classifier: string) =>
+      classifier === "achi" ? [{ code: "code", name_ua: "Code" }] : [],
     toggleFavorite: jest.fn(),
     isFavorite: () => true,
     isRemoved: () => false,
@@ -39,7 +37,7 @@ jest.mock("@/lib/favorites-provider", () => ({
 }));
 jest.mock("@/lib/folders-provider", () => ({
   useFolders: () => ({
-    folders: mockFolders,
+    allFolders: mockFolders,
     isReady: mockReady,
     createFolder: mockCreate,
     deleteFolder: mockDelete,
