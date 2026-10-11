@@ -35,11 +35,11 @@ To build and install a release version on a physical iPhone (without dev server)
 2. Open the project in Xcode:
 
    ```bash
-   open ios/achimobile.xcworkspace
+   open ios/MedichniKodi.xcworkspace
    ```
 
 3. Configure signing:
-   - Select the **achimobile** target
+   - Select the **MedichniKodi** target
    - Go to **Signing & Capabilities** tab
    - Check **Automatically manage signing**
    - Select your **Team** from the dropdown
@@ -60,7 +60,7 @@ To build and install a release version on a physical iPhone (without dev server)
 
    ```bash
    cd ios
-   xcodebuild -workspace achimobile.xcworkspace -scheme achimobile -configuration Release -destination 'generic/platform=iOS' -allowProvisioningUpdates
+   xcodebuild -workspace MedichniKodi.xcworkspace -scheme MedichniKodi -configuration Release -destination 'generic/platform=iOS' -allowProvisioningUpdates
    ```
 
 3. Find your device UDID:
@@ -71,7 +71,7 @@ To build and install a release version on a physical iPhone (without dev server)
 
 4. Install on device:
    ```bash
-   xcrun devicectl device install app --device <DEVICE_UDID> ~/Library/Developer/Xcode/DerivedData/achimobile-*/Build/Products/Release-iphoneos/achimobile.app
+   xcrun devicectl device install app --device <DEVICE_UDID> ~/Library/Developer/Xcode/DerivedData/MedichniKodi-*/Build/Products/Release-iphoneos/MedichniKodi.app
    ```
 
 ### Troubleshooting
@@ -88,7 +88,7 @@ export NODE_BINARY=/opt/homebrew/bin/node
 
 ```bash
 cd ios
-rm -rf ~/Library/Developer/Xcode/DerivedData/achimobile-*
+rm -rf ~/Library/Developer/Xcode/DerivedData/MedichniKodi-*
 pod install
 ```
 
