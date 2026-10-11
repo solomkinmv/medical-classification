@@ -15,6 +15,8 @@ logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     level=logging.INFO
 )
+# httpx logs request URLs, which contain the bot token
+logging.getLogger("httpx").setLevel(logging.WARNING)
 
 
 def parse_data_tree() -> Dict:
