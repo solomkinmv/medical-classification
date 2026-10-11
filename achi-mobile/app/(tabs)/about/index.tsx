@@ -8,6 +8,7 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useColorScheme } from "nativewind";
+import { useRouter } from "expo-router";
 import { Card } from "@/components/Card";
 import {
   colors,
@@ -15,10 +16,13 @@ import {
   CONTENT_PADDING_BOTTOM,
   theme,
 } from "@/lib/constants";
+import { useProStatus } from "@/lib/pro-provider";
 
 export default function AboutScreen() {
   const { colorScheme } = useColorScheme();
   const t = colorScheme === "dark" ? theme.dark : theme.light;
+  const router = useRouter();
+  const { isPro, isProLoading } = useProStatus();
 
   const handleOpenURL = async (url: string) => {
     try {
@@ -63,6 +67,48 @@ export default function AboutScreen() {
       contentInsetAdjustmentBehavior="automatic"
       showsVerticalScrollIndicator={false}
     >
+      {!isProLoading && (
+        <Pressable
+          className="mb-3"
+          testID="about.pro"
+          accessibilityRole="button"
+          accessibilityLabel={
+            isPro ? "Медичні Коди Pro активовано" : "Оновити до Pro"
+          }
+          onPress={() => router.push("/pro" as never)}
+        >
+          <Card>
+            <View className="flex-row items-center p-5">
+              <View
+                className="w-10 h-10 rounded-full items-center justify-center mr-3"
+                style={{ backgroundColor: `${colors.violet[500]}15` }}
+              >
+                <Ionicons
+                  name={isPro ? "checkmark-circle" : "star"}
+                  size={20}
+                  color={isPro ? colors.emerald[500] : colors.violet[500]}
+                />
+              </View>
+              <View className="flex-1">
+                <Text className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                  Медичні Коди Pro
+                </Text>
+                <Text className="text-gray-600 dark:text-gray-400">
+                  {isPro
+                    ? "Активовано: необмежені закладки, папки та нотатки"
+                    : "Необмежені закладки, папки та нотатки"}
+                </Text>
+              </View>
+              <Ionicons
+                name="chevron-forward"
+                size={16}
+                color={colors.violet[500]}
+              />
+            </View>
+          </Card>
+        </Pressable>
+      )}
+
       <InfoCard
         icon="list-outline"
         title="Що таке АКМІ?"
@@ -73,8 +119,8 @@ export default function AboutScreen() {
           назва ACHI (Australian Classification of Health Interventions).
         </Text>
         <Text className="text-gray-600 dark:text-gray-400 leading-6 mb-2">
-          Структурований довідник кодів із 20 класів за анатомічним принципом.
-          Має 5 рівнів ієрархії: від класу до конкретного коду інтервенції.
+          Структурований довідник кодів із 22 класів. Має 5 рівнів ієрархії: від
+          класу до конкретного коду інтервенції.
         </Text>
         <Text className="text-gray-600 dark:text-gray-400 leading-6">
           Містить 6 728 кодів медичних процедур українською та англійською
