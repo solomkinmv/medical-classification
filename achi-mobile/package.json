@@ -4,6 +4,7 @@
   "version": "1.0.0",
   "scripts": {
     "start": "expo start",
+    "start:sim": "EXPO_ENABLE_SIM_PREVIEW=true expo start",
     "android": "expo run:android",
     "ios": "expo run:ios",
     "deploy:ios": "eas build --platform ios --profile production --local --non-interactive && IPA=$(ls -t build-*.ipa | head -1) && eas submit --platform ios --path ./$IPA --non-interactive && rm -f $IPA",
@@ -11,7 +12,10 @@
     "format": "prettier --write \"**/*.{ts,tsx,js,json}\"",
     "format:check": "prettier --check \"**/*.{ts,tsx,js,json}\"",
     "test": "jest",
-    "postinstall": "patch-package --error-on-fail"
+    "postinstall": "patch-package --error-on-fail",
+    "sim:serve": "sh -c 'if [ -z \"${SIM:-}\" ]; then echo \"Set SIM=<simulator-udid>\"; exit 1; fi; serve-sim --detach \"$SIM\"'",
+    "sim:serve:list": "serve-sim --list",
+    "sim:serve:kill": "sh -c 'if [ -z \"${SIM:-}\" ]; then echo \"Set SIM=<simulator-udid>\"; exit 1; fi; serve-sim --kill \"$SIM\"'"
   },
   "jest": {
     "preset": "jest-expo",
@@ -66,6 +70,7 @@
     "jest-expo": "^54.0.17",
     "patch-package": "8.0.1",
     "prettier": "^3.8.1",
+    "serve-sim": "^0.1.47",
     "typescript": "~5.9.0"
   },
   "private": true
