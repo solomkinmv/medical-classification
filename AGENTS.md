@@ -30,12 +30,12 @@ Clients bundle pre-generated JSON and read no source files at runtime. Generated
 
 - Install with `pip install -r requirements.txt`, then run `TOKEN=<bot token> python3 achi_bot.py` from `achi/`. The bot uses long polling (`run_polling`) and has no tests or linter.
 - Pushing to `main` with changes under `achi/**` runs `.github/workflows/fly.yml`. It builds and pushes `solomkinmv/achi_bot:latest` to Docker Hub, then runs `flyctl deploy --remote-only`. `achi/fly.toml` deploys that image.
-- Known mismatch: the Dockerfile uses `python:3.8-slim`, while `python-telegram-bot==22.6` requires Python 3.10 or later. Check the image before you rely on an automatic deploy.
+- The Dockerfile uses `python:3.12-slim`; `python-telegram-bot` 22.x requires Python 3.10 or later.
 - Dependabot opens weekly updates for pip (`/achi`) and GitHub Actions.
 
 ## Mobile app (`achi-mobile`)
 
-- Install with `npm ci` and run `npm start`. CI (`.github/workflows/achi-mobile-ci.yml`, Node 22) runs `npm run format:check`, `npm run lint` and `npx tsc --noEmit` for changes under `achi-mobile/**`. It does not run `npm test` (Jest), so run the tests locally.
+- Install with `npm ci` and run `npm start`. CI (`.github/workflows/achi-mobile-ci.yml`, Node 22) runs `npm run format:check`, `npm run lint`, `npx tsc --noEmit` and `npm test` for changes under `achi-mobile/**`.
 - The Pro in-app purchase, release, simulator workflow and code conventions are in `achi-mobile/AGENTS.md`.
 
 ## Secrets
