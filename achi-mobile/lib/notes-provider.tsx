@@ -17,8 +17,8 @@ function getStorageKey(classifier: ClassifierType): string {
 
 interface NotesContextType {
   getNote: (code: string) => string | null;
-  setNote: (code: string, text: string) => void;
-  deleteNote: (code: string) => void;
+  setNote: (code: string, text: string, classifier?: ClassifierType) => void;
+  deleteNote: (code: string, classifier?: ClassifierType) => void;
   hasNote: (code: string) => boolean;
   isReady: boolean;
 }
@@ -80,7 +80,12 @@ export function NotesProvider({ children }: NotesProviderProps) {
     };
   }, []);
 
-  const notes = cache[activeClassifier] ?? {};
+  // Codes never overlap between classifiers, so lookups search every bucket
+  const notes = useMemo(() => {
+    const merged: Record<string, string> = {};
+    for (const bucket of Object.values(cache)) Object.assign(merged, bucket);
+    return merged;
+  }, [cache]);
 
   const persist = useCallback(
     (classifier: ClassifierType, newNotes: Record<string, string>) => {
@@ -102,37 +107,41 @@ export function NotesProvider({ children }: NotesProviderProps) {
   );
 
   const setNote = useCallback(
-    (code: string, text: string) => {
+    (
+      code: string,
+      text: string,
+      classifier: ClassifierType = activeClassifier,
+    ) => {
       const trimmed = text.trim();
       if (!trimmed) {
         setCache((prev) => {
-          if (!prev[activeClassifier]) return prev;
-          const current = prev[activeClassifier] ?? {};
+          if (!prev[classifier]) return prev;
+          const current = prev[classifier] ?? {};
           const { [code]: _, ...updated } = current;
-          persist(activeClassifier, updated);
-          return { ...prev, [activeClassifier]: updated };
+          persist(classifier, updated);
+          return { ...prev, [classifier]: updated };
         });
         return;
       }
       setCache((prev) => {
-        if (!prev[activeClassifier]) return prev;
-        const current = prev[activeClassifier] ?? {};
+        if (!prev[classifier]) return prev;
+        const current = prev[classifier] ?? {};
         const updated = { ...current, [code]: trimmed };
-        persist(activeClassifier, updated);
-        return { ...prev, [activeClassifier]: updated };
+        persist(classifier, updated);
+        return { ...prev, [classifier]: updated };
       });
     },
     [activeClassifier, persist],
   );
 
   const deleteNote = useCallback(
-    (code: string) => {
+    (code: string, classifier: ClassifierType = activeClassifier) => {
       setCache((prev) => {
-        if (!prev[activeClassifier]) return prev;
-        const current = prev[activeClassifier] ?? {};
+        if (!prev[classifier]) return prev;
+        const current = prev[classifier] ?? {};
         const { [code]: _, ...updated } = current;
-        persist(activeClassifier, updated);
-        return { ...prev, [activeClassifier]: updated };
+        persist(classifier, updated);
+        return { ...prev, [classifier]: updated };
       });
     },
     [activeClassifier, persist],

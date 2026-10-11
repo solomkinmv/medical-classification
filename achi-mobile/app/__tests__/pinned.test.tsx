@@ -1,9 +1,9 @@
 import { fireEvent, render, screen } from "@testing-library/react-native";
-import { Alert } from "react-native";
+import { ActionSheetIOS, Alert } from "react-native";
 import PinnedScreen from "../(tabs)/pinned";
-const mockAdd = jest.fn();
-const mockRemove = jest.fn();
-const mockCreate = jest.fn();
+const mockCreate = jest.fn(() => ({ id: "new" }));
+const mockDelete = jest.fn();
+const mockPush = jest.fn();
 let mockReady = true;
 const mockFolders = [
   { id: "a", name: "A", codeRefs: ["code"] },
@@ -12,7 +12,7 @@ const mockFolders = [
 ];
 jest.mock("expo-router", () => ({
   Link: ({ children }: any) => children,
-  useRouter: () => ({ push: jest.fn() }),
+  useRouter: () => ({ push: mockPush }),
 }));
 jest.mock("@expo/vector-icons", () => ({ Ionicons: () => null }));
 jest.mock("@/components/AccentCard", () => ({ AccentCard: () => null }));
@@ -31,6 +31,9 @@ jest.mock("@/lib/favorites-provider", () => ({
   useFavorites: () => ({
     favorites: [{ code: "code", name_ua: "Code" }],
     toggleFavorite: jest.fn(),
+    isFavorite: () => true,
+    isRemoved: () => false,
+    getSavedCode: () => null,
     isLoading: false,
   }),
 }));
@@ -39,10 +42,8 @@ jest.mock("@/lib/folders-provider", () => ({
     folders: mockFolders,
     isReady: mockReady,
     createFolder: mockCreate,
-    deleteFolder: jest.fn(),
+    deleteFolder: mockDelete,
     renameFolder: jest.fn(),
-    addToFolder: mockAdd,
-    removeFromFolder: mockRemove,
   }),
 }));
 jest.mock("@/lib/notes-provider", () => ({
@@ -58,7 +59,7 @@ jest.mock("@/lib/useBackgroundColor", () => ({
   useBackgroundColor: () => "white",
 }));
 jest.mock("@/lib/useTheme", () => ({
-  useTheme: () => ({ colors: { text: "black" } }),
+  useTheme: () => ({ colors: { text: "black", textSecondary: "gray" } }),
 }));
 beforeEach(() => {
   jest.clearAllMocks();
@@ -66,11 +67,12 @@ beforeEach(() => {
 });
 afterEach(() => jest.restoreAllMocks());
 
-test("folder creation and rows have stable identifiers", () => {
+test("creating a folder opens it", () => {
   render(<PinnedScreen />);
   expect(screen.getByTestId("pinned.folder.a")).toBeTruthy();
   fireEvent.press(screen.getByTestId("pinned.folder.create"));
   expect(mockCreate).toHaveBeenCalledWith("New");
+  expect(mockPush).toHaveBeenCalledWith("/folder/new");
 });
 
 test("creation is hidden while folders are unhydrated", () => {
@@ -79,15 +81,32 @@ test("creation is hidden while folders are unhydrated", () => {
   expect(screen.queryByTestId("pinned.folder.create")).toBeNull();
 });
 
-test("folder menu toggles only the selected membership", () => {
+test("folder counts include codes that are not bookmarked", () => {
+  render(<PinnedScreen />);
+  expect(screen.getByLabelText("Папка A, 1 код")).toBeTruthy();
+  expect(screen.getByLabelText("Папка C, Порожня")).toBeTruthy();
+});
+
+test("the folder menu deletes only after confirmation", () => {
+  const sheet = jest
+    .spyOn(ActionSheetIOS, "showActionSheetWithOptions")
+    .mockImplementation(() => {});
   const alert = jest.spyOn(Alert, "alert").mockImplementation(() => {});
   render(<PinnedScreen />);
-  fireEvent(screen.getByTestId("pinned.code.code"), "longPress");
+  fireEvent.press(screen.getByTestId("pinned.folder.a.menu"));
+
+  const [options, choose] = sheet.mock.calls[0];
+  expect(options.options).toEqual([
+    "Перейменувати",
+    "Копіювати список кодів",
+    "Поділитися списком",
+    "Видалити папку",
+    "Скасувати",
+  ]);
+  choose(3);
+  expect(mockDelete).not.toHaveBeenCalled();
+
   const buttons = alert.mock.calls[0][2]!;
-  buttons.find((b) => b.text === 'Додати в "C"')!.onPress!();
-  expect(mockAdd).toHaveBeenCalledWith("c", "code");
-  expect(mockRemove).not.toHaveBeenCalled();
-  buttons.find((b) => b.text === 'Видалити з "B"')!.onPress!();
-  expect(mockRemove).toHaveBeenCalledWith("b", "code");
-  expect(mockRemove).toHaveBeenCalledTimes(1);
+  buttons.find((b) => b.text === "Видалити")!.onPress!();
+  expect(mockDelete).toHaveBeenCalledWith("a");
 });

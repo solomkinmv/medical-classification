@@ -1,6 +1,7 @@
 import type { NativeStackNavigationOptions } from "@react-navigation/native-stack";
 import { act, fireEvent, render, screen } from "@testing-library/react-native";
 import { Keyboard, ScrollView } from "react-native";
+import * as Clipboard from "expo-clipboard";
 import ProcedureDetail from "../procedure/[code]";
 
 const mockSetNote = jest.fn();
@@ -16,6 +17,13 @@ let mockNotesReady = true;
 let mockNote: string | null = null;
 let mockIsPro = true;
 let mockPinned = false;
+let mockCode = "D68.1";
+let mockSavedCode: { code: string; name_ua: string } | null = null;
+const mockAddToFolder = jest.fn();
+const mockRemoveFromFolder = jest.fn();
+const mockFolders = [
+  { id: "f1", name: "Звіт", classifier: "mkh10", codeRefs: [] as string[] },
+];
 
 jest.mock("react-native-safe-area-context", () => ({
   useSafeAreaInsets: () => ({ top: 0, right: 0, bottom: 34, left: 0 }),
@@ -27,7 +35,7 @@ jest.mock("@expo/vector-icons", () => ({
   },
 }));
 jest.mock("expo-router", () => ({
-  useLocalSearchParams: () => ({ code: "D68.1" }),
+  useLocalSearchParams: () => ({ code: mockCode }),
   useRouter: () => ({
     back: mockBack,
     push: jest.fn(),
@@ -51,26 +59,29 @@ jest.mock("@react-navigation/elements", () => ({
   }),
 }));
 jest.mock("@/lib/useHaptics", () => ({
-  useHaptics: () => ({ trigger: mockHaptic }),
+  useHaptics: () => ({ trigger: mockHaptic, selection: jest.fn() }),
 }));
 jest.mock("@/lib/classifier-provider", () => ({
   useClassifier: () => ({
-    activeClassifier: "mkh10",
-    activeData: {
-      children: {
-        test: {
-          name_ua: "Test category",
-          children: [{ code: "D68.1", name_ua: "Test diagnosis" }],
-        },
-      },
-    },
+    activeClassifier: "achi",
+    setActiveClassifier: jest.fn(),
   }),
 }));
-jest.mock("@/lib/navigation", () => ({ findProcedurePath: () => [] }));
+jest.mock("@/lib/folders-provider", () => ({
+  useFolders: () => ({
+    isReady: true,
+    getFolders: (classifier: string) =>
+      mockFolders.filter((f) => f.classifier === classifier),
+    addToFolder: mockAddToFolder,
+    removeFromFolder: mockRemoveFromFolder,
+    createFolder: jest.fn(),
+  }),
+}));
 jest.mock("@/lib/favorites-provider", () => ({
   useFavorites: () => ({
     isFavorite: () => mockPinned,
     toggleFavorite: mockToggleFavorite,
+    getSavedCode: () => mockSavedCode,
   }),
 }));
 jest.mock("@/lib/notes-provider", () => ({
@@ -97,6 +108,8 @@ beforeEach(() => {
   mockNote = null;
   mockIsPro = true;
   mockPinned = false;
+  mockCode = "D68.1";
+  mockSavedCode = null;
   mockCanGoBack.mockReturnValue(true);
   mockToggleFavorite.mockReturnValue({ limitReached: false });
 });
@@ -153,7 +166,11 @@ test("keeps a long note bounded and saves the edited text", () => {
   expect(input.props.scrollEnabled).toBe(true);
   fireEvent.changeText(input, "  First line\nSecond line  ");
   fireEvent.press(screen.getByTestId("procedure.note.save"));
-  expect(mockSetNote).toHaveBeenCalledWith("D68.1", "First line\nSecond line");
+  expect(mockSetNote).toHaveBeenCalledWith(
+    "D68.1",
+    "First line\nSecond line",
+    "mkh10",
+  );
   expect(screen.queryByTestId("procedure.note.input")).toBeNull();
 });
 
@@ -174,7 +191,7 @@ test("an empty saved edit deletes the note", () => {
   fireEvent.press(screen.getByText("Редагувати"));
   fireEvent.changeText(screen.getByTestId("procedure.note.input"), "  ");
   fireEvent.press(screen.getByTestId("procedure.note.save"));
-  expect(mockDeleteNote).toHaveBeenCalledWith("D68.1");
+  expect(mockDeleteNote).toHaveBeenCalledWith("D68.1", "mkh10");
 });
 
 test("bookmark uses one undecorated navigation header action", () => {
@@ -223,7 +240,8 @@ test("notes remain unavailable without Pro", () => {
   mockIsPro = false;
   render(<ProcedureDetail />);
   expect(screen.queryByText("Додати нотатку")).toBeNull();
-  expect(screen.getByText("Додайте нотатки до кодів")).toBeTruthy();
+  expect(screen.getByText("Нотатки та папки для кодів")).toBeTruthy();
+  expect(screen.queryByTestId("procedure.folders")).toBeNull();
 });
 
 test("does not replace the native glass header with an opaque editing workaround", () => {
@@ -260,4 +278,50 @@ test("note editing is unavailable until hydration completes", () => {
   render(<ProcedureDetail />);
   expect(screen.queryByTestId("procedure.note.add")).toBeNull();
   expect(screen.getByTestId("procedure.notes-unavailable")).toBeTruthy();
+});
+
+test("opens a code of the other classifier and bookmarks it there", () => {
+  render(<ProcedureDetail />);
+  expect(screen.getByText("Спадкова недостатність фактора xi")).toBeTruthy();
+  fireEvent.press(screen.getByTestId("procedure.bookmark"));
+  expect(mockToggleFavorite).toHaveBeenCalledWith(
+    expect.objectContaining({ code: "D68.1" }),
+    "mkh10",
+  );
+  expect(screen.getByTestId("procedure.edition")).toHaveTextContent(
+    /НК 025:2021/,
+  );
+});
+
+test("copies the code with its name for a report", async () => {
+  render(<ProcedureDetail />);
+  await act(async () => {
+    fireEvent.press(screen.getByTestId("procedure.copy-with-name"));
+  });
+  expect(Clipboard.setStringAsync).toHaveBeenCalledWith(
+    "D68.1 — Спадкова недостатність фактора xi",
+  );
+  expect(screen.getByText("Скопійовано")).toBeTruthy();
+});
+
+test("copies only the code", async () => {
+  render(<ProcedureDetail />);
+  await act(async () => {
+    fireEvent.press(screen.getByTestId("procedure.copy-code"));
+  });
+  expect(Clipboard.setStringAsync).toHaveBeenCalledWith("D68.1");
+});
+
+test("adds the code to a folder of its classifier", () => {
+  render(<ProcedureDetail />);
+  fireEvent.press(screen.getByTestId("procedure.folder.f1"));
+  expect(mockAddToFolder).toHaveBeenCalledWith("f1", "D68.1");
+});
+
+test("explains a saved code that left the classifier", () => {
+  mockCode = "99999-99";
+  mockSavedCode = { code: "99999-99", name_ua: "Стара назва" };
+  render(<ProcedureDetail />);
+  expect(screen.getByTestId("procedure.removed")).toBeTruthy();
+  expect(screen.getByText("Стара назва")).toBeTruthy();
 });

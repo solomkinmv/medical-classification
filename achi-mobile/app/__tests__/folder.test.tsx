@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import type { NativeStackNavigationOptions } from "@react-navigation/native-stack";
 import { fireEvent, render, screen } from "@testing-library/react-native";
+import * as Clipboard from "expo-clipboard";
 import FolderDetail from "../folder/[id]";
 
 const mockAdd = jest.fn();
@@ -11,7 +12,19 @@ const mockUpgrade = jest.fn();
 const mockHeader = jest.fn();
 let mockIsPro = true;
 let mockReady = true;
-let mockFolders = [{ id: "teddy", name: "Teddy", codeRefs: [] as string[] }];
+type MockFolder = {
+  id: string;
+  name: string;
+  classifier: "achi";
+  codeRefs: string[];
+};
+const folder = (codeRefs: string[] = []): MockFolder => ({
+  id: "teddy",
+  name: "Teddy",
+  classifier: "achi",
+  codeRefs,
+});
+let mockFolders: MockFolder[] = [folder()];
 let mockFavorites = [
   { code: "100", name_ua: "Тестовий код", name_en: "Test code" },
 ];
@@ -37,7 +50,8 @@ jest.mock("@react-navigation/elements", () => ({
 }));
 jest.mock("@/lib/folders-provider", () => ({
   useFolders: () => ({
-    folders: mockFolders,
+    getFolders: (classifier: string) =>
+      classifier === "achi" ? mockFolders : [],
     isReady: mockReady,
     addToFolder: mockAdd,
     removeFromFolder: mockRemove,
@@ -48,10 +62,14 @@ jest.mock("@/lib/favorites-provider", () => ({
     favorites: mockFavorites,
     isReady: true,
     toggleFavorite: mockToggleFavorite,
+    isFavorite: () => true,
+    isRemoved: () => false,
+    getSavedCode: (code: string) =>
+      mockFavorites.find((f) => f.code === code) ?? null,
   }),
 }));
-jest.mock("@/lib/classifier-provider", () => ({
-  useClassifier: () => ({ activeClassifier: "achi" }),
+jest.mock("@/lib/notes-provider", () => ({
+  useNotes: () => ({ hasNote: () => false }),
 }));
 jest.mock("@/lib/pro-provider", () => ({
   useProStatus: () => ({ isPro: mockIsPro }),
@@ -73,9 +91,26 @@ jest.mock("@/components/UpgradePrompt", () => ({
   showUpgradePrompt: () => mockUpgrade(),
 }));
 jest.mock("@/components/AccentCard", () => ({
-  AccentCard: ({ title }: { title: string }) => {
-    const { Text } = jest.requireActual("react-native");
-    return <Text>{title}</Text>;
+  AccentCard: ({
+    title,
+    onIconPress,
+    iconAccessibilityLabel,
+  }: {
+    title: string;
+    onIconPress: () => void;
+    iconAccessibilityLabel: string;
+  }) => {
+    const { Pressable, Text } = jest.requireActual("react-native");
+    return (
+      <>
+        <Text>{title}</Text>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={iconAccessibilityLabel}
+          onPress={onIconPress}
+        />
+      </>
+    );
   },
 }));
 
@@ -83,7 +118,7 @@ beforeEach(() => {
   jest.clearAllMocks();
   mockReady = true;
   mockIsPro = true;
-  mockFolders = [{ id: "teddy", name: "Teddy", codeRefs: [] }];
+  mockFolders = [folder()];
   mockFavorites = [
     { code: "100", name_ua: "Тестовий код", name_en: "Test code" },
   ];
@@ -111,7 +146,7 @@ test("adds an existing bookmark to the current folder and finishes selection", (
   fireEvent.press(screen.getByTestId("folder.add-empty"));
   fireEvent.press(screen.getByTestId("folder.code.100"));
   expect(mockAdd).toHaveBeenCalledWith("teddy", "100");
-  mockFolders = [{ id: "teddy", name: "Teddy", codeRefs: ["100"] }];
+  mockFolders = [folder(["100"])];
   view.rerender(<FolderDetail />);
   expect(screen.getByTestId("folder.code.100")).toBeChecked();
   fireEvent.press(screen.getByTestId("folder.done"));
@@ -120,7 +155,7 @@ test("adds an existing bookmark to the current folder and finishes selection", (
 });
 
 test("removing folder membership never deletes the saved bookmark", () => {
-  mockFolders[0].codeRefs = ["100"];
+  mockFolders = [folder(["100"])];
   render(<FolderDetail />);
   fireEvent.press(screen.getByTestId("folder.add"));
   fireEvent.press(screen.getByTestId("folder.code.100"));
@@ -133,7 +168,7 @@ test("guides users without bookmarks to find and save codes", () => {
   render(<FolderDetail />);
   fireEvent.press(screen.getByTestId("folder.add-empty"));
   fireEvent.press(screen.getByTestId("folder.explore"));
-  expect(mockPush).toHaveBeenCalledWith("/(tabs)/explore");
+  expect(mockPush).toHaveBeenCalledWith("/(tabs)/search");
 });
 
 test("gates folder editing behind Pro", () => {
@@ -167,4 +202,26 @@ test("shows a missing-folder message after storage has loaded", () => {
   render(<FolderDetail />);
   expect(screen.getByText("Папку не знайдено")).toBeTruthy();
   expect(screen.queryByTestId("folder.add")).toBeNull();
+});
+
+test("removes a code from the folder without touching bookmarks", () => {
+  mockFolders = [folder(["100"])];
+  render(<FolderDetail />);
+  fireEvent.press(screen.getByRole("button", { name: "Прибрати з папки" }));
+  expect(mockRemove).toHaveBeenCalledWith("teddy", "100");
+  expect(mockToggleFavorite).not.toHaveBeenCalled();
+});
+
+test("copies the folder as a list for a report", () => {
+  mockFolders = [folder(["100"])];
+  render(<FolderDetail />);
+  fireEvent.press(screen.getByTestId("folder.copy"));
+  expect(Clipboard.setStringAsync).toHaveBeenCalledWith("100 — Тестовий код");
+});
+
+test("shows folder codes even when they are not bookmarked", () => {
+  mockFolders = [folder(["30443-00"])];
+  mockFavorites = [];
+  render(<FolderDetail />);
+  expect(screen.getByText("Холецистектомія")).toBeTruthy();
 });
