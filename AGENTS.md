@@ -22,9 +22,11 @@ Clients bundle pre-generated JSON and read no source files at runtime. Generated
 
 - Mobile АКМІ: from `achi-mobile`, run `npx ts-node scripts/generate-achi-data.ts`. It reads `../data-source/nk-026-2021.csv` and writes `achi-mobile/data/achi.json`.
 - Mobile МКХ-10: from `mkh10`, run `python3 mkh10_parser.py`. It reads `../mkh10-data/nk-025-2021.csv` and writes `mkh10/data/mkh10.json`. Copy that file to `achi-mobile/data/mkh10.json`; the two copies are currently identical.
-- Bot АКМІ: from `achi`, run `python3 achi_parser.py`. It reads `achi/ACHI UKR-ENG.csv` (a different, older source than the app uses) and writes `achi/data/achi.json`. `achi/data/achi_hierarchy.json` is not read by any code.
+- Bot АКМІ: from `achi`, run `python3 achi_parser.py`. It reads the same `../data-source/nk-026-2021.csv` and writes `achi/data/achi.json`. Both АКМІ generators apply the same rules, so the app and bot contain the same codes and names.
 - The app imports both files statically in `achi-mobile/lib/classifier-provider.tsx` (`@/data/achi.json`, `@/data/mkh10.json`). The bot loads `data/achi.json` relative to its working directory.
-- Source CSVs use `;` as the delimiter.
+- Source CSVs use `;` as the delimiter. In `nk-026-2021.csv`, fields that contain `;` (class 21 lab test names) are double-quoted, so parse it as CSV rather than splitting lines.
+- `nk-026-2021.csv` matches `nk-026-2021.xlsx` except for 24 names in the 96xxx codes, which follow the official `nk-026-2021.pdf` (the XLSX has older wording there). The PDF is the official edition published by dec.gov.ua.
+- In АКМІ, classes 20–22 and two class 13 codes have `__` for hierarchy levels they lack. The generators turn an unnamed level into a `_` category, which app and bot navigation skip, and omit `__` codes. The source also mixes look-alike Latin letters into Ukrainian words and a Cyrillic `А` into two codes; the generators normalize both. Two pairs of blocks (675/677, 1450/1451) share a truncated name, so the second block's key gets its number appended.
 
 ## Telegram bot (`achi`)
 
