@@ -56,6 +56,78 @@ function toTitleCase(str: string): string {
   return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
 }
 
+// The source mixes look-alike Latin letters into Ukrainian words ("соннiй")
+// and a Cyrillic letter into two codes ("А67007"); the official PDF uses the
+// expected script, and mixed spellings break search.
+const LATIN_TO_CYRILLIC: Record<string, string> = {
+  a: "а",
+  c: "с",
+  e: "е",
+  i: "і",
+  o: "о",
+  p: "р",
+  x: "х",
+  y: "у",
+  A: "А",
+  B: "В",
+  C: "С",
+  E: "Е",
+  H: "Н",
+  I: "І",
+  K: "К",
+  M: "М",
+  O: "О",
+  P: "Р",
+  T: "Т",
+  X: "Х",
+};
+const CYRILLIC_TO_LATIN: Record<string, string> = Object.fromEntries(
+  Object.entries(LATIN_TO_CYRILLIC).map(([latin, cyrillic]) => [
+    cyrillic,
+    latin,
+  ]),
+);
+
+function fixMixedScriptWords(text: string): string {
+  return text.replace(/[\p{L}]+/gu, (word) =>
+    /[\u0400-\u04FF]/.test(word) && /[A-Za-z]/.test(word)
+      ? word.replace(/[A-Za-z]/g, (ch) => LATIN_TO_CYRILLIC[ch] ?? ch)
+      : word,
+  );
+}
+
+function fixCode(code: string): string {
+  return code.replace(/[\u0400-\u04FF]/g, (ch) => CYRILLIC_TO_LATIN[ch] ?? ch);
+}
+
+function splitCsvLine(line: string): string[] {
+  const fields: string[] = [];
+  let field = "";
+  let quoted = false;
+  for (let i = 0; i < line.length; i++) {
+    const ch = line[i];
+    if (quoted) {
+      if (ch === '"' && line[i + 1] === '"') {
+        field += '"';
+        i++;
+      } else if (ch === '"') {
+        quoted = false;
+      } else {
+        field += ch;
+      }
+    } else if (ch === '"' && field === "") {
+      quoted = true;
+    } else if (ch === ";") {
+      fields.push(field);
+      field = "";
+    } else {
+      field += ch;
+    }
+  }
+  fields.push(field);
+  return fields;
+}
+
 function parseCSV(filePath: string): ParsedRow[] {
   const content = fs.readFileSync(filePath, "utf-8");
   const lines = content.split("\n");
@@ -66,30 +138,37 @@ function parseCSV(filePath: string): ParsedRow[] {
     const line = lines[i].trim();
     if (!line) continue;
 
-    const parts = line.split(";");
+    const parts = splitCsvLine(line);
     if (parts.length < 11) continue;
-
-    // Skip rows with "__" placeholders (specialist consultations without hierarchy)
-    if (parts[2] === "__" || parts[4] === "__" || parts[6] === "__") {
-      continue;
-    }
 
     rows.push({
       clazz: parts[0].trim(),
-      clazzName: parts[1].trim(),
+      clazzName: fixMixedScriptWords(parts[1].trim()),
       anatomicalAxis: parts[2].trim(),
-      anatomicalName: parts[3].trim(),
+      anatomicalName: fixMixedScriptWords(parts[3].trim()),
       proceduralAxis: parts[4].trim(),
-      proceduralName: parts[5].trim(),
+      proceduralName: fixMixedScriptWords(parts[5].trim()),
       blockAxis: parts[6].trim(),
-      blockName: parts[7].trim(),
-      code: parts[8].trim(),
-      nameUkr: parts[9].trim(),
+      blockName: fixMixedScriptWords(parts[7].trim()),
+      code: fixCode(parts[8].trim()),
+      nameUkr: fixMixedScriptWords(parts[9].trim()),
       nameEng: parts[10].trim(),
     });
   }
 
   return rows;
+}
+
+// Classes 20-22 and a few class 13 rows use "__" for levels they don't have.
+// A level without a name becomes the "_" category, which navigation skips.
+const PLACEHOLDER = "__";
+
+function levelKey(name: string): string {
+  return name === PLACEHOLDER ? "_" : name;
+}
+
+function levelCode(code: string): string | undefined {
+  return code === PLACEHOLDER ? undefined : code;
 }
 
 function buildHierarchy(rows: ParsedRow[]): AchiData {
@@ -109,44 +188,49 @@ function buildHierarchy(rows: ParsedRow[]): AchiData {
     const clazzNode = data.children[clazzKey];
 
     // Level 1: Anatomical location (e.g., "Череп, оболонки мозку та головний мозок")
-    const anatomicalName = toTitleCase(row.anatomicalName);
-    const anatomicalKey = anatomicalName;
+    const anatomicalKey = levelKey(toTitleCase(row.anatomicalName));
     const clazzChildren = clazzNode.children as Record<string, CategoryNode>;
     if (!clazzChildren[anatomicalKey]) {
       clazzChildren[anatomicalKey] = {
-        code: row.anatomicalAxis,
-        name_ua: anatomicalName,
+        code: levelCode(row.anatomicalAxis),
+        name_ua: anatomicalKey,
         children: {},
       };
     }
     const anatomicalNode = clazzChildren[anatomicalKey];
 
     // Level 2: Procedural typology (e.g., "Обстеження")
-    const proceduralName = toTitleCase(row.proceduralName);
-    const proceduralKey = proceduralName;
+    const proceduralKey = levelKey(toTitleCase(row.proceduralName));
     const anatomicalChildren = anatomicalNode.children as Record<
       string,
       CategoryNode
     >;
     if (!anatomicalChildren[proceduralKey]) {
       anatomicalChildren[proceduralKey] = {
-        code: row.proceduralAxis,
-        name_ua: proceduralName,
+        code: levelCode(row.proceduralAxis),
+        name_ua: proceduralKey,
         children: {},
       };
     }
     const proceduralNode = anatomicalChildren[proceduralKey];
 
     // Level 3: Block (e.g., "Обстеження черепа, оболонок мозку або головного мозку")
-    const blockKey = row.blockName;
     const proceduralChildren = proceduralNode.children as Record<
       string,
       CategoryNode
     >;
+    const blockName = levelKey(row.blockName);
+    const blockCode = levelCode(row.blockAxis);
+    // A few distinct blocks share a truncated name; keep their keys unique
+    const blockKey =
+      proceduralChildren[blockName] &&
+      proceduralChildren[blockName].code !== blockCode
+        ? `${blockName} (${row.blockAxis})`
+        : blockName;
     if (!proceduralChildren[blockKey]) {
       proceduralChildren[blockKey] = {
-        code: row.blockAxis,
-        name_ua: row.blockName,
+        code: blockCode,
+        name_ua: blockName,
         children: [],
       };
     }

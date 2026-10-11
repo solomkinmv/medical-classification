@@ -64,25 +64,33 @@ export function resolveNavigationPath(
     if (decodedSegment in categoryChildren) {
       foundNode = categoryChildren[decodedSegment];
     } else if ("_" in categoryChildren) {
-      // Look inside underscore category
-      const underscoreNode = categoryChildren["_"];
-      if (isCategoryChildren(underscoreNode.children)) {
-        const underscoreChildren = underscoreNode.children as Record<
-          string,
-          CategoryNode
-        >;
-        if (decodedSegment in underscoreChildren) {
-          // Auto-include underscore in path (but it won't be in URL)
-          resolvedPath.push({
-            key: "_",
-            name_ua: underscoreNode.name_ua,
-            level: levelOrder[levelIndex] ?? "block",
-            code: underscoreNode.code,
-          });
-          levelIndex++;
-          currentChildren = underscoreNode.children;
-          foundNode = underscoreChildren[decodedSegment];
-        }
+      // Look through a chain of underscore categories (they aren't in the URL)
+      const underscorePath: PathSegment[] = [];
+      let underscoreChildren: CategoryChildren = categoryChildren;
+      let underscoreLevel = levelIndex;
+      while (
+        isCategoryChildren(underscoreChildren) &&
+        "_" in underscoreChildren &&
+        !(decodedSegment in underscoreChildren)
+      ) {
+        const underscoreNode: CategoryNode = underscoreChildren["_"];
+        underscorePath.push({
+          key: "_",
+          name_ua: underscoreNode.name_ua,
+          level: levelOrder[underscoreLevel] ?? "block",
+          code: underscoreNode.code,
+        });
+        underscoreLevel++;
+        underscoreChildren = underscoreNode.children;
+      }
+      if (
+        isCategoryChildren(underscoreChildren) &&
+        decodedSegment in underscoreChildren
+      ) {
+        resolvedPath.push(...underscorePath);
+        levelIndex = underscoreLevel;
+        currentChildren = underscoreChildren;
+        foundNode = underscoreChildren[decodedSegment];
       }
     }
 

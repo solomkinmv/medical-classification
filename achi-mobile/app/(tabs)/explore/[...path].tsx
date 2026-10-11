@@ -28,12 +28,12 @@ export default function BrowseScreen() {
   const pathSegments = Array.isArray(path) ? path : path ? [path] : [];
   const navState = resolveNavigationPath(data, pathSegments, activeClassifier);
 
-  const title =
-    navState.path.length > 0
-      ? navState.path[navState.path.length - 1].name_ua
-      : activeClassifier === "mkh10"
-        ? "МКХ-10"
-        : "АКМІ";
+  const titleSegment = navState.path.findLast((s) => s.key !== "_");
+  const title = titleSegment
+    ? titleSegment.name_ua
+    : activeClassifier === "mkh10"
+      ? "МКХ-10"
+      : "АКМІ";
 
   const childCategories = navState.children
     ? getChildCategories(navState.children)
