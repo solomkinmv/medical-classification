@@ -18,7 +18,7 @@ describe("showUpgradePrompt", () => {
 
     expect(Alert.alert).toHaveBeenCalledWith(
       "Обмеження безкоштовної версії",
-      expect.stringContaining("до 20 закладок"),
+      expect.stringContaining("до 3 закладок"),
       expect.any(Array),
     );
   });
