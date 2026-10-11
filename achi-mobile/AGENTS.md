@@ -18,7 +18,7 @@ The app is built with Expo SDK 54, Expo Router (typed routes), NativeWind 4 and 
 - `postinstall` runs `patch-package --error-on-fail`, which applies the `react-native-screens` 4.17.1 patch. Do not skip install scripts. `react-native-screens` is deliberately pinned above Expo 54's expected range; README explains why.
 - `npm start` runs the Expo dev server. `npm run ios` and `npm run android` build and launch native apps; `ios/` and `android/` are generated and gitignored.
 - Lint with `npm run lint` (`expo lint`, flat config with `eslint-config-prettier`). Format with `npm run format` and `npm run format:check`. Typecheck with `npx tsc --noEmit`. CI runs these three checks.
-- `npm test` runs Jest (`jest-expo` preset) with React Native Testing Library. Tests live in `__tests__/` folders under `app/`, `components/`, `lib/` and `plugins/` and use `*.test.ts(x)` or `*.test.js` names; shared helpers are in `test-utils/`. CI does not run the tests, so run them locally.
+- `npm test` runs Jest (`jest-expo` preset) with React Native Testing Library. Tests live in `__tests__/` folders under `app/`, `components/`, `lib/` and `plugins/` and use `*.test.ts(x)` or `*.test.js` names; shared helpers are in `test-utils/`. CI runs them.
 
 ## iOS simulator workflow
 
