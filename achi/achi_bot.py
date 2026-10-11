@@ -34,21 +34,29 @@ async def text(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await proceed_with_selected_option(message_text, update, context)
 
 
+def node_at_level(context: ContextTypes.DEFAULT_TYPE, level: int) -> Dict:
+    node = context.bot_data["achi_data"]
+    for i in range(level):
+        node = node["children"][context.chat_data[f'choice{i}']]
+    return node
+
+
 async def proceed_with_selected_option(message_text: str, update: Update, context: ContextTypes.DEFAULT_TYPE):
     level = context.chat_data.get("level", 0)  # todo: what if no level
     if message_text == BACK:
         level -= 1
+        # Levels with a single option are skipped going forward, so skip them going back too
+        while level > 0 and len(node_at_level(context, level)["children"]) == 1:
+            level -= 1
     else:
         context.chat_data[f'choice{level}'] = message_text
         level += 1
 
     context.chat_data["level"] = level
 
-    achi_node = context.bot_data["achi_data"]
-    breadcrumbs = []
-    for i in range(level):
-        achi_node = achi_node["children"][context.chat_data[f'choice{i}']]
-        breadcrumbs.append(context.chat_data[f"choice{i}"])
+    achi_node = node_at_level(context, level)
+    breadcrumbs = [context.chat_data[f"choice{i}"] for i in range(level)]
+    breadcrumbs = [choice for choice in breadcrumbs if choice != "_"]
 
     joined_breadcrumbs = " -> ".join(breadcrumbs)
 
