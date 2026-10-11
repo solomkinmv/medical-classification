@@ -27,12 +27,12 @@ import {
 export default function FolderDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const {
-    getFolders,
+    allFolders,
     addToFolder,
     removeFromFolder,
     isReady: foldersReady,
   } = useFolders();
-  const { favorites, isReady: favoritesReady } = useFavorites();
+  const { getFavorites, isReady: favoritesReady } = useFavorites();
   const { isPro } = useProStatus();
   const router = useRouter();
   const [selecting, setSelecting] = useState(false);
@@ -42,8 +42,12 @@ export default function FolderDetail() {
   const backgroundColor = t.background;
 
   const folder = useMemo(
-    () => CLASSIFIERS.flatMap(getFolders).find((f) => f.id === id) ?? null,
-    [getFolders, id],
+    () => allFolders.find((f) => f.id === id) ?? null,
+    [allFolders, id],
+  );
+  const favorites = useMemo(
+    () => CLASSIFIERS.flatMap(getFavorites),
+    [getFavorites],
   );
   const codes = useMemo(
     () => (folder ? getFolderCodes(folder) : []),
@@ -84,8 +88,6 @@ export default function FolderDetail() {
       </>
     );
   }
-
-  const classifierColors = getClassifierColors(folder.classifier);
 
   const startSelecting = () => {
     if (!isPro) return showUpgradePrompt();
@@ -169,17 +171,16 @@ export default function FolderDetail() {
               accessibilityRole="button"
               accessibilityHint="Копіює коди з назвами, по одному в рядку"
               onPress={() => copyList(folder)}
-              style={({ pressed }) => ({
+              style={{
                 flexDirection: "row",
                 alignItems: "center",
                 justifyContent: "center",
                 gap: 8,
                 minHeight: 48,
                 borderRadius: 12,
-                backgroundColor: classifierColors.accent500,
+                backgroundColor: colors.violet[500],
                 marginBottom: 16,
-                opacity: pressed ? 0.8 : 1,
-              })}
+              }}
             >
               <Ionicons name="copy-outline" size={18} color="#ffffff" />
               <Text
@@ -289,7 +290,9 @@ export default function FolderDetail() {
                 <View style={{ flex: 1 }}>
                   <Text
                     style={{
-                      color: classifierColors.accent600,
+                      color: getClassifierColors(
+                        findCode(item.code)?.classifier ?? folder.classifier,
+                      ).accent600,
                       fontSize: 14,
                       fontWeight: "600",
                     }}
@@ -308,7 +311,7 @@ export default function FolderDetail() {
             <View testID={`folder.item.${item.code}`}>
               <CodeCard
                 code={item}
-                classifier={folder.classifier}
+                classifier={entry?.classifier ?? folder.classifier}
                 context={
                   entry ? getCodeContext(entry.leaf, entry.path) : undefined
                 }

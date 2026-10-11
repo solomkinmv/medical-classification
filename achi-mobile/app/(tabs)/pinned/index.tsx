@@ -1,10 +1,9 @@
 import { memo, useCallback } from "react";
-import { View, Text, FlatList, ScrollView, Pressable } from "react-native";
+import { View, Text, SectionList, ScrollView, Pressable } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { promptTextInput } from "@/lib/prompt-text-input";
 import { Card } from "@/components/Card";
-import { ClassifierSwitcher } from "@/components/ClassifierSwitcher";
 import { CodeCard } from "@/components/CodeCard";
 import { EmptyState } from "@/components/EmptyState";
 import { SkeletonList } from "@/components/SkeletonList";
@@ -15,14 +14,20 @@ import { useClassifier } from "@/lib/classifier-provider";
 import { useFolderActions } from "@/lib/useFolderActions";
 import { useBackgroundColor } from "@/lib/useBackgroundColor";
 import { useTheme } from "@/lib/useTheme";
-import { findCode, getCodeContext } from "@/lib/code-index";
+import { CLASSIFIERS, findCode, getCodeContext } from "@/lib/code-index";
 import {
   BOOKMARK_LIMIT_FREE,
   colors,
   CONTENT_PADDING_HORIZONTAL,
   CONTENT_PADDING_BOTTOM,
+  getClassifierColors,
 } from "@/lib/constants";
 import type { ClassifierType, Folder, LeafCode } from "@/lib/types";
+
+const SECTION_TITLES: Record<ClassifierType, string> = {
+  achi: "Процедури · АКМІ",
+  mkh10: "Діагнози · МКХ-10",
+};
 
 function pluralizeCodes(count: number): string {
   const lastTwo = count % 100;
@@ -34,8 +39,8 @@ function pluralizeCodes(count: number): string {
 }
 
 export default function PinnedScreen() {
-  const { favorites, isLoading } = useFavorites();
-  const { folders, isReady: foldersReady, createFolder } = useFolders();
+  const { getFavorites, isLoading } = useFavorites();
+  const { allFolders, isReady: foldersReady, createFolder } = useFolders();
   const { isPro } = useProStatus();
   const { activeClassifier } = useClassifier();
   const backgroundColor = useBackgroundColor();
@@ -70,9 +75,20 @@ export default function PinnedScreen() {
     );
   }
 
-  const hasFolders = isPro && folders.length > 0;
+  // The active classifier's bookmarks come first
+  const sections = [...CLASSIFIERS]
+    .sort(
+      (a, b) => Number(b === activeClassifier) - Number(a === activeClassifier),
+    )
+    .map((classifier) => ({
+      key: classifier,
+      classifier,
+      data: getFavorites(classifier),
+    }))
+    .filter((section) => section.data.length > 0);
+  const hasFolders = isPro && allFolders.length > 0;
 
-  if (favorites.length === 0 && !hasFolders) {
+  if (sections.length === 0 && !hasFolders) {
     return (
       <ScrollView
         style={{ flex: 1, backgroundColor }}
@@ -82,26 +98,21 @@ export default function PinnedScreen() {
         }}
         contentInsetAdjustmentBehavior="automatic"
       >
-        <ClassifierSwitcher />
         {isPro && <NewFolderButton onPress={handleCreateFolder} />}
         <EmptyState
           icon="bookmark"
           iconColor={colors.amber[500]}
           iconBackgroundColor="rgba(245, 158, 11, 0.15)"
           title="Немає збережених"
-          message={
-            activeClassifier === "mkh10"
-              ? "Натисніть на закладку біля діагнозу, щоб зберегти його тут"
-              : "Натисніть на закладку біля процедури, щоб зберегти її тут"
-          }
+          message="Натисніть на закладку біля процедури чи діагнозу, щоб зберегти їх тут"
         />
       </ScrollView>
     );
   }
 
   return (
-    <FlatList
-      data={favorites}
+    <SectionList
+      sections={sections}
       keyExtractor={(item) => item.code}
       style={{ flex: 1, backgroundColor }}
       contentContainerStyle={{
@@ -110,30 +121,29 @@ export default function PinnedScreen() {
       }}
       contentInsetAdjustmentBehavior="automatic"
       showsVerticalScrollIndicator={false}
+      stickySectionHeadersEnabled={false}
       ListHeaderComponent={
-        <>
-          <ClassifierSwitcher />
-          {isPro && (
-            <FoldersSection
-              folders={folders}
-              onCreateFolder={handleCreateFolder}
-              onOpenFolder={(folder) => router.push(`/folder/${folder.id}`)}
-            />
-          )}
-          {favorites.length > 0 && (
-            <SectionHeader
-              title="Закладки"
-              detail={
-                isPro
-                  ? `${favorites.length}`
-                  : `${favorites.length} з ${BOOKMARK_LIMIT_FREE}`
-              }
-            />
-          )}
-        </>
+        isPro ? (
+          <FoldersSection
+            folders={allFolders}
+            onCreateFolder={handleCreateFolder}
+            onOpenFolder={(folder) => router.push(`/folder/${folder.id}`)}
+          />
+        ) : null
       }
-      renderItem={({ item }) => (
-        <BookmarkCard code={item} classifier={activeClassifier} />
+      renderSectionHeader={({ section }) => (
+        <SectionHeader
+          title={SECTION_TITLES[section.classifier]}
+          color={getClassifierColors(section.classifier).accent600}
+          detail={
+            isPro
+              ? `${section.data.length}`
+              : `${section.data.length} з ${BOOKMARK_LIMIT_FREE}`
+          }
+        />
+      )}
+      renderItem={({ item, section }) => (
+        <BookmarkCard code={item} classifier={section.classifier} />
       )}
     />
   );
@@ -158,7 +168,15 @@ const BookmarkCard = memo(function BookmarkCard({
   );
 });
 
-function SectionHeader({ title, detail }: { title: string; detail?: string }) {
+function SectionHeader({
+  title,
+  detail,
+  color,
+}: {
+  title: string;
+  detail?: string;
+  color?: string;
+}) {
   const { colors: t } = useTheme();
   return (
     <View
@@ -168,14 +186,15 @@ function SectionHeader({ title, detail }: { title: string; detail?: string }) {
         flexDirection: "row",
         alignItems: "baseline",
         justifyContent: "space-between",
+        marginTop: 8,
         marginBottom: 12,
       }}
     >
       <Text
         style={{
           fontSize: 13,
-          fontWeight: "600",
-          color: t.textSecondary,
+          fontWeight: color ? "700" : "600",
+          color: color ?? t.textSecondary,
           textTransform: "uppercase",
           letterSpacing: 0.5,
         }}

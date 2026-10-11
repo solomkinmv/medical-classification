@@ -45,7 +45,7 @@ export function CodeActions({ code, accentColor }: CodeActionsProps) {
           await copyWithName(code);
           markCopied("withName");
         }}
-        style={({ pressed }) => ({
+        style={{
           flexDirection: "row",
           alignItems: "center",
           justifyContent: "center",
@@ -53,8 +53,7 @@ export function CodeActions({ code, accentColor }: CodeActionsProps) {
           minHeight: 50,
           borderRadius: 12,
           backgroundColor: accentColor,
-          opacity: pressed ? 0.8 : 1,
-        })}
+        }}
       >
         <Ionicons
           name={copied === "withName" ? "checkmark" : "copy-outline"}
@@ -108,7 +107,7 @@ function SecondaryAction({
       accessibilityRole="button"
       accessibilityLabel={label}
       onPress={onPress}
-      style={({ pressed }) => ({
+      style={{
         flex: 1,
         flexDirection: "row",
         alignItems: "center",
@@ -118,8 +117,7 @@ function SecondaryAction({
         borderRadius: 12,
         borderWidth: 1,
         borderColor: color,
-        opacity: pressed ? 0.6 : 1,
-      })}
+      }}
     >
       <Ionicons name={icon} size={16} color={color} />
       <Text style={{ color, fontSize: 15, fontWeight: "600" }}>{label}</Text>

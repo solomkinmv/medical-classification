@@ -26,6 +26,7 @@ interface ToggleFavoriteResult {
 interface FavoritesContextType {
   /** Bookmarks of the active classifier with names from the current data */
   favorites: LeafCode[];
+  getFavorites: (classifier: ClassifierType) => LeafCode[];
   isFavorite: (code: string) => boolean;
   /** Bookmarked code that is missing from the current classifier data */
   isRemoved: (code: string) => boolean;
@@ -96,10 +97,14 @@ export function FavoritesProvider({ children }: FavoritesProviderProps) {
     };
   }, []);
 
-  const stored = cache[activeClassifier];
+  const getFavorites = useCallback(
+    (classifier: ClassifierType) =>
+      (cache[classifier] ?? []).map((f) => findCode(f.code)?.leaf ?? f),
+    [cache],
+  );
   const favorites = useMemo(
-    () => (stored ?? []).map((f) => findCode(f.code)?.leaf ?? f),
-    [stored],
+    () => getFavorites(activeClassifier),
+    [getFavorites, activeClassifier],
   );
 
   const isFavorite = useCallback(
@@ -167,6 +172,7 @@ export function FavoritesProvider({ children }: FavoritesProviderProps) {
   const value = useMemo(
     () => ({
       favorites,
+      getFavorites,
       isFavorite,
       isRemoved,
       getSavedCode,
@@ -176,6 +182,7 @@ export function FavoritesProvider({ children }: FavoritesProviderProps) {
     }),
     [
       favorites,
+      getFavorites,
       isFavorite,
       isRemoved,
       getSavedCode,
