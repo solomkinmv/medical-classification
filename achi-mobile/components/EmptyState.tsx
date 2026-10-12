@@ -28,10 +28,7 @@ export function EmptyState({
   const ioniconsName = SF_TO_IONICONS[icon] ?? "help-circle-outline";
 
   return (
-    <View
-      className="flex-1 items-center justify-center px-8"
-      style={{ backgroundColor: t.background }}
-    >
+    <View className="flex-1 items-center justify-center px-8">
       <View
         className="w-20 h-20 rounded-full items-center justify-center mb-4"
         style={{ backgroundColor: iconBackgroundColor }}

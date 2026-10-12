@@ -22,10 +22,7 @@ export function EmptyState({
   const { colors: t } = useTheme();
 
   return (
-    <View
-      className="flex-1 items-center justify-center px-8"
-      style={{ backgroundColor: t.background }}
-    >
+    <View className="flex-1 items-center justify-center px-8">
       <View className="items-center">
         <View
           className="w-20 h-20 rounded-full items-center justify-center mb-4"
