@@ -88,7 +88,7 @@ export default function SearchIndex() {
         <ScrollView
           style={{ flex: 1, backgroundColor }}
           contentContainerStyle={{
-            flexGrow: 1,
+            paddingTop: 48,
             paddingHorizontal: CONTENT_PADDING_HORIZONTAL,
           }}
           contentInsetAdjustmentBehavior="automatic"
@@ -132,7 +132,7 @@ export default function SearchIndex() {
       <ScrollView
         style={{ flex: 1, backgroundColor }}
         contentContainerStyle={{
-          flexGrow: 1,
+          paddingTop: 48,
           paddingHorizontal: CONTENT_PADDING_HORIZONTAL,
         }}
         contentInsetAdjustmentBehavior="automatic"

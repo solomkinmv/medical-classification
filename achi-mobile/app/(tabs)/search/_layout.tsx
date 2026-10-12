@@ -112,6 +112,7 @@ export default function SearchLayout() {
               autoCapitalize: "none",
               inputType: "text",
               autoFocus: true,
+              hideNavigationBar: false,
             },
           }}
         />
